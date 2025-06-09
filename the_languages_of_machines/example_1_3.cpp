@@ -17,47 +17,50 @@ int main()
     devices.emplace_back(new control_t{7, std::move(terminator)});
     devices.emplace_back(new input_t{alphabet});
 
-    std::vector<std::unique_ptr<operation_t>> instruction_set;
+    std::vector<std::shared_ptr<operation_t>> instruction_set;
 
-    character_t eof{0}, a{1}, b{2}; 
+    std::shared_ptr<operation_t> eof{new input_scan_operation_t{0}};
+    std::shared_ptr<operation_t> a{new input_scan_operation_t{1}};
+    std::shared_ptr<operation_t> b{new input_scan_operation_t{2}};
+
     instruction_set.emplace_back(new control_operation_t{0, 1});
-    instruction_set.emplace_back(new input_scan_operation_t{a});
+    instruction_set.emplace_back(a);
     
     instruction_set.emplace_back(new control_operation_t{0, 0});
-    instruction_set.emplace_back(new input_scan_operation_t{b});
+    instruction_set.emplace_back(b);
     
     instruction_set.emplace_back(new control_operation_t{1, 1});
-    instruction_set.emplace_back(new input_scan_operation_t{a});
+    instruction_set.emplace_back(a);
     
     instruction_set.emplace_back(new control_operation_t{1, 2});
-    instruction_set.emplace_back(new input_scan_operation_t{b});
+    instruction_set.emplace_back(b);
     
     instruction_set.emplace_back(new control_operation_t{2, 3});
-    instruction_set.emplace_back(new input_scan_operation_t{a});
+    instruction_set.emplace_back(a);
     
     instruction_set.emplace_back(new control_operation_t{2, 0});
-    instruction_set.emplace_back(new input_scan_operation_t{b});
+    instruction_set.emplace_back(b);
     
     instruction_set.emplace_back(new control_operation_t{3, 1});
-    instruction_set.emplace_back(new input_scan_operation_t{a});
+    instruction_set.emplace_back(a);
     
     instruction_set.emplace_back(new control_operation_t{3, 4});
-    instruction_set.emplace_back(new input_scan_operation_t{b});
+    instruction_set.emplace_back(b);
     
     instruction_set.emplace_back(new control_operation_t{4, 3});
-    instruction_set.emplace_back(new input_scan_operation_t{a});
+    instruction_set.emplace_back(a);
     
     instruction_set.emplace_back(new control_operation_t{4, 5});
-    instruction_set.emplace_back(new input_scan_operation_t{b});
+    instruction_set.emplace_back(b);
     
     instruction_set.emplace_back(new control_operation_t{5, 5});
-    instruction_set.emplace_back(new input_scan_operation_t{a});
+    instruction_set.emplace_back(a);
     
     instruction_set.emplace_back(new control_operation_t{5, 5});
-    instruction_set.emplace_back(new input_scan_operation_t{b});
+    instruction_set.emplace_back(b);
     
     instruction_set.emplace_back(new control_operation_t{5, 6});
-    instruction_set.emplace_back(new input_scan_operation_t{eof});
+    instruction_set.emplace_back(eof);
 
     machine_t machine{std::move(devices), std::move(instruction_set)};
 

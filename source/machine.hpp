@@ -26,9 +26,9 @@ namespace Machine
 
     private:
         std::vector<std::unique_ptr<device_t>> devices_;
-        std::vector<std::unique_ptr<operation_t>> instruction_set_;
-        std::vector<std::unique_ptr<operation_t>> applicable_instructions_{};
-        std::vector<std::vector<std::unique_ptr<operation_t>>::iterator> search_table_{};
+        std::vector<std::shared_ptr<operation_t>> instruction_set_;
+        std::vector<std::shared_ptr<operation_t>> applicable_instructions_{};
+        std::vector<std::vector<std::shared_ptr<operation_t>>::iterator> search_table_{};
         std::vector<string_t> output_{};
         control_t *first_control_{nullptr};
         machine_state_t state_{machine_state_t::invalid};
@@ -36,7 +36,7 @@ namespace Machine
 
     public:
         machine_t(std::vector<std::unique_ptr<device_t>>,
-                  std::vector<std::unique_ptr<operation_t>>);
+                  std::vector<std::shared_ptr<operation_t>>);
         virtual ~machine_t() = default;
 
     public:
@@ -56,7 +56,7 @@ namespace Machine
         void next();
         void next(index_t);
         void run();
-        std::vector<std::span<const std::unique_ptr<operation_t>>> applicable_instructions() const;
+        std::vector<std::span<const std::shared_ptr<operation_t>>> applicable_instructions() const;
         bool terminating() const;
     private:
         void terminate();

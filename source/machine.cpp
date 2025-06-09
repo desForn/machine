@@ -6,11 +6,11 @@
 
 namespace Machine
 {
-    void instruction_set_radix_sort(std::vector<std::unique_ptr<operation_t>> &instruction_set,
+    void instruction_set_radix_sort(std::vector<std::shared_ptr<operation_t>> &instruction_set,
             index_t control_index, index_t n_states, index_t stride)
     {
         std::vector<index_t> count(n_states, 0);
-        std::vector<std::unique_ptr<operation_t>> aux(std::size(instruction_set));
+        std::vector<std::shared_ptr<operation_t>> aux(std::size(instruction_set));
 
         for (auto i = std::cbegin(instruction_set); i != std::cend(instruction_set); i += stride)
             ++count[dynamic_cast<const control_operation_t &>(**(i + control_index)).to()];
@@ -51,7 +51,7 @@ namespace Machine
     }
 
     machine_t::machine_t(std::vector<std::unique_ptr<device_t>> devices,
-            std::vector<std::unique_ptr<operation_t>> instruction_set) :
+            std::vector<std::shared_ptr<operation_t>> instruction_set) :
         devices_{std::move(devices)}, instruction_set_{std::move(instruction_set)}
     {
         index_t n = std::size(devices_);
@@ -69,12 +69,12 @@ namespace Machine
 
             for (j = std::cbegin(instruction_set_); j < i and deterministic_; j += n)
                 deterministic_ = not std::equal(i, i + n, j,
-                    [](const std::unique_ptr<operation_t> &a, const std::unique_ptr<operation_t> &b)
+                    [](const auto &a, const auto &b)
                         { return (*a).intersecting_domain(*b); });
 
             if (deterministic_)
                 deterministic_ = not std::equal(i, i + n, std::cbegin(devices_),
-                    [](const std::unique_ptr<operation_t> &a, const std::unique_ptr<device_t> &b)
+                    [](const auto &a, const auto &b)
                         { return (*a).intersecting_domain((*b).terminator()); });
         }
 
@@ -112,7 +112,7 @@ namespace Machine
     void machine_t::initialise(const string_t &input)
     {
         output_.clear();
-        for (std::unique_ptr<device_t> &device : devices_)
+        for (auto &device : devices_)
             device->initialise(input);
 
         state_ = machine_state_t::running;
@@ -155,10 +155,10 @@ namespace Machine
         return;
     }
 
-    std::vector<std::span<const std::unique_ptr<operation_t>>>
+    std::vector<std::span<const std::shared_ptr<operation_t>>>
         machine_t::applicable_instructions() const
     {
-        std::vector<std::span<const std::unique_ptr<operation_t>>> ret;
+        std::vector<std::span<const std::shared_ptr<operation_t>>> ret;
         index_t n = std::size(devices_);
         for (auto i = std::cbegin(applicable_instructions_);
              i < std::cend(applicable_instructions_); i += n)
