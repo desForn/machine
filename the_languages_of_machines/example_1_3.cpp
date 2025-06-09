@@ -61,6 +61,18 @@ int main()
 
     machine_t machine{std::move(devices), std::move(instruction_set)};
 
+    if constexpr (true)
+    {
+        auto machine_instruction_set = machine.instruction_set();
+        for (auto i = std::cbegin(machine_instruction_set); i != std::cend(machine_instruction_set);
+                i += 2)
+        {
+            std::cout << "From = " << dynamic_cast<const control_operation_t &>(**i).from();
+            std::cout << ";\tTo = " << dynamic_cast<const control_operation_t &>(**i).to();
+            std::cout << std::endl;
+        }
+    }
+
     auto test = [&machine, &alphabet](const std::string &arg) -> void
     {
         string_t string{alphabet};

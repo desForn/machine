@@ -6,6 +6,50 @@
 
 namespace Machine
 {
+    void instruction_set_radix_sort(std::vector<std::unique_ptr<operation_t>> &instruction_set,
+            index_t control_index, index_t n_states, index_t stride)
+    {
+        std::vector<index_t> count(n_states, 0);
+        std::vector<std::unique_ptr<operation_t>> aux(std::size(instruction_set));
+
+        for (auto i = std::cbegin(instruction_set); i != std::cend(instruction_set); i += stride)
+            ++count[dynamic_cast<const control_operation_t &>(**(i + control_index)).to()];
+
+        for (auto i = std::begin(count) + 1; i != std::end(count); ++i)
+            *i += *(i - 1);
+
+        for (auto i = std::end(instruction_set) - stride; i >= std::begin(instruction_set);
+                i -= stride)
+        {
+            index_t to = dynamic_cast<const control_operation_t &>(**(i + control_index)).to();
+
+            for (auto j = i, k = std::begin(aux) + ((count[to] - 1) * stride);
+                    j != i + stride; ++j, ++k)
+                *k = std::move(*j);
+            --count[to];
+        }
+
+        std::ranges::fill(count, 0);
+
+        for (auto i = std::cbegin(aux); i != std::cend(aux); i += stride)
+            ++count[dynamic_cast<const control_operation_t &>(**(i + control_index)).from()];
+
+        for (auto i = std::begin(count) + 1; i != std::end(count); ++i)
+            *i += *(i - 1);
+
+        for (auto i = std::end(aux) - stride; i >= std::begin(aux); i -= stride)
+        {
+            index_t from = dynamic_cast<const control_operation_t &>(**(i + control_index)).from();
+
+            for (auto j = i, k = std::begin(instruction_set) + ((count[from] - 1) * stride);
+                    j != i + stride; ++j, ++k)
+                *k = std::move(*j);
+            --count[from];
+        }
+
+        return;
+    }
+
     machine_t::machine_t(std::vector<std::unique_ptr<device_t>> devices,
             std::vector<std::unique_ptr<operation_t>> instruction_set) :
         devices_{std::move(devices)}, instruction_set_{std::move(instruction_set)}
@@ -46,26 +90,7 @@ namespace Machine
         if (not first_control_)
             return;
 
-        std::vector<index_t> permutation(s / n);
-        std::ranges::iota(permutation, 0);
-        std::ranges::sort(permutation,
-            [this, n, control_index](index_t a, index_t b) -> bool
-            {
-                const control_operation_t &oa = dynamic_cast<const control_operation_t &>
-                    (*instruction_set_[a * n + control_index]);
-                const control_operation_t &ob = dynamic_cast<const control_operation_t &>
-                    (*instruction_set_[b * n + control_index]);
-
-                if (oa.from() != ob.from())
-                    return oa.from() < ob.from();
-                return oa.to() < ob.to();
-            });
-        std::vector<std::unique_ptr<operation_t>> sorted(s);
-        for (index_t i = 0; i != s / n; ++i)
-            for (index_t j = 0; j != n; ++j)
-                sorted[permutation[i] * n + j] = std::move(instruction_set_[i * n + j]);
-
-        instruction_set_ = std::move(sorted);
+        instruction_set_radix_sort(instruction_set_, control_index, first_control_->n_states(), n);
 
         for (auto i = std::begin(instruction_set_) + control_index; i < std::end(instruction_set_);
              i += n)
