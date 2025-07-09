@@ -11,17 +11,17 @@ int main()
     const alphabet_t alphabet{3};
     std::vector<std::unique_ptr<device_t>> devices;
 
-    std::unique_ptr<control_terminator_t> terminator {new
-        control_terminator_recogniser_t{std::array<index_t, 1>{6}, std::array<index_t, 0>{}}};
+    std::unordered_map<index_t, string_t> terminating_states;
+    terminating_states[6] = string_t{"Accept"};
 
-    devices.emplace_back(new control_t{7, std::move(terminator)});
+    devices.emplace_back(new control_t{std::move(terminating_states)});
     devices.emplace_back(new input_t{alphabet});
 
     std::vector<std::shared_ptr<operation_t>> instruction_set;
 
-    std::shared_ptr<operation_t> eof{new input_scan_operation_t{0}};
-    std::shared_ptr<operation_t> a{new input_scan_operation_t{1}};
-    std::shared_ptr<operation_t> b{new input_scan_operation_t{2}};
+    std::shared_ptr<operation_t> eof{new input_operation_scan_t{0}};
+    std::shared_ptr<operation_t> a{new input_operation_scan_t{1}};
+    std::shared_ptr<operation_t> b{new input_operation_scan_t{2}};
 
     instruction_set.emplace_back(new control_operation_t{0, 1});
     instruction_set.emplace_back(a);
@@ -64,18 +64,6 @@ int main()
 
     machine_t machine{std::move(devices), std::move(instruction_set)};
 
-    if constexpr (true)
-    {
-        auto machine_instruction_set = machine.instruction_set();
-        for (auto i = std::cbegin(machine_instruction_set); i != std::cend(machine_instruction_set);
-                i += 2)
-        {
-            std::cout << "From = " << dynamic_cast<const control_operation_t &>(**i).from();
-            std::cout << ";\tTo = " << dynamic_cast<const control_operation_t &>(**i).to();
-            std::cout << std::endl;
-        }
-    }
-
     auto test = [&machine, &alphabet](const std::string &arg) -> void
     {
         string_t string{alphabet};
@@ -110,3 +98,4 @@ int main()
 
     return 0;
 }
+

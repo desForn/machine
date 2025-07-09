@@ -60,12 +60,33 @@ namespace Machine
             throw std::invalid_argument
                 {"In machine_t::machine_t(std::vector<device_t>, std::vector<operation_t>)."};
 
+        index_t control_index = 0;
+        for (auto i = std::cbegin(devices_); i != std::cend(devices_);
+                ++i, ++control_index)
+            if (typeid(**i) == typeid(control_t))
+            {
+                first_control_ = dynamic_cast<control_t *>(i->get());
+                break;
+            }
+
+        index_t n_states_first_control = 0;
+        if (first_control_)
+            n_states_first_control = first_control_->initialiser().initial_state();
+
         for (auto i = std::cbegin(instruction_set_); i < std::cend(instruction_set_); i += n)
         {
             auto j = i;
             for (auto k = std::cbegin(devices_); k != std::cend(devices_); ++k, ++j)
                 if (not (**j).correct_device(**k))
                     throw invalid_operation{**k, **j};
+
+            if (first_control_)
+            {
+                const control_operation_t &control_operation = 
+                        dynamic_cast<const control_operation_t &>(**(i + control_index));
+                n_states_first_control = std::max(n_states_first_control,
+                        std::max(control_operation.from(), control_operation.to()));
+            }
 
             for (j = std::cbegin(instruction_set_); j < i and deterministic_; j += n)
                 deterministic_ = not std::equal(i, i + n, j,
@@ -78,25 +99,18 @@ namespace Machine
                         { return (*a).intersecting_domain((*b).terminator()); });
         }
 
-        index_t control_index = 0;
-        for (auto i = std::cbegin(devices_); i != std::cend(devices_);
-                ++i, ++control_index)
-            if (typeid(**i) == typeid(control_t))
-            {
-                first_control_ = dynamic_cast<control_t *>(i->get());
-                break;
-            }
-
         if (not first_control_)
             return;
 
-        instruction_set_radix_sort(instruction_set_, control_index, first_control_->n_states(), n);
+        ++n_states_first_control;
+
+        instruction_set_radix_sort(instruction_set_, control_index, n_states_first_control, n);
 
         for (auto i = std::begin(instruction_set_) + control_index; i < std::end(instruction_set_);
              i += n)
             while (dynamic_cast<control_operation_t &>(**i).from() >= std::size(search_table_))
                 search_table_.emplace_back(i - control_index);
-        while (first_control_->n_states() >= std::size(search_table_))
+        while (n_states_first_control >= std::size(search_table_))
             search_table_.emplace_back(std::end(instruction_set_));
 
         return;
@@ -233,27 +247,12 @@ namespace Machine
     string_t device_t::terminate()
         { return terminator().terminate(*this); }
 
-    string_t terminator_t::terminate(const device_t &arg) const
-    {
-        if (not terminating(arg))
-            throw invalid_terminator(*this, arg);
-        return terminate_impl(arg);
-    }
-
-    void operation_t::apply(device_t &device) const
-    {
-        if (not applicable(device))
-            throw invalid_operation(device, *this);
-        apply_impl(device);
-        return;
-    }
-
     noop_t *noop_t::clone() const { return new noop_t{}; }
     bool noop_t::applicable(const device_t &) const { return true; }
+    void noop_t::apply(device_t &) const { return; }
     bool noop_t::correct_device(const device_t &) const { return true; }
     bool noop_t::intersecting_domain(const operation_t &) const { return true; }
     bool noop_t::intersecting_domain(const terminator_t &) const { return true; }
-    void noop_t::apply_impl(device_t &) const { return; }
 
     invalid_operation::invalid_operation(const device_t &device, const operation_t &operation) :
         device_(device), operation_(operation) {}

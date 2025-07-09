@@ -31,11 +31,12 @@ namespace Machine
     class string_t
     {
     private:
-        alphabet_t alphabet_;
+        alphabet_t alphabet_{0};
         std::vector<character_t> string_{};
         index_t pos_{negative_1};
 
     public:
+        string_t();
         string_t(const alphabet_t &);
         string_t(const alphabet_t &, std::vector<character_t>);
         string_t(const std::string &);
@@ -48,6 +49,8 @@ namespace Machine
 
         index_t get_pos();
         void set_pos(index_t);
+
+        string_t &clear();
 
         const alphabet_t &alphabet() const;
         std::string to_ascii() const;

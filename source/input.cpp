@@ -6,18 +6,20 @@ namespace Machine
     input_initialiser_t *input_initialiser_t::clone() const { return new input_initialiser_t{}; }
 
     void input_initialiser_t::initialise(device_t &device, const string_t &string) const
-    {
-        dynamic_cast<input_t &>(device).string() = string;
-        return;
-    }
+        { dynamic_cast<input_t &>(device).string() = string; }
 
     input_terminator_t *input_terminator_t::clone() const { return new input_terminator_t{}; }
 
     bool input_terminator_t::terminating(const device_t &device) const
-    { return dynamic_cast<const input_t &>(device).string().empty(); }
+        { return dynamic_cast<const input_t &>(device).string().empty(); }
 
-    string_t input_terminator_t::terminate_impl(const device_t &device) const
-        { return {dynamic_cast<const input_t &>(device).alphabet()}; }
+    string_t input_terminator_t::terminate(const device_t &device) const
+    {
+        if (not terminating(device))
+            throw invalid_terminator(*this, device);
+
+        return {dynamic_cast<const input_t &>(device).alphabet()};
+    }
 
     input_initialiser_t input_t::initialiser_{};
     input_terminator_t input_t::terminator_{};
@@ -34,30 +36,95 @@ namespace Machine
     const string_t &input_t::string() const { return string_; }
     const alphabet_t &input_t::alphabet() const { return string_.alphabet(); }
 
-    input_operation_t::~input_operation_t() {}
-
     bool input_operation_t::correct_device(const device_t &device) const
         { return typeid(device) == typeid(input_t); }
 
-    bool input_operation_t::intersecting_domain(const terminator_t &) const
-        { return false; }
-
-    input_scan_operation_t::input_scan_operation_t(character_t character) :
+    input_operation_scan_t::input_operation_scan_t(character_t character) :
         character_{character} {}
 
-    input_scan_operation_t *input_scan_operation_t::clone() const
-        { return new input_scan_operation_t{*this}; }
+    input_operation_scan_t *input_operation_scan_t::clone() const
+        { return new input_operation_scan_t{*this}; }
 
-    bool input_scan_operation_t::applicable(const device_t &device) const
+    bool input_operation_scan_t::applicable(const device_t &device) const
         { return dynamic_cast<const input_t &>(device).string().see() == character_; }
 
-    bool input_scan_operation_t::intersecting_domain(const operation_t &arg) const
-        { return character_ == dynamic_cast<const input_scan_operation_t &>(arg).character_; }
-
-    void input_scan_operation_t::apply_impl(device_t &device) const
+    void input_operation_scan_t::apply(device_t &device) const
     {
+        if (not applicable(device))
+            throw invalid_operation(device, *this);
+
         dynamic_cast<input_t &>(device).string().pop();
         return;
     }
+
+    bool input_operation_scan_t::intersecting_domain(const operation_t &operation) const
+    {
+        if (typeid(operation) == typeid(input_operation_scan_t))
+            return character_ ==
+                dynamic_cast<const input_operation_scan_t &>(operation).character();
+        if (typeid(operation) == typeid(input_operation_next_t))
+            return character_ ==
+                dynamic_cast<const input_operation_next_t &>(operation).character();
+        if (typeid(operation) == typeid(input_operation_eof_t))
+            return false;
+
+        throw std::runtime_error(
+                "In input_operation_scan_t::intersecting_domain(const operation_t &).");
+    }
+
+    bool input_operation_scan_t::intersecting_domain(const terminator_t &) const { return false; }
+
+    character_t input_operation_scan_t::character() const { return character_; }
+
+    input_operation_next_t::input_operation_next_t(character_t character) : character_{character} {}
+
+    input_operation_next_t *input_operation_next_t::clone() const
+        { return new input_operation_next_t{*this}; }
+
+    bool input_operation_next_t::applicable(const device_t &device) const
+        { return dynamic_cast<const input_t &>(device).string().see() == character_; }
+
+    void input_operation_next_t::apply(device_t &device) const
+    {
+        if (not applicable(device))
+            throw invalid_operation(device, *this);
+
+        return;
+    }
+
+    bool input_operation_next_t::intersecting_domain(const operation_t &operation) const
+    {
+        if (typeid(operation) == typeid(input_operation_next_t))
+            return character_ ==
+                dynamic_cast<const input_operation_next_t &>(operation).character();
+        if (typeid(operation) == typeid(input_operation_next_t))
+            return character_ ==
+                dynamic_cast<const input_operation_next_t &>(operation).character();
+        if (typeid(operation) == typeid(input_operation_eof_t))
+            return false;
+
+        throw std::runtime_error(
+                "In input_operation_next_t::intersecting_domain(const operation_t &).");
+    }
+
+    bool input_operation_next_t::intersecting_domain(const terminator_t &) const { return false; }
+
+    character_t input_operation_next_t::character() const { return character_; }
+
+    input_operation_eof_t *input_operation_eof_t::clone() const
+        { return new input_operation_eof_t{*this}; }
+
+    bool input_operation_eof_t::applicable(const device_t &device) const
+        { return dynamic_cast<const input_t &>(device).string().empty(); }
+
+    void input_operation_eof_t::apply(device_t &device) const
+    {
+        if (not applicable(device))
+            throw invalid_operation(device, *this);
+        return;
+    }
+
+    bool input_operation_eof_t::intersecting_domain(const operation_t &) const { return false; }
+    bool input_operation_eof_t::intersecting_domain(const terminator_t &) const { return true; }
 }
 

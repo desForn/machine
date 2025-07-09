@@ -5,6 +5,9 @@ namespace Machine
 {
     class input_t;
     class input_operation_t;
+    class input_operation_next_t;
+    class input_operation_next_t;
+    class input_operation_eof_t;
     class input_initialiser_t;
     class input_terminator_t;
 
@@ -24,9 +27,7 @@ namespace Machine
 
     public:
         bool terminating(const device_t &) const override;
-
-    private:
-        string_t terminate_impl(const device_t &) const override;
+        string_t terminate(const device_t &) const override;
     };
 
     class input_t final : public device_t
@@ -55,28 +56,61 @@ namespace Machine
     class input_operation_t : public operation_t
     {
     public:
-        virtual ~input_operation_t() = 0;
+        virtual ~input_operation_t() = default;
 
     public:
         bool correct_device(const device_t &) const override;
-        bool intersecting_domain(const terminator_t &) const override;
-        using operation_t::intersecting_domain;
     };
 
-    class input_scan_operation_t final : public input_operation_t 
+    class input_operation_scan_t final : public input_operation_t 
     {
     private:
         character_t character_;
 
     public:
-        input_scan_operation_t(character_t);
-        input_scan_operation_t *clone() const override;
+        input_operation_scan_t(character_t);
+        input_operation_scan_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
+        void apply(device_t &) const override;
+
         bool intersecting_domain(const operation_t &) const override;
+        bool intersecting_domain(const terminator_t &) const override;
+
+        character_t character() const;
+    };
+
+    class input_operation_next_t final : public input_operation_t 
+    {
     private:
-        void apply_impl(device_t &) const override;
+        character_t character_;
+
+    public:
+        input_operation_next_t(character_t);
+        input_operation_next_t *clone() const override;
+
+    public:
+        bool applicable(const device_t &) const override;
+        void apply(device_t &) const override;
+
+        bool intersecting_domain(const operation_t &) const override;
+        bool intersecting_domain(const terminator_t &) const override;
+
+        character_t character() const;
+    };
+
+    class input_operation_eof_t final : public input_operation_t 
+    {
+    public:
+        input_operation_eof_t *clone() const override;
+
+    public:
+        bool applicable(const device_t &) const override;
+        void apply(device_t &) const override;
+
+        bool intersecting_domain(const operation_t &) const override;
+        bool intersecting_domain(const terminator_t &) const override;
     };
 }
 

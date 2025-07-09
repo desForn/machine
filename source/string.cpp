@@ -7,6 +7,7 @@ namespace Machine
     alphabet_t::alphabet_t(character_t n_characters) : n_characters_{n_characters} {}
     character_t alphabet_t::n_characters() const { return n_characters_; }
 
+    string_t::string_t() {}
     string_t::string_t(const alphabet_t &alphabet) : alphabet_{alphabet} {}
     string_t::string_t(const alphabet_t &alphabet, std::vector<character_t> string) :
         alphabet_{alphabet}, string_{std::move(string)}
@@ -62,6 +63,8 @@ namespace Machine
         pos_ = pos;
         return;
     }
+
+    string_t &string_t::clear() { string_.clear(); pos_ = negative_1; return *this; }
 
     const alphabet_t &string_t::alphabet() const { return alphabet_; }
 

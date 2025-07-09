@@ -87,13 +87,11 @@ namespace Machine
 
     public:
         virtual bool applicable(const device_t &) const = 0;
-        void apply(device_t &) const;
+        virtual void apply(device_t &) const = 0;
 
         virtual bool correct_device(const device_t &) const = 0;
         virtual bool intersecting_domain(const operation_t &) const = 0;
         virtual bool intersecting_domain(const terminator_t &) const = 0;
-    protected:
-        virtual void apply_impl(device_t &) const = 0;
     };
 
     class noop_t final : public operation_t
@@ -103,12 +101,11 @@ namespace Machine
 
     public:
         bool applicable(const device_t &) const override;
+        void apply(device_t &) const override;
 
         bool correct_device(const device_t &) const override;
         bool intersecting_domain(const operation_t &) const override;
         bool intersecting_domain(const terminator_t &) const override;
-    private:
-        void apply_impl(device_t &) const;
        
     };
 
@@ -130,9 +127,7 @@ namespace Machine
 
     public:
         virtual bool terminating(const device_t &) const = 0;
-        string_t terminate(const device_t &) const;
-    protected:
-        virtual string_t terminate_impl(const device_t &) const = 0;
+        virtual string_t terminate(const device_t &) const = 0;
     };
 
     class invalid_operation : public std::exception
