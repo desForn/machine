@@ -32,7 +32,12 @@ namespace Machine
 
     bool string_t::empty() const { return pos_ == negative_1; }
 
-    character_t string_t::see() const { return string_[pos_]; }
+    character_t string_t::see() const
+    {
+        if (pos_ == negative_1)
+            throw read_past_eof_t{};
+        return string_[pos_];
+    }
 
     character_t string_t::pop()
     {
@@ -53,14 +58,29 @@ namespace Machine
         return;
     }
 
-    index_t string_t::get_pos()
-        { return pos_; }
+    index_t string_t::get_pos() { return pos_; }
 
     void string_t::set_pos(index_t pos)
     {
-        if (pos >= std::size(string_))
+        if (not (pos_ == negative_1 and std::empty(string_) or pos_ < std::size(string_)))
             throw string_overflow_t{};
         pos_ = pos;
+        return;
+    }
+
+    void string_t::move_l()
+    {
+        if (pos_ == negative_1)
+            throw read_past_eof_t{};
+        --pos_;
+        return;
+    }
+
+    void string_t::move_r(character_t default_character)
+    {
+        if (pos_ == std::size(string_) - 1)
+            string_.push_back(default_character);
+        ++pos_;
         return;
     }
 
@@ -79,5 +99,8 @@ namespace Machine
 
         return ret;
     }
+
+    std::vector<character_t> &string_t::data() { return string_; }
+    const std::vector<character_t> &string_t::data() const { return string_; }
 }
 

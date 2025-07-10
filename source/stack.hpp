@@ -16,7 +16,7 @@ namespace Machine
     class stack_terminator_empty_t;
     class stack_terminator_string_t;
 
-    class stack_initialiser_t final : public initialiser_t
+    class stack_initialiser_t : public initialiser_t
     {
     public:
         virtual ~stack_initialiser_t() = default;
@@ -44,7 +44,7 @@ namespace Machine
         virtual ~stack_terminator_t() = default;
     };
 
-    class stack_terminator_empty_t : public stack_terminator_t
+    class stack_terminator_empty_t final : public stack_terminator_t
     {
     public:
         stack_terminator_empty_t *clone() const override;
@@ -53,7 +53,7 @@ namespace Machine
         string_t terminate(const device_t &) const override;
     };
 
-    class stack_terminator_string_t : public stack_terminator_t
+    class stack_terminator_string_t final : public stack_terminator_t
     {
     public:
         stack_terminator_string_t *clone() const override;

@@ -11,9 +11,10 @@ namespace Machine
     class ascii_alphabet_t;
     class string_t;
 
-    class read_past_eof_t : public std::exception {};
     class invalid_character_t : public std::exception {};
+    class invalid_alphabet_t : public std::exception {};
     class string_overflow_t : public std::exception {};
+    class read_past_eof_t : public std::exception {};
 
     class alphabet_t
     {
@@ -33,7 +34,7 @@ namespace Machine
     private:
         alphabet_t alphabet_{0};
         std::vector<character_t> string_{};
-        index_t pos_{negative_1};
+        index_t pos_{std::size(string_) - 1};
 
     public:
         string_t();
@@ -49,11 +50,17 @@ namespace Machine
 
         index_t get_pos();
         void set_pos(index_t);
+        void move_l();
+        void move_r(character_t);
+        void print(character_t);
 
         string_t &clear();
 
         const alphabet_t &alphabet() const;
         std::string to_ascii() const;
+
+        std::vector<character_t> &data();
+        const std::vector<character_t> &data() const;
     };
 }
 

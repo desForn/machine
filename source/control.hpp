@@ -26,7 +26,7 @@ namespace Machine
         index_t initial_state() const;
     };
 
-    class control_terminator_t : public terminator_t
+    class control_terminator_t final : public terminator_t
     {
     private:
         std::unordered_map<index_t, string_t> terminating_states_;
