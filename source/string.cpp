@@ -58,11 +58,11 @@ namespace Machine
         return;
     }
 
-    index_t string_t::get_pos() { return pos_; }
+    index_t string_t::get_pos() const { return pos_; }
 
     void string_t::set_pos(index_t pos)
     {
-        if (not (pos_ == negative_1 and std::empty(string_) or pos_ < std::size(string_)))
+        if (not ((pos_ == negative_1 and std::empty(string_)) or pos_ < std::size(string_)))
             throw string_overflow_t{};
         pos_ = pos;
         return;
@@ -84,6 +84,13 @@ namespace Machine
         return;
     }
 
+    void string_t::print(character_t character)
+    {
+        if (pos_ == negative_1)
+            throw read_past_eof_t{};
+        string_[pos_] = character;
+    }
+
     string_t &string_t::clear() { string_.clear(); pos_ = negative_1; return *this; }
 
     const alphabet_t &string_t::alphabet() const { return alphabet_; }
@@ -102,5 +109,34 @@ namespace Machine
 
     std::vector<character_t> &string_t::data() { return string_; }
     const std::vector<character_t> &string_t::data() const { return string_; }
+
+    std::strong_ordering string_t::operator<=>(const string_t &arg) const
+    {
+        if (alphabet_ != arg.alphabet_)
+            throw std::runtime_error{"In string_t::operator<=>(const string_t &) const."};
+
+
+        for(auto i = std::crbegin(string_), j = std::crbegin(arg.string_); ;++i, ++j)
+        {
+            if (i == std::crend(string_))
+            {
+                if (j == std::crend(arg.string_))
+                    return std::strong_ordering::equivalent;
+                return std::strong_ordering::less;
+            }
+            if (j == std::crend(arg.string_))
+                return std::strong_ordering::greater;
+
+            if (*i < *j)
+                return std::strong_ordering::less;
+            if (*j < *i)
+                return std::strong_ordering::greater;
+        }
+    }
+
+    bool string_t::operator==(const string_t &arg) const
+        { return (*this <=> arg) == std::strong_ordering::equivalent; }
+
+    bool string_t::operator!=(const string_t &arg) const { return not (*this == arg); }
 }
 

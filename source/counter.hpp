@@ -1,5 +1,5 @@
 #pragma once
-#include "machine"
+#include "machine.hpp"
 
 namespace Machine
 {
@@ -23,9 +23,10 @@ namespace Machine
     {
     public:
         virtual ~counter_initialiser_t() = default;
+        counter_initialiser_t *clone() const override = 0;
     };
 
-    class counter_initialiser_zero_t final : public initialiser_t
+    class counter_initialiser_zero_t final : public counter_initialiser_t
     {
     public:
         counter_initialiser_zero_t *clone() const override;
@@ -34,7 +35,7 @@ namespace Machine
         void initialise(device_t &, const string_t &) const override;
     };
 
-    class counter_initialiser_ascii_t final : public initialiser_t
+    class counter_initialiser_ascii_t final : public counter_initialiser_t
     {
     public:
         counter_initialiser_ascii_t *clone() const override;
@@ -43,7 +44,7 @@ namespace Machine
         void initialise(device_t &, const string_t &) const override;
     };
 
-    class counter_initialiser_b_ary_t final : public initialiser_t
+    class counter_initialiser_b_ary_t final : public counter_initialiser_t
     {
     public:
         counter_initialiser_b_ary_t *clone() const override;
@@ -52,7 +53,7 @@ namespace Machine
         void initialise(device_t &, const string_t &) const override;
     };
 
-    class counter_initialiser_b_adic_t final : public initialiser_t
+    class counter_initialiser_b_adic_t final : public counter_initialiser_t
     {
     public:
         counter_initialiser_b_adic_t *clone() const override;
@@ -65,6 +66,7 @@ namespace Machine
     {
     public:
         virtual ~counter_terminator_t() = default;
+        counter_terminator_t *clone() const override = 0;
     };
 
     class counter_terminator_zero_t final : public counter_terminator_t
@@ -77,10 +79,10 @@ namespace Machine
         string_t terminate(const device_t &) const override;
     };
 
-    class counter_terminator_all_t final : public counter_terminator_t
+    class counter_terminator_string_t final : public counter_terminator_t
     {
     public:
-        counter_terminator_all_t *clone() const override;
+        counter_terminator_string_t *clone() const override;
 
     public:
         bool terminating(const device_t &) const override;
@@ -95,6 +97,15 @@ namespace Machine
         integer_t state_{};
 
     public:
+        counter_t() = delete;
+        ~counter_t() = default;
+
+        counter_t(const counter_t &);
+        counter_t &operator=(const counter_t &);
+
+        counter_t(counter_t &&) noexcept = default;
+        counter_t &operator=(counter_t &&) noexcept = default;
+
         counter_t(const counter_initialiser_t &, const counter_terminator_t &);
         counter_t(std::unique_ptr<counter_initialiser_t>, std::unique_ptr<counter_terminator_t>);
 
@@ -120,7 +131,7 @@ namespace Machine
     class counter_operation_inc_t : public counter_operation_t
     {
     public:
-        counter_operation_int_t *clone() const override;
+        counter_operation_inc_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
@@ -133,7 +144,7 @@ namespace Machine
     class counter_operation_dec_t : public counter_operation_t
     {
     public:
-        counter_operation_int_t *clone() const override;
+        counter_operation_dec_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
@@ -146,7 +157,7 @@ namespace Machine
     class counter_operation_zero_t : public counter_operation_t
     {
     public:
-        counter_operation_int_t *clone() const override;
+        counter_operation_zero_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
@@ -159,7 +170,7 @@ namespace Machine
     class counter_operation_pos_t : public counter_operation_t
     {
     public:
-        counter_operation_int_t *clone() const override;
+        counter_operation_pos_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
@@ -172,7 +183,7 @@ namespace Machine
     class counter_operation_neg_t : public counter_operation_t
     {
     public:
-        counter_operation_int_t *clone() const override;
+        counter_operation_neg_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;

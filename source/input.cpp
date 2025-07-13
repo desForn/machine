@@ -6,7 +6,14 @@ namespace Machine
     input_initialiser_t *input_initialiser_t::clone() const { return new input_initialiser_t{}; }
 
     void input_initialiser_t::initialise(device_t &device, const string_t &string) const
-        { dynamic_cast<input_t &>(device).string() = string; }
+    {
+        string_t &string_ = dynamic_cast<input_t &>(device).string();
+        if (string_.alphabet() != string.alphabet())
+            throw std::runtime_error(
+                    "In input_initialiser_t::initialise(device_t &, cons string_t &)");
+        string_ = string;
+        return;
+    }
 
     input_terminator_t *input_terminator_t::clone() const { return new input_terminator_t{}; }
 
@@ -16,9 +23,9 @@ namespace Machine
     string_t input_terminator_t::terminate(const device_t &device) const
     {
         if (not terminating(device))
-            throw invalid_terminator(*this, device);
+            throw invalid_terminator_t(*this, device);
 
-        return {dynamic_cast<const input_t &>(device).alphabet()};
+        return {};
     }
 
     input_initialiser_t input_t::initialiser_{};
@@ -51,7 +58,7 @@ namespace Machine
     void input_operation_scan_t::apply(device_t &device) const
     {
         if (not applicable(device))
-            throw invalid_operation(device, *this);
+            throw invalid_operation_t(*this, device);
 
         dynamic_cast<input_t &>(device).string().pop();
         return;
@@ -87,7 +94,7 @@ namespace Machine
     void input_operation_next_t::apply(device_t &device) const
     {
         if (not applicable(device))
-            throw invalid_operation(device, *this);
+            throw invalid_operation_t(*this, device);
 
         return;
     }
@@ -120,7 +127,7 @@ namespace Machine
     void input_operation_eof_t::apply(device_t &device) const
     {
         if (not applicable(device))
-            throw invalid_operation(device, *this);
+            throw invalid_operation_t(*this, device);
         return;
     }
 

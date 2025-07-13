@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <span>
+#include <iostream>
+#include <fstream>
 
 namespace Machine
 {
@@ -13,8 +15,8 @@ namespace Machine
     class operation_t;
     class noop_t;
 
-    class invalid_operation;
-    class invalid_terminator;
+    class invalid_operation_t;
+    class invalid_terminator_t;
 
     class control_t;
 
@@ -33,11 +35,25 @@ namespace Machine
         control_t *first_control_{nullptr};
         machine_state_t state_{machine_state_t::invalid};
         bool deterministic_ = true;
+        alphabet_t alphabet_;
 
     public:
-        machine_t(std::vector<std::unique_ptr<device_t>>,
-                  std::vector<std::shared_ptr<operation_t>>);
+        machine_t() = delete;
         virtual ~machine_t() = default;
+
+        machine_t(const machine_t &) = delete;
+        machine_t &operator=(const machine_t &) = delete;
+
+        machine_t(machine_t &&) noexcept = default;
+        machine_t &operator=(machine_t &&) noexcept = default;
+
+        machine_t(std::istream &);
+        machine_t(std::vector<std::unique_ptr<device_t>>,
+                  std::vector<std::shared_ptr<operation_t>>, alphabet_t = alphabet_t{256});
+
+    public:
+        machine_t &load(std::istream &);
+        void store(std::ostream &) const;
 
     public:
         decltype(auto) devices(this auto &&self)
@@ -47,6 +63,7 @@ namespace Machine
             { return std::span(std::begin(self.instruction_set_),
                                std::end(self.instruction_set_)); };
 
+        const alphabet_t &alphabet() const;
         std::span<const string_t> output() const;
         bool deterministic() const;
         machine_state_t state() const;
@@ -130,28 +147,28 @@ namespace Machine
         virtual string_t terminate(const device_t &) const = 0;
     };
 
-    class invalid_operation : public std::exception
+    class invalid_operation_t : public std::exception
     {
     private:
-        const device_t &device_;
         const operation_t &operation_;
+        const device_t &device_;
 
     public:
-        invalid_operation(const device_t &, const operation_t &);
+        invalid_operation_t(const operation_t &, const device_t &);
 
     public:
-        const device_t &device() const;
         const operation_t &operation() const;
+        const device_t &device() const;
     };
 
-    class invalid_terminator : public std::exception
+    class invalid_terminator_t : public std::exception
     {
     private:
         const terminator_t &terminator_;
         const device_t &device_;
 
     public:
-        invalid_terminator(const terminator_t &, const device_t &);
+        invalid_terminator_t(const terminator_t &, const device_t &);
 
     public:
         const terminator_t &terminator() const;

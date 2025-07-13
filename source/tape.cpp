@@ -22,13 +22,13 @@ namespace Machine
         return;
     }
 
-    tape_terminator_zero_t *tape_terminator_zero_t::clone() const
-        { return new tape_terminator_zero_t{*this}; }
+    tape_terminator_empty_t *tape_terminator_empty_t::clone() const
+        { return new tape_terminator_empty_t{*this}; }
 
     bool tape_terminator_empty_t::terminating(const device_t &device) const
         { return dynamic_cast<const tape_t &>(device).string().empty(); }
 
-    string_t tape_terminator_empty_t(const device_t &device) const
+    string_t tape_terminator_empty_t::terminate(const device_t &device) const
         { return {dynamic_cast<const tape_t &>(device).alphabet()}; }
 
     tape_terminator_string_t *tape_terminator_string_t::clone() const
@@ -36,16 +36,16 @@ namespace Machine
 
     bool tape_terminator_string_t::terminating(const device_t &) const { return true; }
 
-    string_t tape_terminator_string_t(const device_t &device) const
+    string_t tape_terminator_string_t::terminate(const device_t &device) const
         { return dynamic_cast<const tape_t &>(device).string(); }
 
     tape_t::tape_t(const tape_t &arg) :
         string_{arg.string_},
         default_character_{arg.default_character_},
         initialiser_{arg.initialiser_->clone()},
-        terminator_{arg.terminator_->clone()}
+        terminator_{arg.terminator_->clone()} {}
 
-    tape_t &operator=(const tape_t &arg)
+    tape_t &tape_t::operator=(const tape_t &arg)
     {
         string_ = arg.string_;
         default_character_ = arg.default_character_;
@@ -61,7 +61,7 @@ namespace Machine
         initialiser_{initialiser.clone()},
         terminator_{terminator.clone()}
     {
-        if (default_character >= string_.alphabet().n_characters)
+        if (default_character >= string_.alphabet().n_characters())
             throw invalid_character_t{};
 
         string_.push(default_character_);
@@ -70,14 +70,14 @@ namespace Machine
     }
 
     tape_t::tape_t(const alphabet_t &alphabet, character_t default_character,
-            std::unique_ptr<tape_initialiser_t> &initialiser
-            std::unique_ptr<tape_terminator_t> &terminator) :
+            std::unique_ptr<tape_initialiser_t> initialiser,
+            std::unique_ptr<tape_terminator_t> terminator) :
         string_{alphabet},
         default_character_{default_character},
         initialiser_{std::move(initialiser)},
         terminator_{std::move(terminator)}
     {
-        if (default_character >= string_.alphabet().n_characters)
+        if (default_character >= string_.alphabet().n_characters())
             throw invalid_character_t{};
 
         string_.push(default_character_);
@@ -89,10 +89,12 @@ namespace Machine
 
     const alphabet_t &tape_t::alphabet() const { return string_.alphabet(); }
 
+    character_t tape_t::default_character() const { return default_character_; }
+
     string_t &tape_t::string() { return string_; }
     const string_t &tape_t::string() const { return string_; }
-    const tape_intialiser_t &initialiser() const { return *initialiser_; }
-    const tape_terminator_t &terminator() const { return *terminator_; }
+    const tape_initialiser_t &tape_t::initialiser() const { return *initialiser_; }
+    const tape_terminator_t &tape_t::terminator() const { return *terminator_; }
 
     bool tape_operation_t::correct_device(const device_t &device) const
         { return typeid(device) == typeid(tape_t); }
@@ -114,7 +116,7 @@ namespace Machine
     void tape_operation_see_t::apply(device_t &device) const
     {
         if (not applicable(device))
-            throw invalid_operation{*this, device};
+            throw invalid_operation_t{*this, device};
         return;
     }
 
@@ -125,8 +127,9 @@ namespace Machine
         return true;
     }
 
-    bool tape_operation_see_t::intersecting_domain(const terminator_t &terminator) const
-        { return true; }
+    bool tape_operation_see_t::intersecting_domain(const terminator_t &) const { return true; }
+
+    character_t tape_operation_see_t::character() const { return character_; }
 
     tape_operation_print_t::tape_operation_print_t(character_t character) : character_{character} {}
 
@@ -139,7 +142,7 @@ namespace Machine
             character_ < dynamic_cast<const tape_t &>(device).alphabet().n_characters();
     }
 
-    bool tape_operation_print_t::applicable(const device_t &device) const { return true; }
+    bool tape_operation_print_t::applicable(const device_t &) const { return true; }
 
     void tape_operation_print_t::apply(device_t &device) const
     {
@@ -147,67 +150,66 @@ namespace Machine
         return;
     }
 
-    bool tape_operation_print_t::intersecting_domain(const operation_t &operation) const
-        { return true; }
+    bool tape_operation_print_t::intersecting_domain(const operation_t &) const { return true; }
+    bool tape_operation_print_t::intersecting_domain(const terminator_t &) const { return true; }
 
-    bool tape_operation_print_t::intersecting_domain(const terminator_t &terminator) const
-        { return true; }
+    character_t tape_operation_print_t::character() const { return character_; }
 
     tape_operation_move_l_t *tape_operation_move_l_t::clone() const
         { return new tape_operation_move_l_t{*this}; }
 
-    bool tape_operation_move_l::applicable(const device_t &device) const
+    bool tape_operation_move_l_t::applicable(const device_t &device) const
         { return dynamic_cast<const tape_t &>(device).string().get_pos() != 0; }
 
-    void tape_operation_move_l::apply(device_t &device) const
+    void tape_operation_move_l_t::apply(device_t &device) const
     {
-        index_t pos = dynamic_cast<tape_t &>(device).get_pos();
+        index_t pos = dynamic_cast<tape_t &>(device).string().get_pos();
         
         if (pos == 0)
-            throw invalid_operation{*this, device};
+            throw invalid_operation_t{*this, device};
 
-        dynamic_cast<tape_t &>(device).set_pos(--pos);
+        dynamic_cast<tape_t &>(device).string().set_pos(--pos);
 
         return;
     }
 
-    bool tape_operation_move_l::intersecting_domain(const operation_t &operation) const
-    { return typeid(operation) != typeid(tape_operation_athome_t) and }
+    bool tape_operation_move_l_t::intersecting_domain(const operation_t &operation) const
+        { return typeid(operation) != typeid(tape_operation_athome_t); }
 
-    bool tape_operation_move_l::intersecting_domain(const terminator_t &terminator) const
-        { return typeid(teminator) != typeid(tape_terminator_empty_t); }
+    bool tape_operation_move_l_t::intersecting_domain(const terminator_t &terminator) const
+        { return typeid(terminator) != typeid(tape_terminator_empty_t); }
 
     tape_operation_move_r_t *tape_operation_move_r_t::clone() const
         { return new tape_operation_move_r_t{*this}; }
 
-    bool tape_operation_move_r::applicable(const device_t &device) const { return true; }
+    bool tape_operation_move_r_t::applicable(const device_t &) const { return true; }
 
-    void tape_operation_move_r::apply(device_t &device) const
+    void tape_operation_move_r_t::apply(device_t &device) const
     {
         tape_t &tape = dynamic_cast<tape_t &>(device);
 
-        if (tape.get_pos() == std::size(tape.data()) - 1)
-            tape.string.push(default_character);
+        if (tape.string().get_pos() == std::size(tape.string().data()) - 1)
+            tape.string().push(tape.default_character());
 
         else
-            tape.set_pos(++tape.get_pos());
+            tape.string().set_pos(tape.string().get_pos() + 1);
 
         return;
     }
 
-    bool tape_operation_move_r::intersecting_domain(const operation_t &) const
+    bool tape_operation_move_r_t::intersecting_domain(const operation_t &) const
         { return true; }
 
-    bool tape_operation_move_r::intersecting_domain(const terminator_t &) const
+    bool tape_operation_move_r_t::intersecting_domain(const terminator_t &) const
         { return true; }
 
     tape_operation_athome_t *tape_operation_athome_t::clone() const
         { return new tape_operation_athome_t{*this}; }
 
-    bool tape_operation_athome::applicable(const device_t &device) const
+    bool tape_operation_athome_t::applicable(const device_t &device) const
     { return dynamic_cast<const tape_t &>(device).string().get_pos() == 0; }
 
-    void tape_operation_athome::apply(device_t &device) const
+    void tape_operation_athome_t::apply(device_t &device) const
     {
         if (not applicable(device))
             throw invalid_operation_t{*this, device};
@@ -215,10 +217,10 @@ namespace Machine
         return;
     }
 
-    bool tape_operation_athome::intersecting_domain(const operation_t &operation) const
-        { return typeid(operation) != typeid(tape_operation_move_l); }
+    bool tape_operation_athome_t::intersecting_domain(const operation_t &operation) const
+        { return typeid(operation) != typeid(tape_operation_move_l_t); }
 
-    bool tape_operation_athome::intersecting_domain(const terminator_t &) const
+    bool tape_operation_athome_t::intersecting_domain(const terminator_t &) const
         { return true; }
 }
 

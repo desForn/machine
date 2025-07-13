@@ -5,7 +5,7 @@ namespace Machine
 {
     class input_t;
     class input_operation_t;
-    class input_operation_next_t;
+    class input_operation_scan_t;
     class input_operation_next_t;
     class input_operation_eof_t;
     class input_initialiser_t;

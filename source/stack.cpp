@@ -5,37 +5,44 @@ namespace Machine
     stack_initialiser_empty_t *stack_initialiser_empty_t::clone() const
         { return new stack_initialiser_empty_t{*this}; }
     void stack_initialiser_empty_t::initialise(device_t &device, const string_t &) const
-        { dynamic_cast<stack_t &>(device).string().clear() }
+        { dynamic_cast<stack_t &>(device).string().clear(); }
 
     stack_initialiser_string_t *stack_initialiser_string_t::clone() const
         { return new stack_initialiser_string_t{*this}; }
     void stack_initialiser_string_t::initialise(device_t &device, const string_t &string) const
-        { dynamic_cast<stack_t &>(device).string() = string; }
+    {
+        string_t &string_ = dynamic_cast<stack_t &>(device).string();
+        if (string_.alphabet() != string.alphabet())
+            throw std::runtime_error(
+                    "In stack_initialiser_t::initialise(device_t &, cons string_t &)");
+        string_ = string;
+        return;
+    }
 
     stack_terminator_empty_t *stack_terminator_empty_t::clone() const
         { return new stack_terminator_empty_t{*this}; }
     bool stack_terminator_empty_t::terminating(const device_t &device) const
-        { return dynamic_cast<const stack_t &>(device).string().empty() }
+        { return dynamic_cast<const stack_t &>(device).string().empty(); }
     string_t stack_terminator_empty_t::terminate(const device_t &device) const
         { return dynamic_cast<const stack_t &>(device).string(); }
 
     stack_terminator_string_t *stack_terminator_string_t::clone() const
         { return new stack_terminator_string_t{*this}; }
-    bool stack_terminator_string_t::terminating(const device_t &device) const
+    bool stack_terminator_string_t::terminating(const device_t &) const
         { return true; }
     string_t stack_terminator_string_t::terminate(const device_t &device) const
         { return dynamic_cast<const stack_t &>(device).string(); }
 
     stack_t::stack_t(const stack_t &arg) :
         string_{arg.string_},
-        initialiser_{arg.initiliser_->clone()},
+        initialiser_{arg.initialiser_->clone()},
         terminator_{arg.terminator_->clone()} {}
 
     stack_t &stack_t::operator=(const stack_t &arg)
     {
         string_ = arg.string_;
         initialiser_.reset(arg.initialiser_->clone());
-        teminator_.reset(arg.terminator_->clone());
+        terminator_.reset(arg.terminator_->clone());
         return *this;
     }
 
@@ -54,7 +61,7 @@ namespace Machine
 
     stack_t *stack_t::clone() const { return new stack_t{*this}; }
 
-    const alphabet_t &alphabet() const { return string_.alphabet(); }
+    const alphabet_t &stack_t::alphabet() const { return string_.alphabet(); }
     string_t &stack_t::string() { return string_; }
     const string_t &stack_t::string() const { return string_; }
     const stack_initialiser_t &stack_t::initialiser() const { return *initialiser_; }
@@ -75,19 +82,21 @@ namespace Machine
     bool stack_operation_push_t::intersecting_domain(const operation_t &) const { return true; }
     bool stack_operation_push_t::intersecting_domain(const terminator_t &) const { return true; }
 
+    character_t stack_operation_push_t::character() const { return character_; }
+
     stack_operation_pop_t::stack_operation_pop_t(character_t character) :
         character_{character} {}
     stack_operation_pop_t *stack_operation_pop_t::clone() const
         { return new stack_operation_pop_t{*this}; }
 
-    bool stack_operation_pop_t::applicable(const device_t &) const
+    bool stack_operation_pop_t::applicable(const device_t &device) const
         { return dynamic_cast<const stack_t &>(device).string().see() == character_; }
     void stack_operation_pop_t::apply(device_t &device) const
     {
         if (not applicable(device))
-            throw invalid_operation(device, *this);
+            throw invalid_operation_t(*this, device);
 
-        dynamic_cast<stack_t &>(device).string().pop(character_);
+        dynamic_cast<stack_t &>(device).string().pop();
         return;
     }
 
@@ -117,17 +126,19 @@ namespace Machine
                 "In stack_operation_pop_t::intersecting_domain(const terminator_t &).");
     }
 
+    character_t stack_operation_pop_t::character() const { return character_; }
+
     stack_operation_top_t::stack_operation_top_t(character_t character) :
         character_{character} {}
     stack_operation_top_t *stack_operation_top_t::clone() const
         { return new stack_operation_top_t{*this}; }
 
-    bool stack_operation_top_t::applicable(const device_t &) const
+    bool stack_operation_top_t::applicable(const device_t &device) const
         { return dynamic_cast<const stack_t &>(device).string().see() == character_; }
     void stack_operation_top_t::apply(device_t &device) const
     {
         if (not applicable(device))
-            throw invalid_operation(device, *this);
+            throw invalid_operation_t(*this, device);
 
         return;
     }
@@ -147,7 +158,9 @@ namespace Machine
                 "In stack_operation_top_t::intersecting_domain(const operation_t &).");
     }
 
-    bool stack_operation_top_t::intersecting_domain(const terminator_t &) const
+    character_t stack_operation_top_t::character() const { return character_; }
+
+    bool stack_operation_top_t::intersecting_domain(const terminator_t &terminator) const
     {
         if (typeid(terminator) == typeid(stack_terminator_empty_t))
             return false;
@@ -167,7 +180,7 @@ namespace Machine
     void stack_operation_empty_t::apply(device_t &device) const
     {
         if (not applicable(device))
-            throw invalid_operation(device, *this);
+            throw invalid_operation_t(*this, device);
         return;
     }
 
@@ -186,7 +199,7 @@ namespace Machine
                 "In stack_operation_empty_t::intersecting_domain(const operation_t &).");
     }
 
-    bool stack_operation_empty_t::intersecting_domain(const terminator_t &terminator) const
+    bool stack_operation_empty_t::intersecting_domain(const terminator_t &) const
         { return true; }
 }
 

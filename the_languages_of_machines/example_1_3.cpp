@@ -8,7 +8,7 @@ int main()
 {
     using namespace Machine;
 
-    const alphabet_t alphabet{3};
+    /*const alphabet_t alphabet{3};
     std::vector<std::unique_ptr<device_t>> devices;
 
     std::unordered_map<index_t, string_t> terminating_states;
@@ -62,11 +62,15 @@ int main()
     instruction_set.emplace_back(new control_operation_t{5, 6});
     instruction_set.emplace_back(eof);
 
-    machine_t machine{std::move(devices), std::move(instruction_set)};
+    machine_t machine{std::move(devices), std::move(instruction_set)};*/
+    std::ifstream stream{"example_1_3.m"};
+    machine_t machine(stream);
+    std::ofstream ostream{"example_1_3_o.m"};
+    machine.store(ostream);
 
-    auto test = [&machine, &alphabet](const std::string &arg) -> void
+    auto test = [&machine](const std::string &arg) -> void
     {
-        string_t string{alphabet};
+        string_t string{machine.alphabet()};
         string.push(0);
         for (auto i = std::crbegin(arg); i != std::crend(arg); ++i)
         {

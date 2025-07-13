@@ -1,5 +1,5 @@
 #pragma once
-#include "machine"
+#include "machine.hpp"
 
 namespace Machine
 {
@@ -16,15 +16,16 @@ namespace Machine
     class unsigned_counter_initialiser_b_adic_t;
     class unsigned_counter_terminator_t;
     class unsigned_counter_terminator_zero_t;
-    class unsigned_counter_terminator_all_t;
+    class unsigned_counter_terminator_string_t;
 
     class unsigned_counter_initialiser_t : public initialiser_t
     {
     public:
         virtual ~unsigned_counter_initialiser_t() = default;
+        unsigned_counter_initialiser_t *clone() const override = 0;
     };
 
-    class unsigned_counter_initialiser_zero_t final : public initialiser_t
+    class unsigned_counter_initialiser_zero_t final : public unsigned_counter_initialiser_t
     {
     public:
         unsigned_counter_initialiser_zero_t *clone() const override;
@@ -33,7 +34,7 @@ namespace Machine
         void initialise(device_t &, const string_t &) const override;
     };
 
-    class unsigned_counter_initialiser_ascii_t final : public initialiser_t
+    class unsigned_counter_initialiser_ascii_t final : public unsigned_counter_initialiser_t
     {
     public:
         unsigned_counter_initialiser_ascii_t *clone() const override;
@@ -42,7 +43,7 @@ namespace Machine
         void initialise(device_t &, const string_t &) const override;
     };
 
-    class unsigned_counter_initialiser_b_ary_t final : public initialiser_t
+    class unsigned_counter_initialiser_b_ary_t final : public unsigned_counter_initialiser_t
     {
     public:
         unsigned_counter_initialiser_b_ary_t *clone() const override;
@@ -51,7 +52,7 @@ namespace Machine
         void initialise(device_t &, const string_t &) const override;
     };
 
-    class unsigned_counter_initialiser_b_adic_t final : public initialiser_t
+    class unsigned_counter_initialiser_b_adic_t final : public unsigned_counter_initialiser_t
     {
     public:
         unsigned_counter_initialiser_b_adic_t *clone() const override;
@@ -64,6 +65,7 @@ namespace Machine
     {
     public:
         virtual ~unsigned_counter_terminator_t() = default;
+        unsigned_counter_terminator_t *clone() const override = 0;
     };
 
     class unsigned_counter_terminator_zero_t final : public unsigned_counter_terminator_t
@@ -76,10 +78,10 @@ namespace Machine
         string_t terminate(const device_t &) const override;
     };
 
-    class unsigned_counter_terminator_all_t final : public unsigned_counter_terminator_t
+    class unsigned_counter_terminator_string_t final : public unsigned_counter_terminator_t
     {
     public:
-        unsigned_counter_terminator_all_t *clone() const override;
+        unsigned_counter_terminator_string_t *clone() const override;
 
     public:
         bool terminating(const device_t &) const override;
@@ -94,6 +96,15 @@ namespace Machine
         index_t state_{};
 
     public:
+        unsigned_counter_t() = delete;
+        ~unsigned_counter_t() = default;
+
+        unsigned_counter_t(const unsigned_counter_t &);
+        unsigned_counter_t &operator=(const unsigned_counter_t &);
+
+        unsigned_counter_t(unsigned_counter_t &&) noexcept = default;
+        unsigned_counter_t &operator=(unsigned_counter_t &&) noexcept = default;
+
         unsigned_counter_t(const unsigned_counter_initialiser_t &,
                            const unsigned_counter_terminator_t &);
 
@@ -122,7 +133,7 @@ namespace Machine
     class unsigned_counter_operation_inc_t : public unsigned_counter_operation_t
     {
     public:
-        unsigned_counter_operation_int_t *clone() const override;
+        unsigned_counter_operation_inc_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
@@ -135,7 +146,7 @@ namespace Machine
     class unsigned_counter_operation_dec_t : public unsigned_counter_operation_t
     {
     public:
-        unsigned_counter_operation_int_t *clone() const override;
+        unsigned_counter_operation_dec_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
@@ -148,7 +159,7 @@ namespace Machine
     class unsigned_counter_operation_zero_t : public unsigned_counter_operation_t
     {
     public:
-        unsigned_counter_operation_int_t *clone() const override;
+        unsigned_counter_operation_zero_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
@@ -161,7 +172,7 @@ namespace Machine
     class unsigned_counter_operation_non_zero_t : public unsigned_counter_operation_t
     {
     public:
-        unsigned_counter_operation_int_t *clone() const override;
+        unsigned_counter_operation_non_zero_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;

@@ -7,8 +7,8 @@ namespace Machine
     class tape_operation_t;
     class tape_operation_see_t;
     class tape_operation_print_t;
-    class tape_operation_move_l;
-    class tape_operation_move_r;
+    class tape_operation_move_l_t;
+    class tape_operation_move_r_t;
     class tape_operation_athome_t;
     class tape_initialiser_t;
     class tape_initialiser_empty_t;
@@ -21,7 +21,8 @@ namespace Machine
     {
     public:
         virtual ~tape_initialiser_t() = default;
-    }
+        tape_initialiser_t *clone() const override = 0;
+    };
 
     class tape_initialiser_empty_t final : public tape_initialiser_t
     {
@@ -43,6 +44,7 @@ namespace Machine
     {
     public:
         virtual ~tape_terminator_t() = default;
+        tape_terminator_t *clone() const override = 0;
     };
 
     class tape_terminator_empty_t final : public tape_terminator_t
@@ -89,6 +91,7 @@ namespace Machine
             
     public:
         const alphabet_t &alphabet() const;
+        character_t default_character() const;
         string_t &string();
         const string_t &string() const;
         const tape_initialiser_t &initialiser() const override;
@@ -134,6 +137,7 @@ namespace Machine
         tape_operation_print_t *clone() const override;
 
     public:
+        bool correct_device(const device_t &) const override;
         bool applicable(const device_t &) const override;
         void apply(device_t &) const override;
 

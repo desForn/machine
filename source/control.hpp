@@ -39,6 +39,7 @@ namespace Machine
         bool terminating(const device_t &) const override;
         string_t terminate(const device_t &) const override;
         bool terminating_state(index_t) const;
+        const std::unordered_map<index_t, string_t> &terminating_states() const;
     };
 
     class control_t final : public device_t

@@ -17,7 +17,7 @@ namespace Machine
         void initialise(device_t &, const string_t &) const override;
     };
 
-    class output_terminator_t final : public output_t
+    class output_terminator_t final : public terminator_t
     {
     public:
         output_terminator_t *clone() const override;

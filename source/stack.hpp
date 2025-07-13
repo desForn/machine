@@ -20,6 +20,7 @@ namespace Machine
     {
     public:
         virtual ~stack_initialiser_t() = default;
+        stack_initialiser_t *clone() const override = 0;
     };
 
     class stack_initialiser_empty_t final : public stack_initialiser_t
@@ -42,6 +43,7 @@ namespace Machine
     {
     public:
         virtual ~stack_terminator_t() = default;
+        stack_terminator_t *clone() const override = 0;
     };
 
     class stack_terminator_empty_t final : public stack_terminator_t

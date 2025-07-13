@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <compare>
 
 namespace Machine
 {
@@ -19,14 +20,17 @@ namespace Machine
     class alphabet_t
     {
     private:
-        character_t n_characters_;
+        character_t n_characters_{0};
 
     public:
         virtual ~alphabet_t() = default;
 
     public:
+        alphabet_t() = default;
         alphabet_t(character_t n_characters);
         character_t n_characters() const;
+        bool operator==(const alphabet_t &) const = default;
+        bool operator!=(const alphabet_t &) const = default;
     };
 
     class string_t
@@ -48,7 +52,7 @@ namespace Machine
         character_t pop();
         void push(character_t);
 
-        index_t get_pos();
+        index_t get_pos() const;
         void set_pos(index_t);
         void move_l();
         void move_r(character_t);
@@ -61,6 +65,10 @@ namespace Machine
 
         std::vector<character_t> &data();
         const std::vector<character_t> &data() const;
+
+        std::strong_ordering operator<=>(const string_t &) const;
+        bool operator==(const string_t &) const;
+        bool operator!=(const string_t &) const;
     };
 }
 
