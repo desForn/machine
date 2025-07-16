@@ -408,9 +408,16 @@ namespace Machine
         { return std::ranges::all_of(arg, [](char a){ return a >= '0' and a <= '9'; }); }
 
     machine_t::machine_t(std::vector<std::unique_ptr<device_t>> devices,
-            std::vector<std::shared_ptr<operation_t>> instruction_set, alphabet_t alphabet) :
+            std::vector<std::shared_ptr<operation_t>> instruction_set,
+            const encoder_t &encoder) :
+        machine_t{std::move(devices), std::move(instruction_set),
+            std::unique_ptr<encoder_t>(encoder.clone())} {}
+
+    machine_t::machine_t(std::vector<std::unique_ptr<device_t>> devices,
+            std::vector<std::shared_ptr<operation_t>> instruction_set,
+            std::unique_ptr<encoder_t> encoder) :
         devices_{std::move(devices)}, instruction_set_{std::move(instruction_set)},
-        alphabet_{alphabet}
+        encoder_{std::move(encoder)}
     {
         index_t n = std::size(devices_);
         index_t s = std::size(instruction_set_);
@@ -524,9 +531,12 @@ namespace Machine
             std::string token;
 
             token = read_token(stream);
+            if (token != "alphabetic")
+                throw input_error;
+            token = read_token(stream);
             if (not is_number(token))
                 throw input_error;
-            alphabet_ = alphabet_t{static_cast<character_t>(std::stoll(token))};
+            encoder_.reset(new encoder_alphabetical_t{static_cast<character_t>(std::stoll(token))});
 
             token = read_token(stream);
             if (token != ";")
@@ -586,11 +596,7 @@ namespace Machine
 
                     case 1:
                     {
-                        token = read_token(stream);
-                        if (not is_number(token))
-                            throw input_error;
-                        devices_.emplace_back(new input_t{alphabet_t
-                                {static_cast<character_t>(std::stoll(token))}});
+                        devices_.emplace_back(new input_t{alphabet()});
                         token = read_token(stream);
                         if (token != ";")
                             throw input_error;
@@ -766,7 +772,7 @@ namespace Machine
                 catch (std::ios_base::failure &)
                 {
                     *this = machine_t{std::move(devices_), std::move(instruction_set_),
-                        std::move(alphabet_)};
+                        std::move(encoder_)};
                     return;
                 }
             }
@@ -814,9 +820,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -832,9 +838,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -863,9 +869,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -881,9 +887,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -899,9 +905,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -917,9 +923,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -1065,9 +1071,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -1083,9 +1089,9 @@ namespace Machine
                                 throw input_error;
 
                             token = read_token(stream);
-                            if (not is_number(token))
+                            if (std::size(token) != 1)
                                 throw input_error;
-                            character_t c = static_cast<character_t>(std::stoll(token));
+                            character_t c = (*encoder_)(token[0]);
 
                             token = read_token(stream);
                             if (token != ";")
@@ -1146,13 +1152,13 @@ namespace Machine
                 catch (std::ios_base::failure &)
                 {
                     *this = machine_t{std::move(devices_), std::move(instruction_set_),
-                        std::move(alphabet_)};
+                        std::move(encoder_)};
                     return;
                 }
             }
 
             *this = machine_t{std::move(devices_), std::move(instruction_set_),
-                std::move(alphabet_)};
+                std::move(encoder_)};
 
             return;
         }
@@ -1170,7 +1176,7 @@ namespace Machine
         std::ostringstream stream;
         static const std::runtime_error output_error{"In machine_t::store(std::ostream &)."};
 
-        stream << alphabet_.n_characters() << ";\n";
+        stream << "alphabetic " << alphabet().n_characters() << ";\n";
         for (const auto &i : devices_)
         {
             if (typeid(*i) == typeid(control_t))
@@ -1205,8 +1211,7 @@ namespace Machine
             }
 
             else if (typeid(*i) == typeid(input_t))
-                stream << "input " << dynamic_cast<const input_t &>(*i).alphabet().n_characters()
-                    << ";\n";
+                stream << "input;\n";
 
             else if (typeid(*i) == typeid(output_t))
                 stream << "output " << dynamic_cast<const output_t &>(*i).alphabet().n_characters()
@@ -1317,6 +1322,7 @@ namespace Machine
         stream << '\n';
 
         index_t c = 0;
+        index_t last_control_state = 0;
         for (const auto &i : instruction_set_)
         {
             constexpr index_t instruction_length = 20;
@@ -1326,21 +1332,29 @@ namespace Machine
             {
                 const control_operation_t &op =
                     dynamic_cast<const control_operation_t &>(*i);
+                if (&(*devices_[c]) == first_control_)
+                    if (op.from() != last_control_state)
+                    {
+                        stream << '\n';
+                        last_control_state = op.from();
+                    }
+
                 instruction << op.from() << " to " << op.to() << ';';
+
             }
 
             else if (typeid(*i) == typeid(input_operation_scan_t))
             {
                 const input_operation_scan_t &op =
                     dynamic_cast<const input_operation_scan_t &>(*i);
-                instruction << "scan " << op.character() << ';';
+                instruction << "scan " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(input_operation_next_t))
             {
                 const input_operation_next_t &op =
                     dynamic_cast<const input_operation_next_t &>(*i);
-                instruction << "next " << op.character() << ';';
+                instruction << "next " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(input_operation_eof_t))
@@ -1350,28 +1364,28 @@ namespace Machine
             {
                 const output_operation_write_t &op =
                     dynamic_cast<const output_operation_write_t &>(*i);
-                instruction << "write " << op.character() << ';';
+                instruction << "write " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(stack_operation_push_t))
             {
                 const stack_operation_push_t &op =
                     dynamic_cast<const stack_operation_push_t &>(*i);
-                instruction << "push " << op.character() << ';';
+                instruction << "push " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(stack_operation_pop_t))
             {
                 const stack_operation_pop_t &op =
                     dynamic_cast<const stack_operation_pop_t &>(*i);
-                instruction << "pop " << op.character() << ';';
+                instruction << "pop " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(stack_operation_top_t))
             {
                 const stack_operation_top_t &op =
                     dynamic_cast<const stack_operation_top_t &>(*i);
-                instruction << "top " << op.character() << ';';
+                instruction << "top " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(stack_operation_empty_t))
@@ -1408,14 +1422,14 @@ namespace Machine
             {
                 const tape_operation_see_t &op =
                     dynamic_cast<const tape_operation_see_t &>(*i);
-                instruction << "see " << op.character() << ';';
+                instruction << "see " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(tape_operation_print_t))
             {
                 const tape_operation_print_t &op =
                     dynamic_cast<const tape_operation_print_t &>(*i);
-                instruction << "print " << op.character() << ';';
+                instruction << "print " << encoder()(op.character()) << ';';
             }
 
             else if (typeid(*i) == typeid(tape_operation_move_l_t))
@@ -1445,11 +1459,12 @@ namespace Machine
             stream << instruction.str();
         }
 
-        arg << stream.str();
+        arg << stream.str() << '\n';
         return;
     }
 
-    const alphabet_t &machine_t::alphabet() const { return alphabet_; }
+    const encoder_t &machine_t::encoder() const { return *encoder_; }
+    const alphabet_t &machine_t::alphabet() const { return encoder().alphabet(); }
 
     std::span<const string_t> machine_t::output() const
         { return {std::begin(output_), std::end(output_)}; }
@@ -1458,9 +1473,18 @@ namespace Machine
 
     machine_t::machine_state_t machine_t::state() const { return state_; }
 
+    void machine_t::initialise(const std::string &input)
+    {
+        string_t string{alphabet()};
+        for (auto i = std::crbegin(input); i != std::crend(input); ++i)
+            string.push(encoder()(*i));
+        initialise(string);
+        return;
+    }
+
     void machine_t::initialise(const string_t &input)
     {
-        if (input.alphabet() != alphabet_)
+        if (input.alphabet() != alphabet())
             throw invalid_alphabet_t{};
 
         output_.clear();

@@ -16,14 +16,15 @@ counter and unsigned_counter
     In the signed case, it is ill-formed an input where '-' appears not at the beginning
 
 parser
-    The program must start with a number n followed by ; which stands for the alphabet used for the
-input string which is used to initialise the machine by initialise_t::initialise
+    The program must start with the encoder type e and the alphabet number n:
+        e n;
+    e must be alphabetic and n < 26
 
     The program continues specifying the devices in order which can be one of the following:
     Control with i inital state and nij terminating states, each returning the string si
         control i : s0, n00, n01, ... : s1, n10, n11, ...;
-    Input with alphabet n
-        input n;
+    Input with alphabet given by the encoder
+        input;
     Output with alphabet n
         output n;
     Stack with alphabet n and initialiser and terminators i and t which can be "empty" or "string"

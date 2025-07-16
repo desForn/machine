@@ -1,11 +1,12 @@
 CXX ?= g++
-CXXFLAGS ?= -std=c++26 -Wall -Wextra -pedantic
+CXXFLAGS ?= -std=c++26 -Wall -Wextra -pedantic -g
 SRC_DIR ?= ../source/
 OBJ_DIR ?= ../object/
 
 OBJECTS = \
 	${OBJ_DIR}machine.o \
 	${OBJ_DIR}string.o \
+	${OBJ_DIR}encoder.o \
 	${OBJ_DIR}control.o \
 	${OBJ_DIR}input.o \
 	${OBJ_DIR}output.o \

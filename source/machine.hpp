@@ -1,10 +1,10 @@
 #pragma once
-#include "string.hpp"
-
 #include <memory>
 #include <span>
 #include <iostream>
 #include <fstream>
+
+#include "encoder.hpp"
 
 namespace Machine
 {
@@ -32,10 +32,10 @@ namespace Machine
         std::vector<std::shared_ptr<operation_t>> applicable_instructions_{};
         std::vector<std::vector<std::shared_ptr<operation_t>>::iterator> search_table_{};
         std::vector<string_t> output_{};
+        std::unique_ptr<encoder_t> encoder_;
         control_t *first_control_{nullptr};
         machine_state_t state_{machine_state_t::invalid};
         bool deterministic_ = true;
-        alphabet_t alphabet_;
 
     public:
         machine_t() = delete;
@@ -49,7 +49,11 @@ namespace Machine
 
         machine_t(std::istream &);
         machine_t(std::vector<std::unique_ptr<device_t>>,
-                  std::vector<std::shared_ptr<operation_t>>, alphabet_t = alphabet_t{256});
+                  std::vector<std::shared_ptr<operation_t>>,
+                  const encoder_t &encoder = encoder_alphabetical_t{26});
+        machine_t(std::vector<std::unique_ptr<device_t>>,
+                  std::vector<std::shared_ptr<operation_t>>,
+                  std::unique_ptr<encoder_t>);
 
     public:
         machine_t &load(std::istream &);
@@ -63,12 +67,14 @@ namespace Machine
             { return std::span(std::begin(self.instruction_set_),
                                std::end(self.instruction_set_)); };
 
+        const encoder_t &encoder() const;
         const alphabet_t &alphabet() const;
         std::span<const string_t> output() const;
         bool deterministic() const;
         machine_state_t state() const;
 
     public:
+        void initialise(const std::string &);
         void initialise(const string_t &);
         void next();
         void next(index_t);
