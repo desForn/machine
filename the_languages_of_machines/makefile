@@ -15,14 +15,14 @@ OBJECTS = \
 	${OBJ_DIR}counter.o \
 	${OBJ_DIR}tape.o
 
-programs = example_1_3
+programs = run
 all : ${programs}
 
 objects : ${SRC_DIR}*
 	cd ${OBJ_DIR} && ${MAKE}
 
-example_1_3 : example_1_3.cpp objects
-	${CXX} ${CXXFLAGS} -I ${SRC_DIR} -o example_1_3 ${OBJECTS} example_1_3.cpp
+run : run.cpp objects
+	${CXX} ${CXXFLAGS} -I ${SRC_DIR} -o run ${OBJECTS} run.cpp
 
 clean :
 	rm ${programs}

@@ -1,4 +1,4 @@
-alphabetic 3;
+alphabetic 2;
 control 0 : Accept, 6;
 input;
 
