@@ -49,6 +49,7 @@ namespace Machine
     public:
         bool empty() const;
         character_t see() const;
+        bool see(character_t) const;
         character_t pop();
         void push(character_t);
 

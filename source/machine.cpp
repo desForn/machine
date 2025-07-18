@@ -51,6 +51,7 @@ namespace Machine
 
     std::shared_ptr<operation_t> operation(index_t operation_id, index_t operation_argument)
     {
+        static const std::runtime_error error{"In operation(const std::array<index_t, 2> &)."};
         static std::unordered_map<std::array<index_t, 2>, std::shared_ptr<operation_t>, hash> map;
 
         const std::array<index_t, 2> arg{operation_id, operation_argument};
@@ -61,13 +62,26 @@ namespace Machine
 
         switch (arg[0])
         {
+            case 7:
+            {
+                if (arg[1] != 0)
+                    throw error;
+
+                auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
+                        arg, std::shared_ptr<operation_t>(new
+                        noop_operation_t{})});
+                if (not a.second)
+                    throw error;
+                return a.first->second;
+            }
+
             case 8:
             {
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         input_operation_scan_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
@@ -77,20 +91,20 @@ namespace Machine
                         arg, std::shared_ptr<operation_t>(new
                         input_operation_next_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 10:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         input_operation_eof_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
@@ -100,7 +114,7 @@ namespace Machine
                         arg, std::shared_ptr<operation_t>(new
                         output_operation_write_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
@@ -110,7 +124,7 @@ namespace Machine
                         arg, std::shared_ptr<operation_t>(new
                         stack_operation_push_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
@@ -120,7 +134,7 @@ namespace Machine
                         arg, std::shared_ptr<operation_t>(new
                         stack_operation_pop_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
@@ -130,137 +144,137 @@ namespace Machine
                         arg, std::shared_ptr<operation_t>(new
                         stack_operation_top_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 15:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         stack_operation_empty_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 16:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         unsigned_counter_operation_inc_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 17:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         unsigned_counter_operation_dec_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 18:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         unsigned_counter_operation_zero_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 19:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         unsigned_counter_operation_non_zero_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 20:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         counter_operation_inc_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 21:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         counter_operation_dec_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 22:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         counter_operation_zero_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 23:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         counter_operation_pos_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 24:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         counter_operation_neg_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
@@ -270,7 +284,7 @@ namespace Machine
                         arg, std::shared_ptr<operation_t>(new
                         tape_operation_see_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
@@ -280,57 +294,1092 @@ namespace Machine
                         arg, std::shared_ptr<operation_t>(new
                         tape_operation_print_t{static_cast<character_t>(arg[1])})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 27:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         tape_operation_move_l_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 28:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         tape_operation_move_r_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             case 29:
             {
                 if (arg[1] != 0)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
 
                 auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
                         arg, std::shared_ptr<operation_t>(new
                         tape_operation_athome_t{})});
                 if (not a.second)
-                    throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                    throw error;
                 return a.first->second;
             }
 
             default:
-                throw std::runtime_error{"In operation(const std::array<index_t, 2> &)."};
+                throw error;
         }
+    }
+
+    std::string read_token(std::istream &stream)
+    {
+        std::string ret{};
+
+        char a;
+        stream.get(a);
+        while (std::isspace(a))
+            stream.get(a);
+         
+        while (a == '/')
+        {
+            while (a < 10 or a > 13)
+                stream.get(a);
+            while (std::isspace(a))
+                stream.get(a);
+        }
+        ret += a;
+
+        if (std::ispunct(a))
+            return ret;
+
+        stream.get(a);
+        while(not std::ispunct(a) and not std::isspace(a))
+        {
+            ret += a;
+            stream.get(a);
+        }
+        stream.unget();
+
+        return ret;
+    }
+
+    bool is_number(const std::string &arg)
+        { return std::ranges::all_of(arg, [](char a){ return a >= '0' and a <= '9'; }); }
+
+    std::unique_ptr<encoder_t> read_encoder(std::istream &stream)
+    {
+        static const std::runtime_error error{
+            "In read_encoder(std::istream &):\nInvalid input"};
+
+        std::unique_ptr<encoder_t> ret;
+        std::string token = read_token(stream);
+        if (token == "alphabetic")
+        {
+            token = read_token(stream);
+            if (not is_number(token))
+                throw error;
+            character_t c = static_cast<character_t>(std::stoll(token));
+
+            token = read_token(stream);
+            if (token != ";")
+                throw error;
+
+            ret = std::unique_ptr<encoder_t>{new encoder_alphabetic_t{c}};
+        }
+
+        else if (token == "list")
+        {
+            std::vector<char> list;
+            
+            for (token = read_token(stream); token != ";"; token = read_token(stream))
+            {
+                if (std::size(token) != 1)
+                    throw error;
+                list.emplace_back(token[0]);
+            }
+
+            ret = std::unique_ptr<encoder_t>{new encoder_list_t{std::move(list)}};
+        }
+
+        else if (token == "ascii")
+        {
+            token = read_token(stream);
+            if (token != ";")
+                throw error;
+
+            ret = std::unique_ptr<encoder_t>{new encoder_ascii_t{}};
+        }
+
+        else
+           throw error;
+
+       return ret; 
+    }
+
+    std::string print_encoder(const encoder_t &encoder)
+    {
+        static const std::runtime_error error{"In print_encoder(const encoder_t &)."};
+
+        std::string ret;
+        if (typeid(encoder) == typeid(encoder_alphabetic_t))
+        {
+            ret = "alphabetic ";
+            ret += std::to_string(encoder.alphabet().n_characters());
+        }
+
+        else if (typeid(encoder) == typeid(encoder_list_t))
+        {
+            ret = "list ";
+
+            for (const char i : dynamic_cast<const encoder_list_t &>(encoder).list())
+            {
+                ret += i;
+                ret += ' ';
+            }
+
+            ret.pop_back();
+        }
+
+        else if (typeid(encoder) == typeid(encoder_ascii_t))
+        {
+            ret = "ascii";
+        }
+
+        else
+            throw error;
+
+        return ret;
+    }
+
+    std::unique_ptr<device_t> read_device(std::istream &stream, const alphabet_t &alphabet)
+    {
+        static bool initialised = false;
+        static std::unordered_map<std::string, index_t> keywords;
+        if (not initialised)
+        {
+            keywords["control"] = 0;
+            keywords["input"] = 1;
+            keywords["output"] = 2;
+            keywords["stack"] = 3;
+            keywords["ucounter"] = 4;
+            keywords["counter"] = 5;
+            keywords["tape"] = 6;
+            
+            initialised = true;
+        }
+
+        static const std::runtime_error error{
+            "In read_device(std::istream &, const alphabet_t &):\nInvalid input"};
+
+        const auto initial_pos = stream.tellg();
+        std::string token;
+
+        try
+        {
+            token = read_token(stream);
+        }
+
+        catch (std::ios_base::failure &)
+        {
+            return {nullptr};
+        }
+
+
+        const auto it = keywords.find(token);
+        if (it == std::end(keywords))
+        {
+            stream.seekg(initial_pos);
+            return {nullptr};
+        }
+
+        switch (it->second)
+        {
+            case 0:
+            {
+                index_t initial_state;
+                token = read_token(stream);
+                if (not is_number(token))
+                    throw error;
+                initial_state = static_cast<index_t>(std::stoll(token));
+
+                token = read_token(stream);
+
+                std::unordered_map<index_t, string_t> terminating_states;
+                while (token != ";")
+                {
+                    if (token != ":")
+                        throw error;
+
+                    std::string terminator_string = read_token(stream);
+                    token = read_token(stream);
+                    while (token != ":" and token != ";")
+                    {
+                        if (token != ",")
+                            throw error;
+                        token = read_token(stream);
+                        if (not is_number(token))
+                            throw error;
+
+                        index_t terminating_state = static_cast<index_t>(std::stoll(token));
+                        terminating_states[terminating_state] = terminator_string;
+                        token = read_token(stream);
+                    }
+                }
+                control_initialiser_t initialiser{initial_state};
+                control_terminator_t terminator{std::move(terminating_states)};
+
+                return std::unique_ptr<device_t>(new control_t
+                        {std::move(initialiser), std::move(terminator)});
+            }
+
+            case 1:
+            {
+                token = read_token(stream);
+                if (token != ";")
+                    throw error;
+
+                return std::unique_ptr<device_t>(new input_t{alphabet});
+            }
+
+            case 2:
+            {
+                token = read_token(stream);
+                if (token != ";")
+                    throw error;
+
+                return std::unique_ptr<device_t>(new output_t{alphabet});
+            }
+
+            case 3:
+            {
+                std::unique_ptr<stack_initialiser_t> initialiser;
+                token = read_token(stream);
+                if (token == "empty")
+                    initialiser.reset(new stack_initialiser_empty_t{});
+                else if (token == "string")
+                    initialiser.reset(new stack_initialiser_string_t{});
+                else
+                    throw error;
+
+                std::unique_ptr<stack_terminator_t> terminator;
+                token = read_token(stream);
+                if (token == "empty")
+                    terminator.reset(new stack_terminator_empty_t{});
+                else if (token == "string")
+                    terminator.reset(new stack_terminator_string_t{});
+                else
+                    throw error;
+
+                token = read_token(stream);
+                if (token != ";")
+                    throw error;
+
+                return std::unique_ptr<device_t>(new stack_t{alphabet,
+                        std::move(initialiser), std::move(terminator)});
+            }
+
+            case 4:
+            {
+                std::unique_ptr<unsigned_counter_initialiser_t> initialiser;
+                token = read_token(stream);
+                if (token == "zero")
+                    initialiser.reset(new unsigned_counter_initialiser_zero_t{});
+                else if (token == "ascii")
+                    initialiser.reset(new unsigned_counter_initialiser_ascii_t{});
+                else if (token == "b_ary")
+                    initialiser.reset(new unsigned_counter_initialiser_b_ary_t{});
+                else if (token == "b_adic")
+                    initialiser.reset(new unsigned_counter_initialiser_b_adic_t{});
+                else
+                    throw error;
+
+                std::unique_ptr<unsigned_counter_terminator_t> terminator;
+                token = read_token(stream);
+                if (token == "zero")
+                    terminator.reset(new unsigned_counter_terminator_zero_t{});
+                else if (token == "string")
+                    terminator.reset(new unsigned_counter_terminator_string_t{});
+                else
+                    throw error;
+
+                token = read_token(stream);
+                if (token != ";")
+                    throw error;
+
+                return std::unique_ptr<device_t>(new unsigned_counter_t{std::move(initialiser),
+                        std::move(terminator)});
+            }
+
+            case 5:
+            {
+                std::unique_ptr<counter_initialiser_t> initialiser;
+                token = read_token(stream);
+                if (token == "zero")
+                    initialiser.reset(new counter_initialiser_zero_t{});
+                else if (token == "ascii")
+                    initialiser.reset(new counter_initialiser_ascii_t{});
+                else if (token == "b_ary")
+                    initialiser.reset(new counter_initialiser_b_ary_t{});
+                else if (token == "b_adic")
+                    initialiser.reset(new counter_initialiser_b_adic_t{});
+                else
+                    throw error;
+
+                std::unique_ptr<counter_terminator_t> terminator;
+                token = read_token(stream);
+                if (token == "zero")
+                    terminator.reset(new counter_terminator_zero_t{});
+                else if (token == "string")
+                    terminator.reset(new counter_terminator_string_t{});
+                else
+                    throw error;
+
+                token = read_token(stream);
+                if (token != ";")
+                    throw error;
+
+                return std::unique_ptr<device_t>(new counter_t{std::move(initialiser),
+                        std::move(terminator)});
+            }
+
+            case 6:
+            {
+                token = read_token(stream); 
+                if (not is_number(token))
+                    throw error;
+                character_t character{static_cast<character_t>(std::stoll(token))};
+
+                if (character >= alphabet.n_characters())
+                    throw error;
+
+                std::unique_ptr<tape_initialiser_t> initialiser;
+                token = read_token(stream);
+                if (token == "empty")
+                    initialiser.reset(new tape_initialiser_empty_t{});
+                else if (token == "string")
+                    initialiser.reset(new tape_initialiser_string_t{});
+                else
+                    throw error;
+
+                std::unique_ptr<tape_terminator_t> terminator;
+                token = read_token(stream);
+                if (token == "empty")
+                    terminator.reset(new tape_terminator_empty_t{});
+                else if (token == "string")
+                    terminator.reset(new tape_terminator_string_t{});
+                else
+                    throw error;
+
+                token = read_token(stream);
+                if (token != ";")
+                    throw error;
+
+                return std::unique_ptr<device_t>(new tape_t{alphabet, character,
+                        std::move(initialiser), std::move(terminator)});
+            }
+        }
+        
+        throw error;
+    }
+
+    std::string print_device(const device_t &device)
+    {
+        static const std::runtime_error error{"In print_device(const device_t &)."};
+
+        std::string ret;
+        if (typeid(device) == typeid(control_t))
+        {
+            const control_t &control = dynamic_cast<const control_t &>(device);
+            const auto &terminating_states = control.terminator().terminating_states();
+
+            std::multimap<string_t, index_t> map;
+            for (const auto &i : terminating_states)
+                map.insert(std::pair<string_t, index_t>{i.second, i.first});
+
+            const string_t *last_string = nullptr;
+
+            ret += "control ";
+            ret += std::to_string(control.initialiser().initial_state());
+            ret += " ";
+
+            for (const auto &i : map)
+            {
+                bool new_string;
+                if (not last_string)
+                    new_string = true;
+                else
+                    new_string = (i.first != *last_string);
+                last_string = &i.first;
+
+                if (new_string)
+                    ret += ": " + last_string->to_ascii() + ", ";
+                else
+                    ret += ", ";
+                ret += std::to_string(i.second);
+            }
+        }
+
+        else if (typeid(device) == typeid(input_t))
+            ret += "input";
+
+        else if (typeid(device) == typeid(output_t))
+        {
+            ret += "output ";
+            ret += std::to_string(dynamic_cast<const output_t &>(device).alphabet().n_characters());
+        }
+
+        else if (typeid(device) == typeid(stack_t))
+        {
+            const stack_t &stack = dynamic_cast<const stack_t &>(device);
+            const stack_initialiser_t &initialiser = stack.initialiser();
+            const stack_terminator_t &terminator = stack.terminator();
+
+            ret += "stack " + std::to_string(stack.alphabet().n_characters());
+            ret += " ";
+
+            if (typeid(initialiser) == typeid(stack_initialiser_empty_t))
+                ret += "empty ";
+            else if (typeid(initialiser) == typeid(stack_initialiser_string_t))
+                ret += "string ";
+            else
+                throw error;
+
+            if (typeid(terminator) == typeid(stack_terminator_empty_t))
+                ret += "empty";
+            else if (typeid(terminator) == typeid(stack_terminator_string_t))
+                ret += "string";
+            else
+                throw error;
+        }
+
+        else if (typeid(device) == typeid(unsigned_counter_t))
+        {
+            const unsigned_counter_t &unsigned_counter =
+                dynamic_cast<const unsigned_counter_t &>(device);
+            const unsigned_counter_initialiser_t &initialiser = unsigned_counter.initialiser();
+            const unsigned_counter_terminator_t &terminator = unsigned_counter.terminator();
+
+            ret += "ucounter ";
+
+            if (typeid(initialiser) == typeid(unsigned_counter_initialiser_zero_t))
+                ret += "zero ";
+            else if (typeid(initialiser) == typeid(unsigned_counter_initialiser_ascii_t))
+                ret += "ascii ";
+            else if (typeid(initialiser) == typeid(unsigned_counter_initialiser_b_ary_t))
+                ret += "b_ary ";
+            else if (typeid(initialiser) == typeid(unsigned_counter_initialiser_b_adic_t))
+                ret += "b_adic ";
+            else
+                throw error;
+
+            if (typeid(terminator) == typeid(unsigned_counter_terminator_zero_t))
+                ret += "zero";
+            else if (typeid(terminator) == typeid(unsigned_counter_terminator_string_t))
+                ret += "string";
+            else
+                throw error;
+        }
+
+        else if (typeid(device) == typeid(counter_t))
+        {
+            const counter_t &counter = dynamic_cast<const counter_t &>(device);
+            const counter_initialiser_t &initialiser = counter.initialiser();
+            const counter_terminator_t &terminator = counter.terminator();
+
+            ret += "counter ";
+
+            if (typeid(initialiser) == typeid(counter_initialiser_zero_t))
+                ret += "zero ";
+            else if (typeid(initialiser) == typeid(counter_initialiser_ascii_t))
+                ret += "ascii ";
+            else if (typeid(initialiser) == typeid(counter_initialiser_b_ary_t))
+                ret += "b_ary ";
+            else if (typeid(initialiser) == typeid(counter_initialiser_b_adic_t))
+                ret += "b_adic ";
+            else
+                throw error;
+
+            if (typeid(terminator) == typeid(counter_terminator_zero_t))
+                ret += "zero";
+            else if (typeid(terminator) == typeid(counter_terminator_string_t))
+                ret += "string";
+            else
+                throw error;
+        }
+
+        else if (typeid(device) == typeid(tape_t))
+        {
+            const tape_t &tape = dynamic_cast<const tape_t &>(device);
+            const tape_initialiser_t &initialiser = tape.initialiser();
+            const tape_terminator_t &terminator = tape.terminator();
+
+            ret += "tape " + std::to_string(tape.alphabet().n_characters());
+            ret += " ";
+            ret += std::to_string(tape.default_character());
+            ret += " ";
+
+            if (typeid(initialiser) == typeid(tape_initialiser_empty_t))
+                ret += "empty ";
+            else if (typeid(initialiser) == typeid(tape_initialiser_string_t))
+                ret += "string ";
+
+            if (typeid(terminator) == typeid(tape_terminator_empty_t))
+                ret += "empty";
+            else if (typeid(terminator) == typeid(tape_terminator_string_t))
+                ret += "string";
+        }
+
+        else
+            throw error;
+
+        return ret;
+    }
+
+    std::shared_ptr<operation_t> read_operation
+        (std::istream &stream, const device_t &device, const encoder_t &encoder)
+    {
+        static bool initialised = false;
+        static std::unordered_map<std::string, index_t> keywords;
+        if (not initialised)
+        {
+            keywords["noop"] = 7;
+            keywords["scan"] = 8;
+            keywords["next"] = 9;
+            keywords["eof"] = 10;
+            keywords["write"] = 11;
+            keywords["push"] = 12;
+            keywords["pop"] = 13;
+            keywords["top"] = 14;
+            keywords["empty"] = 15;
+            keywords["uinc"] = 16;
+            keywords["udec"] = 17;
+            keywords["uzero"] = 18;
+            keywords["unonzero"] = 19;
+            keywords["inc"] = 20;
+            keywords["dec"] = 21;
+            keywords["zero"] = 22;
+            keywords["pos"] = 23;
+            keywords["neg"] = 24;
+            keywords["see"] = 25;
+            keywords["print"] = 26;
+            keywords["movel"] = 27;
+            keywords["mover"] = 28;
+            keywords["athome"] = 29;
+
+            initialised = true;
+        }
+
+        static const std::runtime_error error{"In read_operation"
+            "(std::istream &, const device_t &, const encoder_t &):\nInvalid input"};
+
+        std::string token;
+
+        try
+        {
+            token = read_token(stream);
+        }
+        catch (std::ios_base::failure &)
+        {
+            return {nullptr};
+        }
+
+        if (is_number(token))
+        {
+            if (typeid(device) != typeid(control_t))
+                throw error;
+            
+            index_t from = static_cast<index_t>(std::stoll(token));
+
+            token = read_token(stream);
+            if (token != "to")
+                throw error;
+
+            token = read_token(stream);
+            if (not is_number(token))
+                throw error;
+            index_t to = static_cast<index_t>(std::stoll(token));
+
+            token = read_token(stream);
+            if (token != ";")
+                throw error;
+
+            return control_operation(from, to);
+        }
+
+        else
+        {
+            auto it = keywords.find(token);
+            if (it == std::end(keywords) or it->second < 7)
+                throw error;
+
+            switch (it->second)
+            {
+                case 7:
+                {
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(7, 0);
+                }
+
+                case 8:
+                {
+                    if (typeid(device) != typeid(input_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(8, c);
+                }
+
+                case 9:
+                {
+                    if (typeid(device) != typeid(input_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(9, c);
+                }
+
+                case 10:
+                {
+                    if (typeid(device) != typeid(input_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(10, 0);
+                }
+
+                case 11:
+                {
+                    if (typeid(device) != typeid(output_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(11, c);
+                }
+
+                case 12:
+                {
+                    if (typeid(device) != typeid(stack_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(12, c);
+                }
+
+                case 13:
+                {
+                    if (typeid(device) != typeid(stack_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(13, c);
+                }
+
+                case 14:
+                {
+                    if (typeid(device) != typeid(stack_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(14, c);
+                }
+
+                case 15:
+                {
+                    if (typeid(device) != typeid(stack_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(15, 0);
+                }
+
+                case 16:
+                {
+                    if (typeid(device) != typeid(unsigned_counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(16, 0);
+                }
+
+                case 17:
+                {
+                    if (typeid(device) != typeid(unsigned_counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(17, 0);
+                }
+
+                case 18:
+                {
+                    if (typeid(device) != typeid(unsigned_counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(18, 0);
+                }
+
+                case 19:
+                {
+                    if (typeid(device) != typeid(unsigned_counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(19, 0);
+                }
+
+                case 20:
+                {
+                    if (typeid(device) != typeid(counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(20, 0);
+                }
+
+                case 21:
+                {
+                    if (typeid(device) != typeid(counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(21, 0);
+                }
+
+                case 22:
+                {
+                    if (typeid(device) != typeid(counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(22, 0);
+                }
+
+                case 23:
+                {
+                    if (typeid(device) != typeid(counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(23, 0);
+                }
+
+                case 24:
+                {
+                    if (typeid(device) != typeid(counter_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(24, 0);
+                }
+
+                case 25:
+                {
+                    if (typeid(device) != typeid(tape_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(25, c);
+                }
+
+                case 26:
+                {
+                    if (typeid(device) != typeid(tape_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(26, c);
+                }
+
+                case 27:
+                {
+                    if (typeid(device) != typeid(tape_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(27, 0);
+                }
+
+                case 28:
+                {
+                    if (typeid(device) != typeid(tape_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(28, 0);
+                }
+
+                case 29:
+                {
+                    if (typeid(device) != typeid(tape_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(29, 0);
+                }
+
+                default:
+                    throw error;
+            } 
+        }
+    }
+
+    std::string print_operation(const operation_t &operation, const encoder_t &encoder,
+            index_t *control_state = nullptr)
+    {
+        std::string ret;
+
+        if (typeid(operation) == typeid(control_operation_t))
+        {
+            const control_operation_t &op =
+                dynamic_cast<const control_operation_t &>(operation);
+
+            if (control_state)
+                *control_state = op.from();
+
+            ret += std::to_string(op.from());
+            ret += " to ";
+            ret += std::to_string(op.to());
+        }
+
+        else if (typeid(operation) == typeid(noop_operation_t))
+            ret += "noop";
+
+        else if (typeid(operation) == typeid(input_operation_scan_t))
+        {
+            const input_operation_scan_t &op =
+                dynamic_cast<const input_operation_scan_t &>(operation);
+            ret += "scan ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(input_operation_next_t))
+        {
+            const input_operation_next_t &op =
+                dynamic_cast<const input_operation_next_t &>(operation);
+            ret += "next ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(input_operation_eof_t))
+            ret += "eof";
+
+        else if (typeid(operation) == typeid(output_operation_write_t))
+        {
+            const output_operation_write_t &op =
+                dynamic_cast<const output_operation_write_t &>(operation);
+            ret += "write ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(stack_operation_push_t))
+        {
+            const stack_operation_push_t &op =
+                dynamic_cast<const stack_operation_push_t &>(operation);
+            ret += "push ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(stack_operation_pop_t))
+        {
+            const stack_operation_pop_t &op =
+                dynamic_cast<const stack_operation_pop_t &>(operation);
+            ret += "pop ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(stack_operation_top_t))
+        {
+            const stack_operation_top_t &op =
+                dynamic_cast<const stack_operation_top_t &>(operation);
+            ret += "top ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(stack_operation_empty_t))
+            ret += "empty";
+
+        else if (typeid(operation) == typeid(unsigned_counter_operation_inc_t))
+            ret += "uinc";
+
+        else if (typeid(operation) == typeid(unsigned_counter_operation_dec_t))
+            ret += "udec";
+
+        else if (typeid(operation) == typeid(unsigned_counter_operation_zero_t))
+            ret += "uzero";
+
+        else if (typeid(operation) == typeid(unsigned_counter_operation_non_zero_t))
+            ret += "unonzero";
+
+        else if (typeid(operation) == typeid(counter_operation_inc_t))
+            ret += "inc";
+
+        else if (typeid(operation) == typeid(counter_operation_dec_t))
+            ret += "dec";
+
+        else if (typeid(operation) == typeid(counter_operation_zero_t))
+            ret += "zero";
+
+        else if (typeid(operation) == typeid(counter_operation_pos_t))
+            ret += "pos";
+
+        else if (typeid(operation) == typeid(counter_operation_neg_t))
+            ret += "neg";
+
+        else if (typeid(operation) == typeid(tape_operation_see_t))
+        {
+            const tape_operation_see_t &op =
+                dynamic_cast<const tape_operation_see_t &>(operation);
+            ret += "see ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(tape_operation_print_t))
+        {
+            const tape_operation_print_t &op =
+                dynamic_cast<const tape_operation_print_t &>(operation);
+            ret += "print ";
+            ret += encoder(op.character());
+        }
+
+        else if (typeid(operation) == typeid(tape_operation_move_l_t))
+            ret += "movel";
+
+        else if (typeid(operation) == typeid(tape_operation_move_r_t))
+            ret += "mover";
+
+        else if (typeid(operation) == typeid(tape_operation_athome_t))
+            ret += "athome";
+
+        return ret;
     }
 
     void instruction_set_radix_sort(std::vector<std::shared_ptr<operation_t>> &instruction_set,
             index_t control_index, index_t n_states, index_t stride)
     {
+        if (std::empty(instruction_set))
+            return;
+
         std::vector<index_t> count(n_states, 0);
         std::vector<std::shared_ptr<operation_t>> aux(std::size(instruction_set));
 
@@ -372,41 +1421,6 @@ namespace Machine
         return;
     }
 
-    std::string read_token(std::istream &stream)
-    {
-        std::string ret{};
-
-        char a;
-        stream.get(a);
-        while (std::isspace(a))
-            stream.get(a);
-         
-        while (a == '/')
-        {
-            while (a < 10 or a > 13)
-                stream.get(a);
-            while (std::isspace(a))
-                stream.get(a);
-        }
-        ret += a;
-
-        if (std::ispunct(a))
-            return ret;
-
-        stream.get(a);
-        while(not std::ispunct(a) and not std::isspace(a))
-        {
-            ret += a;
-            stream.get(a);
-        }
-        stream.unget();
-
-        return ret;
-    }
-
-    bool is_number(const std::string &arg)
-        { return std::ranges::all_of(arg, [](char a){ return a >= '0' and a <= '9'; }); }
-
     machine_t::machine_t(std::vector<std::unique_ptr<device_t>> devices,
             std::vector<std::shared_ptr<operation_t>> instruction_set,
             const encoder_t &encoder) :
@@ -421,8 +1435,8 @@ namespace Machine
     {
         index_t n = std::size(devices_);
         index_t s = std::size(instruction_set_);
-        if (s == 0 or s % n != 0)
-            throw std::invalid_argument
+        if (n == 0 or s % n != 0)
+            throw std::runtime_error
                 {"In machine_t::machine_t(std::vector<device_t>, std::vector<operation_t>)."};
 
         index_t control_index = 0;
@@ -483,689 +1497,41 @@ namespace Machine
     
     machine_t::machine_t(std::istream &stream)
     {
-        static bool initialised = false;
-        static std::unordered_map<std::string, index_t> keywords;
-        static const std::runtime_error input_error{
+        static const std::runtime_error error{
             "In machine_t::machine_t(std::istream &):\nInvalid input"};
 
-        if (not initialised)
+        stream.exceptions(std::ios_base::eofbit);
+
+        encoder_ = read_encoder(stream);
+
+        while(true)
         {
-            keywords["control"] = 0;
-            keywords["input"] = 1;
-            keywords["output"] = 2;
-            keywords["stack"] = 3;
-            keywords["ucounter"] = 4;
-            keywords["counter"] = 5;
-            keywords["tape"] = 6;
+            std::unique_ptr<device_t> device = read_device(stream, alphabet());
 
-            keywords["to"] = 7;
-            keywords["scan"] = 8;
-            keywords["next"] = 9;
-            keywords["eof"] = 10;
-            keywords["write"] = 11;
-            keywords["push"] = 12;
-            keywords["pop"] = 13;
-            keywords["top"] = 14;
-            keywords["empty"] = 15;
-            keywords["uinc"] = 16;
-            keywords["udec"] = 17;
-            keywords["uzero"] = 18;
-            keywords["unonzero"] = 19;
-            keywords["inc"] = 20;
-            keywords["dec"] = 21;
-            keywords["zero"] = 22;
-            keywords["pos"] = 23;
-            keywords["neg"] = 24;
-            keywords["see"] = 25;
-            keywords["print"] = 26;
-            keywords["movel"] = 27;
-            keywords["mover"] = 28;
-            keywords["athome"] = 29;
+            if (not device)
+                break;
 
-            initialised = true;
+            devices_.emplace_back(std::move(device));
+        }
+            
+        if (std::size(devices_) == 0)
+            throw error;
+
+        for (index_t i = 0; true; i = (i + 1 == std::size(devices_)) ? 0 : i + 1)
+        {
+            std::shared_ptr<operation_t> operation =
+                read_operation(stream, *devices_[i], encoder());
+
+            if (not operation)
+                break;
+
+            instruction_set_.emplace_back(std::move(operation));
         }
 
-        try
-        {
-            stream.exceptions(std::ios_base::eofbit);
-            std::string token;
+        *this = machine_t{std::move(devices_), std::move(instruction_set_),
+            std::move(encoder_)};
 
-            token = read_token(stream);
-            if (token != "alphabetic")
-                throw input_error;
-            token = read_token(stream);
-            if (not is_number(token))
-                throw input_error;
-            encoder_.reset(new encoder_alphabetical_t{static_cast<character_t>(std::stoll(token))});
-
-            token = read_token(stream);
-            if (token != ";")
-                throw input_error;
-
-            token = read_token(stream);
-            while(true)
-            {
-                if (is_number(token))
-                    break;
-                auto it = keywords.find(token);
-                if (it == std::end(keywords))
-                    throw input_error;
-                if (it->second > 6)
-                    break;
-
-                switch (it->second)
-                {
-                    case 0:
-                    {
-                        index_t initial_state;
-                        token = read_token(stream);
-                        if (not is_number(token))
-                            throw input_error;
-                        initial_state = static_cast<index_t>(std::stoll(token));
-
-                        token = read_token(stream);
-
-                        std::unordered_map<index_t, string_t> terminating_states;
-                        while (token != ";")
-                        {
-                            if (token != ":")
-                                throw input_error;
-
-                            std::string terminator_string = read_token(stream);
-                            token = read_token(stream);
-                            while (token != ":" and token != ";")
-                            {
-                                if (token != ",")
-                                    throw input_error;
-                                token = read_token(stream);
-                                if (not is_number(token))
-                                    throw input_error;
-
-                                index_t terminating_state = static_cast<index_t>(std::stoll(token));
-                                terminating_states[terminating_state] = terminator_string;
-                                token = read_token(stream);
-                            }
-                        }
-                        control_initialiser_t initialiser{initial_state};
-                        control_terminator_t terminator{std::move(terminating_states)};
-                        devices_.emplace_back(new control_t
-                                {std::move(initialiser), std::move(terminator)});
-
-                        break;
-                    }
-
-                    case 1:
-                    {
-                        devices_.emplace_back(new input_t{alphabet()});
-                        token = read_token(stream);
-                        if (token != ";")
-                            throw input_error;
-
-                        break;
-                    }
-
-                    case 2:
-                    {
-                        token = read_token(stream);
-                        if (not is_number(token))
-                            throw input_error;
-                        devices_.emplace_back(new output_t{alphabet_t
-                                {static_cast<character_t>(std::stoll(token))}});
-                        token = read_token(stream);
-                        if (token != ";")
-                            throw input_error;
-
-                        break;
-                    }
-
-                    case 3:
-                    {
-                        token = read_token(stream);
-                        if (not is_number(token))
-                            throw input_error;
-                        alphabet_t alphabet{static_cast<character_t>(std::stoll(token))};
-
-                        std::unique_ptr<stack_initialiser_t> initialiser;
-                        token = read_token(stream);
-                        if (token == "empty")
-                            initialiser.reset(new stack_initialiser_empty_t{});
-                        else if (token == "string")
-                            initialiser.reset(new stack_initialiser_string_t{});
-                        else
-                            throw input_error;
-
-                        std::unique_ptr<stack_terminator_t> terminator;
-                        token = read_token(stream);
-                        if (token == "empty")
-                            terminator.reset(new stack_terminator_empty_t{});
-                        else if (token == "string")
-                            terminator.reset(new stack_terminator_string_t{});
-                        else
-                            throw input_error;
-
-                        token = read_token(stream);
-                        if (token != ";")
-                            throw input_error;
-
-                        devices_.emplace_back(new stack_t{alphabet,
-                                std::move(initialiser), std::move(terminator)});
-
-                        break;
-                    }
-
-                    case 4:
-                    {
-                        std::unique_ptr<unsigned_counter_initialiser_t> initialiser;
-                        token = read_token(stream);
-                        if (token == "zero")
-                            initialiser.reset(new unsigned_counter_initialiser_zero_t{});
-                        else if (token == "ascii")
-                            initialiser.reset(new unsigned_counter_initialiser_ascii_t{});
-                        else if (token == "b_ary")
-                            initialiser.reset(new unsigned_counter_initialiser_b_ary_t{});
-                        else if (token == "b_adic")
-                            initialiser.reset(new unsigned_counter_initialiser_b_adic_t{});
-                        else
-                            throw input_error;
-
-                        std::unique_ptr<unsigned_counter_terminator_t> terminator;
-                        token = read_token(stream);
-                        if (token == "zero")
-                            terminator.reset(new unsigned_counter_terminator_zero_t{});
-                        else if (token == "string")
-                            terminator.reset(new unsigned_counter_terminator_string_t{});
-                        else
-                            throw input_error;
-
-                        token = read_token(stream);
-                        if (token != ";")
-                            throw input_error;
-
-                        devices_.emplace_back(new unsigned_counter_t{std::move(initialiser),
-                                std::move(terminator)});
-
-                        break;
-                    }
-
-                    case 5:
-                    {
-                        std::unique_ptr<counter_initialiser_t> initialiser;
-                        token = read_token(stream);
-                        if (token == "zero")
-                            initialiser.reset(new counter_initialiser_zero_t{});
-                        else if (token == "ascii")
-                            initialiser.reset(new counter_initialiser_ascii_t{});
-                        else if (token == "b_ary")
-                            initialiser.reset(new counter_initialiser_b_ary_t{});
-                        else if (token == "b_adic")
-                            initialiser.reset(new counter_initialiser_b_adic_t{});
-                        else
-                            throw input_error;
-
-                        std::unique_ptr<counter_terminator_t> terminator;
-                        token = read_token(stream);
-                        if (token == "zero")
-                            terminator.reset(new counter_terminator_zero_t{});
-                        else if (token == "string")
-                            terminator.reset(new counter_terminator_string_t{});
-                        else
-                            throw input_error;
-
-                        token = read_token(stream);
-                        if (token != ";")
-                            throw input_error;
-
-                        devices_.emplace_back(new counter_t{std::move(initialiser),
-                                std::move(terminator)});
-
-                        break;
-                    }
-
-                    case 6:
-                    {
-                        token = read_token(stream); 
-                        if (not is_number(token))
-                            throw input_error;
-                        alphabet_t alphabet{static_cast<character_t>(std::stoll(token))};
-
-                        token = read_token(stream); 
-                        if (not is_number(token))
-                            throw input_error;
-                        character_t character{static_cast<character_t>(std::stoll(token))};
-
-                        if (character >= alphabet.n_characters())
-                            throw input_error;
-
-                        std::unique_ptr<tape_initialiser_t> initialiser;
-                        token = read_token(stream);
-                        if (token == "empty")
-                            initialiser.reset(new tape_initialiser_empty_t{});
-                        else if (token == "string")
-                            initialiser.reset(new tape_initialiser_string_t{});
-                        else
-                            throw input_error;
-
-                        std::unique_ptr<tape_terminator_t> terminator;
-                        token = read_token(stream);
-                        if (token == "empty")
-                            terminator.reset(new tape_terminator_empty_t{});
-                        else if (token == "string")
-                            terminator.reset(new tape_terminator_string_t{});
-                        else
-                            throw input_error;
-
-                        token = read_token(stream);
-                        if (token != ";")
-                            throw input_error;
-
-                        devices_.emplace_back(new tape_t{alphabet, character,
-                                std::move(initialiser), std::move(terminator)});
-
-                        break;
-                    }
-                }
-
-                try
-                {
-                    token = read_token(stream);
-                }
-                catch (std::ios_base::failure &)
-                {
-                    *this = machine_t{std::move(devices_), std::move(instruction_set_),
-                        std::move(encoder_)};
-                    return;
-                }
-            }
-
-            if (std::size(devices_) == 0)
-                throw input_error;
-
-            index_t i = 0;
-            for(; true; i = (i + 1 == std::size(devices_)) ? 0 : i + 1)
-            {
-                if (is_number(token))
-                {
-                    if (typeid(*(devices_[i])) != typeid(control_t))
-                        throw input_error;
-                    
-                    index_t from = static_cast<index_t>(std::stoll(token));
-
-                    token = read_token(stream);
-                    if (token != "to")
-                        throw input_error;
-
-                    token = read_token(stream);
-                    if (not is_number(token))
-                        throw input_error;
-                    index_t to = static_cast<index_t>(std::stoll(token));
-
-                    token = read_token(stream);
-                    if (token != ";")
-                        throw input_error;
-
-                    instruction_set_.push_back(control_operation(from, to));
-                }
-
-                else
-                {
-                    auto it = keywords.find(token);
-                    if (it == std::end(keywords) or it->second < 8)
-                        throw input_error;
-
-                    switch (it->second)
-                    {
-                        case 8:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(input_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(8, c));
-                            break;
-                        }
-
-                        case 9:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(input_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(9, c));
-                            break;
-                        }
-
-                        case 10:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(input_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(10, 0));
-                            break;
-                        }
-
-                        case 11:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(output_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(11, c));
-                            break;
-                        }
-
-                        case 12:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(stack_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(12, c));
-                            break;
-                        }
-
-                        case 13:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(stack_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(13, c));
-                            break;
-                        }
-
-                        case 14:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(stack_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(14, c));
-                            break;
-                        }
-
-                        case 15:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(stack_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(15, 0));
-                            break;
-                        }
-
-                        case 16:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(unsigned_counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(16, 0));
-                            break;
-                        }
-
-                        case 17:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(unsigned_counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(17, 0));
-                            break;
-                        }
-
-                        case 18:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(unsigned_counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(18, 0));
-                            break;
-                        }
-
-                        case 19:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(unsigned_counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(19, 0));
-                            break;
-                        }
-
-                        case 20:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(20, 0));
-                            break;
-                        }
-
-                        case 21:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(21, 0));
-                            break;
-                        }
-
-                        case 22:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(22, 0));
-                            break;
-                        }
-
-                        case 23:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(23, 0));
-                            break;
-                        }
-
-                        case 24:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(counter_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(24, 0));
-                            break;
-                        }
-
-                        case 25:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(tape_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(25, c));
-                            break;
-                        }
-
-                        case 26:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(tape_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (std::size(token) != 1)
-                                throw input_error;
-                            character_t c = (*encoder_)(token[0]);
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(26, c));
-                            break;
-                        }
-
-                        case 27:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(tape_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(27, 0));
-                            break;
-                        }
-
-                        case 28:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(tape_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(28, 0));
-                            break;
-                        }
-
-                        case 29:
-                        {
-                            if (typeid(*(devices_[i])) != typeid(tape_t))
-                                throw input_error;
-
-                            token = read_token(stream);
-                            if (token != ";")
-                                throw input_error;
-
-                            instruction_set_.push_back(operation(29, 0));
-                            break;
-                        }
-
-                        default:
-                            throw input_error;
-                    } 
-                }
-
-                try
-                {
-                    token = read_token(stream);
-                }
-                catch (std::ios_base::failure &)
-                {
-                    *this = machine_t{std::move(devices_), std::move(instruction_set_),
-                        std::move(encoder_)};
-                    return;
-                }
-            }
-
-            *this = machine_t{std::move(devices_), std::move(instruction_set_),
-                std::move(encoder_)};
-
-            return;
-        }
-        catch (std::ios_base::failure &)
-        {
-            throw input_error;
-        }
+        return;
     }
 
     machine_t &machine_t::load(std::istream &stream)
@@ -1174,278 +1540,36 @@ namespace Machine
     void machine_t::store(std::ostream &arg) const
     {
         std::ostringstream stream;
-        static const std::runtime_error output_error{"In machine_t::store(std::ostream &)."};
+        static const std::runtime_error error{"In machine_t::store(std::ostream &)."};
 
-        stream << "alphabetic " << alphabet().n_characters() << ";\n";
+        stream << print_encoder(encoder()) << ";\n";
+
         for (const auto &i : devices_)
-        {
-            if (typeid(*i) == typeid(control_t))
-            {
-                const control_t &control = dynamic_cast<const control_t &>(*i);
-                const auto &terminating_states = control.terminator().terminating_states();
+            stream << print_device(*i) << ";\n";
+        
 
-                std::multimap<string_t, index_t> map;
-                for (const auto &i : terminating_states)
-                    map.insert(std::pair<string_t, index_t>{i.second, i.first});
-
-                const string_t *last_string = nullptr;
-
-                stream << "control " << control.initialiser().initial_state() << " ";
-
-                for (const auto &i : map)
-                {
-                    bool new_string;
-                    if (not last_string)
-                        new_string = true;
-                    else
-                        new_string = (i.first != *last_string);
-                    last_string = &i.first;
-
-                    if (new_string)
-                        stream << ": " << last_string->to_ascii() << ", ";
-                    else
-                        stream << ", ";
-                    stream << i.second;
-                }
-                stream << ";\n";
-            }
-
-            else if (typeid(*i) == typeid(input_t))
-                stream << "input;\n";
-
-            else if (typeid(*i) == typeid(output_t))
-                stream << "output " << dynamic_cast<const output_t &>(*i).alphabet().n_characters()
-                    << ";\n";
-
-            else if (typeid(*i) == typeid(stack_t))
-            {
-                const stack_t &stack = dynamic_cast<const stack_t &>(*i);
-                const stack_initialiser_t &initialiser = stack.initialiser();
-                const stack_terminator_t &terminator = stack.terminator();
-
-                stream << "stack " << stack.alphabet().n_characters() << " ";
-
-                if (typeid(initialiser) == typeid(stack_initialiser_empty_t))
-                    stream << "empty ";
-                else if (typeid(initialiser) == typeid(stack_initialiser_string_t))
-                    stream << "string ";
-                else
-                    throw output_error;
-
-                if (typeid(terminator) == typeid(stack_terminator_empty_t))
-                    stream << "empty;\n";
-                else if (typeid(terminator) == typeid(stack_terminator_string_t))
-                    stream << "string;\n";
-                else
-                    throw output_error;
-            }
-
-            else if (typeid(*i) == typeid(unsigned_counter_t))
-            {
-                const unsigned_counter_t &unsigned_counter =
-                    dynamic_cast<const unsigned_counter_t &>(*i);
-                const unsigned_counter_initialiser_t &initialiser = unsigned_counter.initialiser();
-                const unsigned_counter_terminator_t &terminator = unsigned_counter.terminator();
-
-                stream << "ucounter ";
-
-                if (typeid(initialiser) == typeid(unsigned_counter_initialiser_zero_t))
-                    stream << "zero ";
-                else if (typeid(initialiser) == typeid(unsigned_counter_initialiser_ascii_t))
-                    stream << "ascii ";
-                else if (typeid(initialiser) == typeid(unsigned_counter_initialiser_b_ary_t))
-                    stream << "b_ary ";
-                else if (typeid(initialiser) == typeid(unsigned_counter_initialiser_b_adic_t))
-                    stream << "b_adic ";
-                else
-                    throw output_error;
-
-                if (typeid(terminator) == typeid(unsigned_counter_terminator_zero_t))
-                    stream << "zero;\n";
-                else if (typeid(terminator) == typeid(unsigned_counter_terminator_string_t))
-                    stream << "string;\n";
-                else
-                    throw output_error;
-            }
-
-            else if (typeid(*i) == typeid(counter_t))
-            {
-                const counter_t &counter = dynamic_cast<const counter_t &>(*i);
-                const counter_initialiser_t &initialiser = counter.initialiser();
-                const counter_terminator_t &terminator = counter.terminator();
-
-                stream << "counter ";
-
-                if (typeid(initialiser) == typeid(counter_initialiser_zero_t))
-                    stream << "zero ";
-                else if (typeid(initialiser) == typeid(counter_initialiser_ascii_t))
-                    stream << "ascii ";
-                else if (typeid(initialiser) == typeid(counter_initialiser_b_ary_t))
-                    stream << "b_ary ";
-                else if (typeid(initialiser) == typeid(counter_initialiser_b_adic_t))
-                    stream << "b_adic ";
-                else
-                    throw output_error;
-
-                if (typeid(terminator) == typeid(counter_terminator_zero_t))
-                    stream << "zero;\n";
-                else if (typeid(terminator) == typeid(counter_terminator_string_t))
-                    stream << "string;\n";
-                else
-                    throw output_error;
-            }
-
-            else if (typeid(*i) == typeid(tape_t))
-            {
-                const tape_t &tape = dynamic_cast<const tape_t &>(*i);
-                const tape_initialiser_t &initialiser = tape.initialiser();
-                const tape_terminator_t &terminator = tape.terminator();
-
-                stream << "tape " << tape.alphabet().n_characters() << " " <<
-                    tape.default_character() << " ";
-
-                if (typeid(initialiser) == typeid(tape_initialiser_empty_t))
-                    stream << "empty ";
-                else if (typeid(initialiser) == typeid(tape_initialiser_string_t))
-                    stream << "string ";
-
-                if (typeid(terminator) == typeid(tape_terminator_empty_t))
-                    stream << "empty;\n";
-                else if (typeid(terminator) == typeid(tape_terminator_string_t))
-                    stream << "string;\n";
-            }
-
-            else
-                throw output_error;
-        }
-
-        stream << '\n';
-
+        bool print_new_line = true;
         index_t c = 0;
         index_t last_control_state = 0;
         for (const auto &i : instruction_set_)
         {
-            constexpr index_t instruction_length = 20;
+            constexpr index_t instruction_length = 16;
+            
             std::ostringstream instruction;
+            index_t control_state;
+            instruction << print_operation(*i, encoder(), &control_state) << ';';
 
-            if (typeid(*i) == typeid(control_operation_t))
+            if (first_control_ == devices_[c].get())
             {
-                const control_operation_t &op =
-                    dynamic_cast<const control_operation_t &>(*i);
-                if (&(*devices_[c]) == first_control_)
-                    if (op.from() != last_control_state)
-                    {
-                        stream << '\n';
-                        last_control_state = op.from();
-                    }
-
-                instruction << op.from() << " to " << op.to() << ';';
-
+                print_new_line = (control_state != last_control_state);
+                last_control_state = control_state;
             }
 
-            else if (typeid(*i) == typeid(input_operation_scan_t))
-            {
-                const input_operation_scan_t &op =
-                    dynamic_cast<const input_operation_scan_t &>(*i);
-                instruction << "scan " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(input_operation_next_t))
-            {
-                const input_operation_next_t &op =
-                    dynamic_cast<const input_operation_next_t &>(*i);
-                instruction << "next " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(input_operation_eof_t))
-                instruction << "eof;";
-
-            else if (typeid(*i) == typeid(output_operation_write_t))
-            {
-                const output_operation_write_t &op =
-                    dynamic_cast<const output_operation_write_t &>(*i);
-                instruction << "write " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(stack_operation_push_t))
-            {
-                const stack_operation_push_t &op =
-                    dynamic_cast<const stack_operation_push_t &>(*i);
-                instruction << "push " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(stack_operation_pop_t))
-            {
-                const stack_operation_pop_t &op =
-                    dynamic_cast<const stack_operation_pop_t &>(*i);
-                instruction << "pop " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(stack_operation_top_t))
-            {
-                const stack_operation_top_t &op =
-                    dynamic_cast<const stack_operation_top_t &>(*i);
-                instruction << "top " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(stack_operation_empty_t))
-                instruction << "empty;";
-
-            else if (typeid(*i) == typeid(unsigned_counter_operation_inc_t))
-                instruction << "uinc;";
-
-            else if (typeid(*i) == typeid(unsigned_counter_operation_dec_t))
-                instruction << "udec;";
-
-            else if (typeid(*i) == typeid(unsigned_counter_operation_zero_t))
-                instruction << "uzero;";
-
-            else if (typeid(*i) == typeid(unsigned_counter_operation_non_zero_t))
-                instruction << "unonzero;";
-
-            else if (typeid(*i) == typeid(counter_operation_inc_t))
-                instruction << "inc;";
-
-            else if (typeid(*i) == typeid(counter_operation_dec_t))
-                instruction << "dec;";
-
-            else if (typeid(*i) == typeid(counter_operation_zero_t))
-                instruction << "zero;";
-
-            else if (typeid(*i) == typeid(counter_operation_pos_t))
-                instruction << "pos;";
-
-            else if (typeid(*i) == typeid(counter_operation_neg_t))
-                instruction << "neg;";
-
-            else if (typeid(*i) == typeid(tape_operation_see_t))
-            {
-                const tape_operation_see_t &op =
-                    dynamic_cast<const tape_operation_see_t &>(*i);
-                instruction << "see " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(tape_operation_print_t))
-            {
-                const tape_operation_print_t &op =
-                    dynamic_cast<const tape_operation_print_t &>(*i);
-                instruction << "print " << encoder()(op.character()) << ';';
-            }
-
-            else if (typeid(*i) == typeid(tape_operation_move_l_t))
-                instruction << "movel;";
-
-            else if (typeid(*i) == typeid(tape_operation_move_r_t))
-                instruction << "mover;";
-
-            else if (typeid(*i) == typeid(tape_operation_athome_t))
-                instruction << "athome;";
-
-            else
-                throw output_error;
+            if (c == 0 and print_new_line)
+                stream << '\n';
 
             if (std::size(instruction.str()) > instruction_length)
-                throw output_error; 
+                throw error; 
 
             ++c;
             if (c == std::size(devices_))
@@ -1609,12 +1733,12 @@ namespace Machine
     string_t device_t::terminate()
         { return terminator().terminate(*this); }
 
-    noop_t *noop_t::clone() const { return new noop_t{}; }
-    bool noop_t::applicable(const device_t &) const { return true; }
-    void noop_t::apply(device_t &) const { return; }
-    bool noop_t::correct_device(const device_t &) const { return true; }
-    bool noop_t::intersecting_domain(const operation_t &) const { return true; }
-    bool noop_t::intersecting_domain(const terminator_t &) const { return true; }
+    noop_operation_t *noop_operation_t::clone() const { return new noop_operation_t{}; }
+    bool noop_operation_t::applicable(const device_t &) const { return true; }
+    void noop_operation_t::apply(device_t &) const { return; }
+    bool noop_operation_t::correct_device(const device_t &) const { return true; }
+    bool noop_operation_t::intersecting_domain(const operation_t &) const { return true; }
+    bool noop_operation_t::intersecting_domain(const terminator_t &) const { return true; }
 
     invalid_operation_t::invalid_operation_t(const operation_t &operation, const device_t &device) :
         operation_{operation}, device_{device} {}

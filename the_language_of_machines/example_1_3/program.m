@@ -1,4 +1,4 @@
-alphabetic 2;
+ascii;
 control 0 : Accept, 6;
 input;
 

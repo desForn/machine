@@ -16,27 +16,31 @@ counter and unsigned_counter
     In the signed case, it is ill-formed an input where '-' appears not at the beginning
 
 parser
-    The program must start with the encoder type e and the alphabet number n:
-        e n;
-    e must be alphabetic and n < 26
+    The program must start specifying the encoder which determines the alphabets for the input,
+output, stack and tape devices. It can be any of the followind types
+        list c0 c1 ...;
+            where ci denote the different characters of the alphabet
+
+        alphabetic c;
+            where c <= 26 is the number of letters
 
     The program continues specifying the devices in order which can be one of the following:
     Control with i inital state and nij terminating states, each returning the string si
         control i : s0, n00, n01, ... : s1, n10, n11, ...;
-    Input with alphabet given by the encoder
+    Input
         input;
-    Output with alphabet n
-        output n;
-    Stack with alphabet n and initialiser and terminators i and t which can be "empty" or "string"
-        stack n i t; 
+    Output
+        output;
+    Stack with initialiser and terminators i and t which can be "empty" or "string"
+        stack i t; 
     Unsigned counter with initialiser i which can be "zero", "ascii", "b_ary", "b_adic", where b
 is the base, and terminator t which can be "zero" or "string"
         ucounter i t; 
     Counter idem
         counter i t;
-    Tape with alphabet n and default character c with initialiser and terminator i and t which can
+    Tape with default character c with initialiser and terminator i and t which can
 be "empty" or "string" 
-        tape n c i t;
+        tape c i t;
     
     Then the instruction set is specified by listing the instructions in order. Each of them
 consists of a operation for the corresponing device. For example, for a machine with two devices d0

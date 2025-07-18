@@ -14,7 +14,15 @@ namespace Machine
     bool output_terminator_t::terminating(const device_t &) const { return true; }
 
     string_t output_terminator_t::terminate(const device_t &device) const
-        { return dynamic_cast<const output_t &>(device).string(); }
+    {
+        const string_t &string = dynamic_cast<const output_t &>(device).string();
+
+        string_t ret{string.alphabet()};
+
+        for (auto it = std::crbegin(string.data()); it != std::crend(string.data()); ++it)
+            ret.push(*it);
+        return ret;
+    }
 
     output_initialiser_t output_t::initialiser_{};
     output_terminator_t output_t::terminator_{};

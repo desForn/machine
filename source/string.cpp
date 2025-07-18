@@ -39,6 +39,8 @@ namespace Machine
         return string_[pos_];
     }
 
+    bool string_t::see(character_t c) const { return pos_ != negative_1 and string_[pos_] == c; }
+
     character_t string_t::pop()
     {
         if (pos_ == negative_1)

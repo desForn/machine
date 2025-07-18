@@ -15,9 +15,19 @@ void run(machine_t &machine, std::string input)
 
     if (machine.state() == machine_t::machine_state_t::blocked)
         std::cout << "On input \"" << input << "\" the machine blocks" << std::endl;
+
     else if (machine.state() == machine_t::machine_state_t::halted)
-        std::cout << "On input \"" << input << "\" the machine halts with output \"" << 
-            machine.output()[0].to_ascii() << '\"' << std::endl;
+    {
+        std::cout << "On input \"" << input << "\" the machine halts with the following output:\n"; 
+        for (index_t i = 0; i != std::size(machine.devices()); ++i)
+        {
+            if (std::empty(machine.output()[i]))
+                continue;
+            std::cout << "Device " << i << ":\t";
+            std::cout << machine.encoder()(machine.output()[i]) << '\n';
+        }
+    }
+
     else
         std::cerr << "An error has occured while running the machine with input\n" << input << '\n';
     return;

@@ -53,10 +53,7 @@ namespace Machine
         { return new input_operation_scan_t{*this}; }
 
     bool input_operation_scan_t::applicable(const device_t &device) const
-    {
-        const string_t &string = dynamic_cast<const input_t &>(device).string();
-        return not string.empty() and string.see() == character_;
-    }
+        { return dynamic_cast<const input_t &>(device).string().see(character_); }
 
     void input_operation_scan_t::apply(device_t &device) const
     {
@@ -92,10 +89,7 @@ namespace Machine
         { return new input_operation_next_t{*this}; }
 
     bool input_operation_next_t::applicable(const device_t &device) const
-    {
-        const string_t &string = dynamic_cast<const input_t &>(device).string();
-        return not string.empty() and string.see() == character_;
-    }
+        { return dynamic_cast<const input_t &>(device).string().see(character_); }
 
     void input_operation_next_t::apply(device_t &device) const
     {

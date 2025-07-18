@@ -111,7 +111,7 @@ namespace Machine
     }
 
     bool tape_operation_see_t::applicable(const device_t &device) const
-        { return dynamic_cast<const tape_t &>(device).string().see() == character_; }
+        { return dynamic_cast<const tape_t &>(device).string().see(character_); }
 
     void tape_operation_see_t::apply(device_t &device) const
     {

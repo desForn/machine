@@ -4,9 +4,9 @@ SRC_DIR ?= ../source/
 
 devices = control.o input.o output.o stack.o unsigned_counter.o counter.o tape.o
 
-objects = machine.o string.o encoder.o ${devices}
+OBJECTS = machine.o string.o encoder.o ${devices}
 
-all : ${objects}
+all : ${OBJECTS} run
 
 machine.o : ${SRC_DIR}machine.cpp ${SRC_DIR}machine.hpp ${SRC_DIR}string.hpp \
 			${SRC_DIR}encoder.hpp ${SRC_DIR}control.hpp ${SRC_DIR}input.hpp \
@@ -29,15 +29,15 @@ input.o : ${SRC_DIR}input.cpp ${SRC_DIR}input.hpp ${SRC_DIR}machine.hpp \
 	${CXX} ${CXXFLAGS} -c -o input.o ${SRC_DIR}input.cpp 
 
 output.o : ${SRC_DIR}output.cpp ${SRC_DIR}output.hpp ${SRC_DIR}machine.hpp \
-		  ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp
+		  ${SRC_DIR}string.hpp ${SRC_DIR}encoder.hpp ${SRC_DIR}fwd.hpp
 	${CXX} ${CXXFLAGS} -c -o output.o ${SRC_DIR}output.cpp 
 
 stack.o : ${SRC_DIR}stack.cpp ${SRC_DIR}stack.hpp ${SRC_DIR}machine.hpp \
 		  ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp
 	${CXX} ${CXXFLAGS} -c -o stack.o ${SRC_DIR}stack.cpp 
 
-unsigned_counter.o : ${SRC_DIR}unsigned_counter.cpp ${SRC_DIR}unsigned_counter.hpp ${SRC_DIR}machine.hpp \
-		  ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp
+unsigned_counter.o : ${SRC_DIR}unsigned_counter.cpp ${SRC_DIR}unsigned_counter.hpp \
+	${SRC_DIR}machine.hpp ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp
 	${CXX} ${CXXFLAGS} -c -o unsigned_counter.o ${SRC_DIR}unsigned_counter.cpp 
 
 counter.o : ${SRC_DIR}counter.cpp ${SRC_DIR}counter.hpp ${SRC_DIR}machine.hpp \
@@ -48,7 +48,10 @@ tape.o : ${SRC_DIR}tape.cpp ${SRC_DIR}tape.hpp ${SRC_DIR}machine.hpp \
 		  ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp
 	${CXX} ${CXXFLAGS} -c -o tape.o ${SRC_DIR}tape.cpp 
 
+run : ${OBJECTS} ${SRC_DIR}run.cpp
+	${CXX} ${CXXFLAGS} -o run ${OBJECTS} ${SRC_DIR}run.cpp
+
 .PHONY : clean
 clean :
-	rm ${objects}
+	rm ${OBJECTS} run
 

@@ -90,7 +90,8 @@ namespace Machine
         { return new stack_operation_pop_t{*this}; }
 
     bool stack_operation_pop_t::applicable(const device_t &device) const
-        { return dynamic_cast<const stack_t &>(device).string().see() == character_; }
+        { return dynamic_cast<const stack_t &>(device).string().see(character_); }
+
     void stack_operation_pop_t::apply(device_t &device) const
     {
         if (not applicable(device))
@@ -134,7 +135,7 @@ namespace Machine
         { return new stack_operation_top_t{*this}; }
 
     bool stack_operation_top_t::applicable(const device_t &device) const
-        { return dynamic_cast<const stack_t &>(device).string().see() == character_; }
+        { return dynamic_cast<const stack_t &>(device).string().see(character_); }
     void stack_operation_top_t::apply(device_t &device) const
     {
         if (not applicable(device))

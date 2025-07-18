@@ -13,7 +13,7 @@ namespace Machine
     class initialiser_t;
     class terminator_t;
     class operation_t;
-    class noop_t;
+    class noop_operation_t;
 
     class invalid_operation_t;
     class invalid_terminator_t;
@@ -50,7 +50,7 @@ namespace Machine
         machine_t(std::istream &);
         machine_t(std::vector<std::unique_ptr<device_t>>,
                   std::vector<std::shared_ptr<operation_t>>,
-                  const encoder_t &encoder = encoder_alphabetical_t{26});
+                  const encoder_t &encoder = encoder_alphabetic_t{26});
         machine_t(std::vector<std::unique_ptr<device_t>>,
                   std::vector<std::shared_ptr<operation_t>>,
                   std::unique_ptr<encoder_t>);
@@ -117,10 +117,10 @@ namespace Machine
         virtual bool intersecting_domain(const terminator_t &) const = 0;
     };
 
-    class noop_t final : public operation_t
+    class noop_operation_t final : public operation_t
     {
     public:
-        noop_t *clone() const override;
+        noop_operation_t *clone() const override;
 
     public:
         bool applicable(const device_t &) const override;
