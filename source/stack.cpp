@@ -111,6 +111,8 @@ namespace Machine
             return character_ == dynamic_cast<const stack_operation_top_t &>(operation).character();
         if (typeid(operation) == typeid(stack_operation_empty_t))
             return false;
+        if (typeid(operation) == typeid(noop_operation_t))
+            return true;
 
         throw std::runtime_error(
                 "In stack_operation_pop_t::intersecting_domain(const operation_t &).");
@@ -154,6 +156,8 @@ namespace Machine
             return character_ == dynamic_cast<const stack_operation_top_t &>(operation).character();
         if (typeid(operation) == typeid(stack_operation_empty_t))
             return false;
+        if (typeid(operation) == typeid(noop_operation_t))
+            return true;
 
         throw std::runtime_error(
                 "In stack_operation_top_t::intersecting_domain(const operation_t &).");
@@ -194,6 +198,8 @@ namespace Machine
         if (typeid(operation) == typeid(stack_operation_top_t))
             return false;
         if (typeid(operation) == typeid(stack_operation_empty_t))
+            return true;
+        if (typeid(operation) == typeid(noop_operation_t))
             return true;
 
         throw std::runtime_error(

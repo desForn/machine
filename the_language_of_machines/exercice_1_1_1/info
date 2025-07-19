@@ -1,0 +1,3 @@
+Recogniser of double words with central marker.
+    s is accepted if s = α#α where α ∈ (0|1)*
+      is rejected otherwise

@@ -2,7 +2,7 @@ CXX ?= g++
 CXXFLAGS ?= -std=c++26 -Wall -Wextra -pedantic -g
 SRC_DIR ?= ../source/
 
-devices = control.o input.o output.o stack.o unsigned_counter.o counter.o tape.o
+devices = control.o input.o output.o stack.o queue.o unsigned_counter.o counter.o tape.o
 
 OBJECTS = machine.o string.o encoder.o ${devices}
 
@@ -35,6 +35,10 @@ output.o : ${SRC_DIR}output.cpp ${SRC_DIR}output.hpp ${SRC_DIR}machine.hpp \
 stack.o : ${SRC_DIR}stack.cpp ${SRC_DIR}stack.hpp ${SRC_DIR}machine.hpp \
 		  ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp
 	${CXX} ${CXXFLAGS} -c -o stack.o ${SRC_DIR}stack.cpp 
+
+queue.o : ${SRC_DIR}queue.cpp ${SRC_DIR}queue.hpp ${SRC_DIR}machine.hpp \
+		  ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp
+	${CXX} ${CXXFLAGS} -c -o queue.o ${SRC_DIR}queue.cpp 
 
 unsigned_counter.o : ${SRC_DIR}unsigned_counter.cpp ${SRC_DIR}unsigned_counter.hpp \
 	${SRC_DIR}machine.hpp ${SRC_DIR}string.hpp ${SRC_DIR}fwd.hpp

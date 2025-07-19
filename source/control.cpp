@@ -101,8 +101,16 @@ namespace Machine
     bool control_operation_t::correct_device(const device_t &device) const
         { return typeid(device) == typeid(control_t); }
 
-    bool control_operation_t::intersecting_domain(const operation_t &arg) const
-        { return from_ == dynamic_cast<const control_operation_t &>(arg).from_; }
+    bool control_operation_t::intersecting_domain(const operation_t &operation) const
+    {
+        if (typeid(operation) == typeid(control_operation_t)) 
+            return from_ == dynamic_cast<const control_operation_t &>(operation).from_;
+        if (typeid(operation) == typeid(noop_operation_t))
+            return true;
+
+        throw std::runtime_error{
+            "In control_operation_t::intersecting_domain(const operation_t &)."};
+    }
 
     bool control_operation_t::intersecting_domain(const terminator_t &arg) const
         { return dynamic_cast<const control_terminator_t &>(arg).terminating_state(from_); }

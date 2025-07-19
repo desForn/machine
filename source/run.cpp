@@ -56,7 +56,7 @@ int main(int argc, const char **argv)
     stream.close();
     if (not machine.deterministic())
     {
-        std::cerr << "Non-deterministic runs are still not implemented\n.Aborting.\n";
+        std::cerr << "Non-deterministic runs are still not implemented.\nAborting.\n";
         return 3;
     }
 

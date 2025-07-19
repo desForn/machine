@@ -3,6 +3,7 @@
 #include "input.hpp"
 #include "output.hpp"
 #include "stack.hpp"
+#include "queue.hpp"
 #include "unsigned_counter.hpp"
 #include "counter.hpp"
 #include "tape.hpp"
@@ -337,6 +338,39 @@ namespace Machine
                 return a.first->second;
             }
 
+            case 30:
+            {
+                auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
+                        arg, std::shared_ptr<operation_t>(new
+                        queue_operation_enqueue_t{static_cast<character_t>(arg[1])})});
+                if (not a.second)
+                    throw error;
+                return a.first->second;
+            }
+
+            case 31:
+            {
+                auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
+                        arg, std::shared_ptr<operation_t>(new
+                        queue_operation_dequeue_t{static_cast<character_t>(arg[1])})});
+                if (not a.second)
+                    throw error;
+                return a.first->second;
+            }
+
+            case 32:
+            {
+                if (arg[1] != 0)
+                    throw error;
+
+                auto a = map.insert(std::pair<std::array<index_t, 2>, std::shared_ptr<operation_t>>{
+                        arg, std::shared_ptr<operation_t>(new
+                        queue_operation_empty_t{})});
+                if (not a.second)
+                    throw error;
+                return a.first->second;
+            }
+
             default:
                 throw error;
         }
@@ -475,6 +509,7 @@ namespace Machine
             keywords["ucounter"] = 4;
             keywords["counter"] = 5;
             keywords["tape"] = 6;
+            keywords["queue"] = 7;
             
             initialised = true;
         }
@@ -688,6 +723,34 @@ namespace Machine
                 return std::unique_ptr<device_t>(new tape_t{alphabet, character,
                         std::move(initialiser), std::move(terminator)});
             }
+
+            case 7:
+            {
+                std::unique_ptr<queue_initialiser_t> initialiser;
+                token = read_token(stream);
+                if (token == "empty")
+                    initialiser.reset(new queue_initialiser_empty_t{});
+                else if (token == "string")
+                    initialiser.reset(new queue_initialiser_string_t{});
+                else
+                    throw error;
+
+                std::unique_ptr<queue_terminator_t> terminator;
+                token = read_token(stream);
+                if (token == "empty")
+                    terminator.reset(new queue_terminator_empty_t{});
+                else if (token == "string")
+                    terminator.reset(new queue_terminator_string_t{});
+                else
+                    throw error;
+
+                token = read_token(stream);
+                if (token != ";")
+                    throw error;
+
+                return std::unique_ptr<device_t>(new queue_t{alphabet,
+                        std::move(initialiser), std::move(terminator)});
+            }
         }
         
         throw error;
@@ -840,6 +903,30 @@ namespace Machine
                 ret += "string";
         }
 
+        else if (typeid(device) == typeid(queue_t))
+        {
+            const queue_t &queue = dynamic_cast<const queue_t &>(device);
+            const queue_initialiser_t &initialiser = queue.initialiser();
+            const queue_terminator_t &terminator = queue.terminator();
+
+            ret += "queue " + std::to_string(queue.alphabet().n_characters());
+            ret += " ";
+
+            if (typeid(initialiser) == typeid(queue_initialiser_empty_t))
+                ret += "empty ";
+            else if (typeid(initialiser) == typeid(queue_initialiser_string_t))
+                ret += "string ";
+            else
+                throw error;
+
+            if (typeid(terminator) == typeid(queue_terminator_empty_t))
+                ret += "empty";
+            else if (typeid(terminator) == typeid(queue_terminator_string_t))
+                ret += "string";
+            else
+                throw error;
+        }
+
         else
             throw error;
 
@@ -862,10 +949,10 @@ namespace Machine
             keywords["pop"] = 13;
             keywords["top"] = 14;
             keywords["empty"] = 15;
-            keywords["uinc"] = 16;
-            keywords["udec"] = 17;
-            keywords["uzero"] = 18;
-            keywords["unonzero"] = 19;
+            //keywords["uinc"] = 16; -> 20
+            //keywords["udec"] = 17; -> 21
+            //keywords["uzero"] = 18; -> 22
+            keywords["nonzero"] = 19;
             keywords["inc"] = 20;
             keywords["dec"] = 21;
             keywords["zero"] = 22;
@@ -876,6 +963,9 @@ namespace Machine
             keywords["movel"] = 27;
             keywords["mover"] = 28;
             keywords["athome"] = 29;
+            keywords["enqueue"] = 30;
+            keywords["dequeue"] = 31;
+            //keywords["qempty"] = 32; -> 15
 
             initialised = true;
         }
@@ -1050,59 +1140,22 @@ namespace Machine
 
                 case 15:
                 {
-                    if (typeid(device) != typeid(stack_t))
-                        throw error;
-
                     token = read_token(stream);
                     if (token != ";")
                         throw error;
 
-                    return operation(15, 0);
-                }
+                    if (typeid(device) == typeid(stack_t))
+                        return operation(15, 0);
 
-                case 16:
-                {
-                    if (typeid(device) != typeid(unsigned_counter_t))
-                        throw error;
+                    if (typeid(device) == typeid(queue_t))
+                        return operation(32, 0);
 
-                    token = read_token(stream);
-                    if (token != ";")
-                        throw error;
-
-                    return operation(16, 0);
-                }
-
-                case 17:
-                {
-                    if (typeid(device) != typeid(unsigned_counter_t))
-                        throw error;
-
-                    token = read_token(stream);
-                    if (token != ";")
-                        throw error;
-
-                    return operation(17, 0);
-                }
-
-                case 18:
-                {
-                    if (typeid(device) != typeid(unsigned_counter_t))
-                        throw error;
-
-                    token = read_token(stream);
-                    if (token != ";")
-                        throw error;
-
-                    return operation(18, 0);
+                    throw error;
                 }
 
                 case 19:
                 {
-                    if (typeid(device) != typeid(unsigned_counter_t))
-                        throw error;
-
-                    token = read_token(stream);
-                    if (token != ";")
+                    if (typeid(device) == typeid(unsigned_counter_t))
                         throw error;
 
                     return operation(19, 0);
@@ -1110,38 +1163,47 @@ namespace Machine
 
                 case 20:
                 {
-                    if (typeid(device) != typeid(counter_t))
-                        throw error;
-
                     token = read_token(stream);
                     if (token != ";")
                         throw error;
 
-                    return operation(20, 0);
+                    if (typeid(device) == typeid(counter_t))
+                        return operation(20, 0);
+
+                    if (typeid(device) == typeid(unsigned_counter_t))
+                        return operation(16, 0);
+
+                    throw error;
                 }
 
                 case 21:
                 {
-                    if (typeid(device) != typeid(counter_t))
-                        throw error;
-
                     token = read_token(stream);
                     if (token != ";")
                         throw error;
 
-                    return operation(21, 0);
+                    if (typeid(device) == typeid(counter_t))
+                        return operation(21, 0);
+
+                    if (typeid(device) == typeid(unsigned_counter_t))
+                        return operation(17, 0);
+
+                    throw error;
                 }
 
                 case 22:
                 {
-                    if (typeid(device) != typeid(counter_t))
-                        throw error;
-
                     token = read_token(stream);
                     if (token != ";")
                         throw error;
 
-                    return operation(22, 0);
+                    if (typeid(device) == typeid(counter_t))
+                        return operation(22, 0);
+
+                    if (typeid(device) == typeid(unsigned_counter_t))
+                        return operation(18, 0);
+
+                    throw error;
                 }
 
                 case 23:
@@ -1236,6 +1298,40 @@ namespace Machine
                         throw error;
 
                     return operation(29, 0);
+                }
+
+                case 30:
+                {
+                    if (typeid(device) != typeid(queue_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(30, c);
+                }
+
+                case 31:
+                {
+                    if (typeid(device) != typeid(queue_t))
+                        throw error;
+
+                    token = read_token(stream);
+                    if (std::size(token) != 1)
+                        throw error;
+                    character_t c = encoder(token[0]);
+
+                    token = read_token(stream);
+                    if (token != ";")
+                        throw error;
+
+                    return operation(31, c);
                 }
 
                 default:

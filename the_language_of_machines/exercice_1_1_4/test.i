@@ -1,0 +1,13 @@
+aba
+ababab
+baababa
+baababaa
+abaabb
+baa
+baaa
+ababb
+abababb
+ababababb
+baabaabaaa
+ababaabaaaabbab
+abaababb

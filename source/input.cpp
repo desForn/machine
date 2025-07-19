@@ -74,6 +74,8 @@ namespace Machine
                 dynamic_cast<const input_operation_next_t &>(operation).character();
         if (typeid(operation) == typeid(input_operation_eof_t))
             return false;
+        if (typeid(operation) == typeid(noop_operation_t))
+            return true;
 
         throw std::runtime_error(
                 "In input_operation_scan_t::intersecting_domain(const operation_t &).");
@@ -109,6 +111,8 @@ namespace Machine
                 dynamic_cast<const input_operation_next_t &>(operation).character();
         if (typeid(operation) == typeid(input_operation_eof_t))
             return false;
+        if (typeid(operation) == typeid(noop_operation_t))
+            return true;
 
         throw std::runtime_error(
                 "In input_operation_next_t::intersecting_domain(const operation_t &).");
@@ -131,7 +135,8 @@ namespace Machine
         return;
     }
 
-    bool input_operation_eof_t::intersecting_domain(const operation_t &) const { return false; }
+    bool input_operation_eof_t::intersecting_domain(const operation_t &operation) const
+        { return typeid(operation) == typeid(noop_operation_t); }
     bool input_operation_eof_t::intersecting_domain(const terminator_t &) const { return true; }
 }
 

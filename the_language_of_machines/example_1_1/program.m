@@ -1,7 +1,7 @@
 ascii;
 control 1 : Accept, 3 : Reject, 4;
 input;
-stack empty string;
+stack empty empty;
 
 1 to 1;     scan a;     push a;
 1 to 1;     scan b;     push b;
@@ -18,4 +18,16 @@ stack empty string;
 2 to 4;     eof;        pop a;
 2 to 4;     eof;        pop b;
 2 to 4;     scan #;     noop;
+
+3 to 3;     scan a;     noop;
+3 to 3;     scan b;     noop;
+3 to 3;     scan #;     noop;
+3 to 3;     eof;        pop a;
+3 to 3;     eof;        pop b;
+
+4 to 4;     scan a;     noop;
+4 to 4;     scan b;     noop;
+4 to 4;     scan #;     noop;
+4 to 4;     eof;        pop a;
+4 to 4;     eof;        pop b;
 

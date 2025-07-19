@@ -1,0 +1,77 @@
+Λ dennotes the empty string
+
+a) Prove that if p is a substring of x, then there exists y such that y is a prefix of x and p is a
+suffix y
+    If p is a substring of x, then there exist α, β such that x = αpβ.
+    Define y = αp. y is a prefix of x and p is a suffix of y.
+
+b) Suppose that q is the longest suffix of y that is prefix of p
+    1) Show that p is a suffix of y iff q = p
+            Let p be a suffix of y:
+                p is trivially a prefix of p and cannot be a longer prefix.
+            Let q = p:
+                p is a suffix of y because q is by definition
+
+    2) Prove that the longest suffix of qc that is a prefix of p is also the longest suffix of yc
+that is a prefix of p.
+        Let s be the longest suffix of qc that is prefix of p.
+    
+        As q is a suffix of y and a prefix of p we have
+            y = αq ∧ p = qβ 
+
+        As s is a suffix of qc and a prefix of p we have
+            qc = α's ∧ p = sβ'
+
+        First we show that s is a suffix of yc that is prefix of p
+            y = αq ∧ qc = α's → yc = αqc = αα's
+            p = sβ'
+    
+        Now we show that s is the longest suffix of yc that is prefix of p. Let s' be a longer
+suffix of yc that is prefix of p.
+            By definition of s'
+            yc = α''s' ∧ p = s'β''
+            yc = αα's ∧ yc = α''s' → αα's = α''s
+
+            If |s'| ≤ |α's|
+                |s'| ≤ |α's| ∧ αα's = α''s' → ∃π, α's = πs'
+                qc = α's ∧ α's = πs' → qc = πs'
+                p = s'β''
+                s' is a suffix of qc and a prefix of p and longer than s: a contradiction
+            If |s'| > |α's|:
+                |s'| > |α's| ∧ α''s' = αα's → ∃π, s' = πα's ∧ |π| > 0
+                s' = πα's ∧ qc = α's → πqc = s'
+                yc = α''s' ∧ s' = πqc → yc = α''πqc → y = α''πq
+                p = s'β'' ∧ s' = πqc → p = πqcβ''
+                |π| > 0 → |πq| > |q|
+                πq is a sufix of y and a prefix of p and longer than q: a contradiction
+
+c) Prove that if p is a substring of x, then the algorithm will accept input x.
+    Is solved along d)
+
+d) Prove that if p is not a substring of x, then the algorithm will not accept input x.
+    First we present the algorithm:
+        y is the prefix of the input sacnned so far.
+        q denotes the longest suffix of y that is a prefix of p.
+
+        BEGIN:
+            y ← Λ
+            q ← Λ
+        REPEAT:
+            IF: q = p THEN Accept
+            IF: y = x THEN stop
+            c ← read next input
+            y ← yc
+            q ← longest suffix of qc that is a prefix of p
+        END REPEAT 
+
+
+    First we prove that after any consecutive updates of y and q, q is the longest suffix of y that
+is a prefix of p.
+        If the update is outside the REPEAT loop, then y = q = Λ.
+        Otherwise y = y_{old}c and q is the longest suffix of q_{old}c that is a prefix of p which by
+b)2) is the longest suffix of y_{old}c = y that is a prefix of p
+
+    The consecutive IF statements are tested by every possible suffix y of x.
+        p is a substring of x iff
+        at some step, p is a suffix of y (by a) iff
+        at some step, q = p (by b) 
