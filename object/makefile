@@ -8,7 +8,7 @@ OBJECTS = machine.o string.o encoder.o ${devices}
 
 all : ${OBJECTS} run
 
-machine.o : ${SRC_DIR}machine.cpp ${SRC_DIR}machine.hpp ${SRC_DIR}string.hpp \
+machine.o : ${SRC_DIR}machine.cpp ${SRC_DIR}machine.hpp ${SRC_DIR}hash.hpp ${SRC_DIR}string.hpp \
 			${SRC_DIR}encoder.hpp ${SRC_DIR}control.hpp ${SRC_DIR}input.hpp \
 			${SRC_DIR}output.hpp ${SRC_DIR}stack.hpp ${SRC_DIR}unsigned_counter.hpp \
 			${SRC_DIR}counter.hpp ${SRC_DIR}tape.hpp ${SRC_DIR}fwd.hpp

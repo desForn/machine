@@ -1,0 +1,2 @@
+A FM program that accepts the language formed of strings over {0,1}* with a number of 1s that is
+congruent to 2 or 4 modulo 7.

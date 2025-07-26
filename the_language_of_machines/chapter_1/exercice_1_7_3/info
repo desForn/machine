@@ -1,0 +1,1 @@
+A TM that accepts { x ∈ {a,b}* | x = x^R }

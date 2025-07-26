@@ -1,0 +1,4 @@
+A 2-SM that
+    a) Recognises { x#x | x ∈ {a,b}* }
+    b) Takes as input x#y and outputs z where dyadic(z^R) = dyadic(x) + dyadic(y)
+    c) Takes as input x#y and outputs z where dyadic(z) = dyadic(x) + dyadic(y)

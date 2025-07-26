@@ -10,12 +10,13 @@ namespace Machine
     class tape_operation_move_l_t;
     class tape_operation_move_r_t;
     class tape_operation_athome_t;
+    class tape_operation_compound_t;
     class tape_initialiser_t;
     class tape_initialiser_empty_t;
     class tape_initialiser_string_t;
     class tape_terminator_t;
-    class tape_terminator_empty_t;
-    class tape_terminator_string_t;
+    class tape_terminator_athome_t;
+    class tape_terminator_always_t;
 
     class tape_initialiser_t : public initialiser_t
     {
@@ -47,19 +48,19 @@ namespace Machine
         tape_terminator_t *clone() const override = 0;
     };
 
-    class tape_terminator_empty_t final : public tape_terminator_t
+    class tape_terminator_athome_t final : public tape_terminator_t
     {
     public:
-        tape_terminator_empty_t *clone() const override;
+        tape_terminator_athome_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
         string_t terminate(const device_t &) const override;
     };
 
-    class tape_terminator_string_t final : public tape_terminator_t
+    class tape_terminator_always_t final : public tape_terminator_t
     {
     public:
-        tape_terminator_string_t *clone() const override;
+        tape_terminator_always_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
         string_t terminate(const device_t &) const override;
@@ -107,7 +108,7 @@ namespace Machine
         bool correct_device(const device_t &) const override;
     };
 
-    class tape_operation_see_t final: public tape_operation_t
+    class tape_operation_see_t final : public tape_operation_t
     {
     private:
         character_t character_;
@@ -127,7 +128,7 @@ namespace Machine
         character_t character() const;
     };
 
-    class tape_operation_print_t final: public tape_operation_t
+    class tape_operation_print_t final : public tape_operation_t
     {
     private:
         character_t character_;
@@ -147,7 +148,7 @@ namespace Machine
         character_t character() const;
     };
 
-    class tape_operation_move_l_t final: public tape_operation_t
+    class tape_operation_move_l_t final : public tape_operation_t
     {
     public:
         tape_operation_move_l_t *clone() const override;
@@ -160,7 +161,7 @@ namespace Machine
         bool intersecting_domain(const terminator_t &) const override;
     };
 
-    class tape_operation_move_r_t final: public tape_operation_t
+    class tape_operation_move_r_t final : public tape_operation_t
     {
     public:
         tape_operation_move_r_t *clone() const override;
@@ -173,7 +174,7 @@ namespace Machine
         bool intersecting_domain(const terminator_t &) const override;
     };
 
-    class tape_operation_athome_t final: public tape_operation_t
+    class tape_operation_athome_t final : public tape_operation_t
     {
     public:
         tape_operation_athome_t *clone() const override;
@@ -184,6 +185,28 @@ namespace Machine
 
         bool intersecting_domain(const operation_t &) const override;
         bool intersecting_domain(const terminator_t &) const override;
+    };
+
+    class tape_operation_compound_t final : public tape_operation_t
+    {
+    private:
+        std::array<std::shared_ptr<operation_t>, 4> operations_;
+
+    public:
+        tape_operation_compound_t(std::array<std::shared_ptr<operation_t>, 1>);
+        tape_operation_compound_t(std::array<std::shared_ptr<operation_t>, 2>);
+        tape_operation_compound_t(std::array<std::shared_ptr<operation_t>, 3>);
+        tape_operation_compound_t(std::array<std::shared_ptr<operation_t>, 4>);
+        tape_operation_compound_t *clone() const override;
+
+    public:
+        bool applicable(const device_t &) const override;
+        void apply(device_t &) const override;
+
+        bool intersecting_domain(const operation_t &) const override;
+        bool intersecting_domain(const terminator_t &) const override;
+
+        const std::array<std::shared_ptr<operation_t>, 4> operations() const;
     };
 }
 

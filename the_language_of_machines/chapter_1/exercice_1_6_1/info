@@ -1,0 +1,4 @@
+A 2-UCM program that accepts
+    a) { a^nb^nc^n | n ≥ 1 }
+    b) { a^nb^nc^nd^n | n ≥ 1 }
+    c) { w#w | w ∈ {a,b}* }

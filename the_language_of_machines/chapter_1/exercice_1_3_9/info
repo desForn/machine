@@ -1,0 +1,3 @@
+A UCM that starts with a number stored in its counter. The program stops in an accepting control
+state if that number was 5, but never reaches an accepting control state if that number was
+different from 5.

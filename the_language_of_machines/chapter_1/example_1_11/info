@@ -1,0 +1,1 @@
+A SM that accepts { w ∈ {(,),[,]}* | w is balanced }

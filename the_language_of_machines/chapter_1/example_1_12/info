@@ -1,0 +1,8 @@
+A TM program that accepts { w#w | w ∈ {a,b}* }
+
+BUG:
+    It does not accept '#'.
+    It is solved by replacing the instruction
+1 to 2;         scan #;         pml #;
+    by
+1 to 2;         scan #;         print #;

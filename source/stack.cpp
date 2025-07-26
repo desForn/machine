@@ -31,7 +31,17 @@ namespace Machine
     bool stack_terminator_string_t::terminating(const device_t &) const
         { return true; }
     string_t stack_terminator_string_t::terminate(const device_t &device) const
-        { return dynamic_cast<const stack_t &>(device).string(); }
+    {
+        const string_t &string = dynamic_cast<const stack_t &>(device).string();
+
+        string_t ret{string.alphabet()};
+
+        for (auto it = std::crbegin(string.data()); it != std::crend(string.data()); ++it)
+            ret.push(*it);
+        return ret;
+    }
+
+
 
     stack_t::stack_t(const stack_t &arg) :
         string_{arg.string_},

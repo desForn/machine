@@ -1,0 +1,1 @@
+A SCM program that accepts { w ∈ {(,)}* | w is balanced } (in fact it is a recogniser)

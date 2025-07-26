@@ -1,0 +1,1 @@
+A 2-TM that accepts { x ∈ {a,b}* | x = x^R }

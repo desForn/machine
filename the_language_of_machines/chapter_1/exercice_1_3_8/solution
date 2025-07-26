@@ -1,0 +1,63 @@
+A string is balanced if it has one of the following forms:
+    Λ
+    (w), where w is balanced, or
+    wx, where w and x are nonempty and balanced
+
+Prove that w is a balanced string iff
+    (1) w contains equal number of ( and ) ∧
+    (2) every prefix of w contains at least as many ( as )
+
+    First we prove that if a string s is balanced it satisfies (1) and (2) we prove it by induction
+on the length of s:
+    Base case: |s| = 0
+        s = Λ, which is balanced by definition
+
+    Inductive case: s = (w) or s = xy with x, y, w balanced and |x| ≠ 0 ∧ |y| ≠ 0
+        If s = (w):
+            |s| > |w|
+            The number of ( and ) of s is the same of w plus 1. They coincide by inductive
+hypothesis
+            Every prefix of s falls into one of three cases:
+                ( which has more ( than )
+                (p where p is a prefix of w and has at least as many ( than ) by inductive
+hypothesis
+                (w) which have the same number of ( and ) as shown previously
+
+        If s = xy:
+            |s| > |x| ∧ |s| > |y|
+            The number if ( and ) in x and y are equal by the inductive hypothesis so is of their
+concatenation
+
+            Every prefix of s falls into one of two cases:
+                p where p is a prefix of x which has at least as many ( than ) by inductive
+hypothesis
+                xp where p is a prefix of y. x has the same number of ( and ) and p has at least
+more ( than ) by inductive hypothesis
+
+    Now we prove that if a string s satisfies (1) and (2) is balanced. We prove it by induction on
+the length of s:
+    Base case: |s| = 0
+        s = Λ, which is balanced by definition
+
+    Inductive case:
+        Let x be the shorter nonempty prefix of s that has equal numer of ( than )
+        If x = s, then there exist w such that s = (w) and w satisfies (1) and (2)
+            The first character cannot be ) because of (2). If it was not (, then this single
+character would be a shorter prefix of s with equal number of ( and ).
+            The last character must be ). If it was not, because of (1) s without the last character
+would be a shorter prefix of s with equal number of ( and ).
+            The number of ( and ) in w is the same of s minus 1 so w satisfies (1).
+            If there existed a prefix with more ) than (, then removing characters at the back one
+can form a prefix p with exactly one ) more than (. But then (p is a shorter prefix of s with equal
+number of ( and ).
+        If x = s, then s = (w) where w is balanced by the inductive hypothesis, so s is balanced.
+
+        If x ≠ s, then s = xy where |x| ≠ 0 ∧ |y| ≠ 0 and x and y satisfy (1) and (2)
+            x satisfies (1) by its definition
+            As s and x have the same number of ( and ) so does y
+            As x is a prefix of s, every prefix of x is a prefix of s so x satisfies (1)
+            For every prefix p of y, xp is a prefix of s so it has at least as many ( as ). Because
+x has the same number of ( and ), p has at leas as many ( as ) so y satisfies (2)
+        If x ≠ s, then s = xy where x and y are nonempty and balanced by the inductive hypothesis,
+so s is balanced.
+
