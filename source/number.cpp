@@ -7,6 +7,75 @@
 
 namespace Machine
 {
+    void double_word_addition(std::array<index_t, 2> &a, index_t b)
+    {
+        a.front() += b;
+        if (a.front() < b)
+            ++a.back();
+
+        return;
+    }
+
+    std::array<index_t, 2> double_word_multiplication(index_t a, index_t b)
+    {
+        static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
+#if __x86_64__
+        static constexpr bool use_assembly = n_digits == 64;
+#else
+        static constexpr bool use_assembly = false;
+#endif
+        if constexpr (use_assembly)
+        {
+            index_t c, d;
+
+            asm("mov %2,%%rax\n\t"
+                "mul %3\n\t"
+                "mov %%rax,%0\n\t"
+                "mov %%rdx,%1"
+                : "=r" (c), "=r" (d)
+                : "r" (a), "r" (b)
+                : "rax", "rdx");
+
+            return {c, d};
+        }
+
+        else
+        {
+            static constexpr index_t n_digits_half = n_digits / 2;
+            static_assert(n_digits % 2 == 0);
+            static constexpr index_t max = std::numeric_limits<index_t>::max();
+            static constexpr std::array<index_t, 2> mask{max >> n_digits_half, max << n_digits_half};
+
+            std::array<index_t, 2> ret{0, 0};
+
+            for (index_t i = 0; i != 2; ++i)
+            {
+                index_t ah = (a & mask[i]) >> (n_digits_half * i);
+
+                index_t carry = 0;
+                for (index_t j = 0; j != 2; ++j)
+                {
+                    index_t bh = (b & mask[j]) >> (n_digits_half * j);
+                    index_t rh =
+                        (ret[(i + j) / 2] & mask[(i + j) % 2]) >> (n_digits_half * ((i + j) % 2));
+
+                    index_t c = ah * bh + rh + carry;
+                    carry = c >> n_digits_half;
+                    c &= mask.front();
+
+                    ret[(i + j) / 2] &= mask[(i + j + 1) % 2];
+                    ret[(i + j) / 2] |= (c << (n_digits_half * ((i + j) % 2)));
+                }
+
+                ret.back() |= (carry << (n_digits_half * i));
+            }
+
+            return ret;
+        }
+    }
+
+    std::array<index_t, 2> double_word_division(std::array<index_t, 2> a, index_t b);
+
     unsigned_number_t::unsigned_number_t(index_t num)
     {
         if (num != 0)
@@ -205,12 +274,12 @@ namespace Machine
     }
 
     index_t unsigned_number_t::load_half_word(index_t index) const
-        { return (digits_[index / 2] & mask[index % 2]) >> (n_digits / 2 * (index % 2)); }
+        { return (digits_[index / 2] & mask[index % 2]) >> (n_digits_half * (index % 2)); }
 
     void unsigned_number_t::store_half_word(index_t index, index_t arg)
     {
         digits_[index / 2] &= mask[(index + 1) % 2];
-        digits_[index / 2] |= (arg << (n_digits / 2 * (index % 2)));
+        digits_[index / 2] |= (arg << (n_digits_half * (index % 2)));
         return;
     }
 
@@ -474,20 +543,49 @@ namespace Machine
 
     unsigned_number_t operator*(const unsigned_number_t &a, const unsigned_number_t &b)
     {
-        static constexpr index_t n_digits_half = unsigned_number_t::n_digits_half;
-        static constexpr std::array<index_t, 2> mask = unsigned_number_t::mask;
-
         unsigned_number_t ret{};
-        index_t sa = std::size(a.digits_) * 2;
-        index_t sb = std::size(b.digits_) * 2;
-        ret.digits_.resize((sa + sb) * 2, 0);
+        const std::vector<index_t> &va = a.digits_;
+        const std::vector<index_t> &vb = b.digits_;
+        std::vector<index_t> &vr = ret.digits_;
+        index_t sa = std::size(va);
+        index_t sb = std::size(vb);
+        ret.digits_.resize(sa + sb, 0);
 
         for (index_t i = 0; i != sa; ++i)
         {
             index_t carry = 0;
             for (index_t j = 0; j != sb; ++j)
             {
-                index_t na = a.load_half_word(i);
+                std::array<index_t, 2> c = double_word_multiplication(va[i], vb[j]);
+                double_word_addition(c, vr[i + j]);
+                double_word_addition(c, carry);
+                
+                vr[i + j] = c.front();
+                carry = c.back();
+            }
+            vr[i + sb] = carry;
+        }
+
+        ret.normalise();
+
+        return ret;
+    }
+    /*{
+        static constexpr index_t n_digits_half = unsigned_number_t::n_digits_half;
+        static constexpr std::array<index_t, 2> mask = unsigned_number_t::mask;
+
+        unsigned_number_t ret{};
+        index_t sa = std::size(a.digits_) * 2;
+        index_t sb = std::size(b.digits_) * 2;
+        ret.digits_.resize((sa + sb) / 2, 0);
+
+        for (index_t i = 0; i != sa; ++i)
+        {
+            index_t na = a.load_half_word(i);
+
+            index_t carry = 0;
+            for (index_t j = 0; j != sb; ++j)
+            {
                 index_t nb = b.load_half_word(j);
                 index_t nr = ret.load_half_word(i + j);
 
@@ -502,7 +600,7 @@ namespace Machine
         ret.normalise();
 
         return ret;
-    }
+    }*/
 
     unsigned_number_t operator/(unsigned_number_t arg0, unsigned_number_t arg1)
         { return arg0 /= std::move(arg1); }
