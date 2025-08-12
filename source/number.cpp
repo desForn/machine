@@ -2,24 +2,68 @@
 
 #include <utility>
 #include <bit>
-#include <cassert>
-#include <iostream>
 
 namespace Machine
 {
-    void double_word_addition(std::array<index_t, 2> &a, index_t b)
+    void double_word_addition(index_t &a0, index_t &a1, index_t b)
     {
-        a.front() += b;
-        if (a.front() < b)
-            ++a.back();
+        static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
+        static_assert(n_digits % 2 == 0);
+#if defined(__x86_64__)
+        static constexpr bool use_assembly = n_digits == 64;
+#else
+        static constexpr bool use_assembly = false;
+#endif
+        if constexpr (use_assembly)
+        {
+            asm("add %2, %0\n\t"
+                "adcq $0x0, %1"
+                : "+rm" (a0), "+rm" (a1)
+                : "r" (b));
 
-        return;
+            return;
+        }
+        else
+        {
+            a0 += b;
+            a1 += a0 < b;
+
+            return;
+        }
+    }
+
+    void double_word_subtraction(index_t &a0, index_t &a1, index_t b)
+    {
+        static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
+        static_assert(n_digits % 2 == 0);
+#if defined(__x86_64__)
+        static constexpr bool use_assembly = n_digits == 64;
+#else
+        static constexpr bool use_assembly = false;
+#endif
+        if constexpr (use_assembly)
+        {
+            asm("sub %2, %0\n\t"
+                "subq $0x0, %1"
+                : "+rm" (a0), "+rm" (a1)
+                : "r" (b));
+
+            return;
+        }
+        else
+        {
+            a1 -= a0 < b;
+            a0 -= b;
+
+            return;
+        }
     }
 
     std::array<index_t, 2> double_word_multiplication(index_t a, index_t b)
     {
         static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
-#if __x86_64__
+        static_assert(n_digits % 2 == 0);
+#if defined(__x86_64__)
         static constexpr bool use_assembly = n_digits == 64;
 #else
         static constexpr bool use_assembly = false;
@@ -27,14 +71,9 @@ namespace Machine
         if constexpr (use_assembly)
         {
             index_t c, d;
-
-            asm("mov %2,%%rax\n\t"
-                "mul %3\n\t"
-                "mov %%rax,%0\n\t"
-                "mov %%rdx,%1"
-                : "=r" (c), "=r" (d)
-                : "r" (a), "r" (b)
-                : "rax", "rdx");
+            asm("mul %2"
+                : "=a" (c), "=d" (d)
+                : "r" (b), "a" (a));
 
             return {c, d};
         }
@@ -42,9 +81,9 @@ namespace Machine
         else
         {
             static constexpr index_t n_digits_half = n_digits / 2;
-            static_assert(n_digits % 2 == 0);
             static constexpr index_t max = std::numeric_limits<index_t>::max();
-            static constexpr std::array<index_t, 2> mask{max >> n_digits_half, max << n_digits_half};
+            static constexpr std::array<index_t, 2> mask
+                {max >> n_digits_half, max << n_digits_half};
 
             std::array<index_t, 2> ret{0, 0};
 
@@ -74,7 +113,116 @@ namespace Machine
         }
     }
 
-    std::array<index_t, 2> double_word_division(std::array<index_t, 2> a, index_t b);
+    std::array<index_t, 2> double_word_division(index_t a0, index_t a1, index_t b)
+    {
+        static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
+        static_assert(n_digits % 2 == 0);
+#if defined(__x86_64__)
+        static constexpr bool use_assembly = n_digits == 64;
+#else
+        static constexpr bool use_assembly = false;
+#endif
+
+        index_t q, r;
+        if constexpr (use_assembly)
+        {
+            asm("div %4"
+                : "=a" (q), "=d" (r)
+                : "a" (a0), "d" (a1), "r" (b));
+
+            return {q, r};
+        }
+
+        else
+        {
+            static constexpr index_t n_digits_half = n_digits / 2;
+            static constexpr index_t max = std::numeric_limits<index_t>::max();
+            static constexpr index_t max_half = max >> n_digits_half;
+            static constexpr std::array<index_t, 2> mask{max_half, max << n_digits_half};
+
+            if (a1 == 0)
+                return {a0 / b, a0 % b};
+
+            if (a1 >= b)
+                throw std::runtime_error{"In Machine::double_word_division(std::array<index_t"
+                    ", 2>, index_t):\nOverflow.\n"};
+
+            if (b <= max_half)
+            {
+                index_t na = (a1 << n_digits_half) | (a0 >> n_digits_half);
+                index_t nq = na / b;
+                r = na % b;
+                q = nq << n_digits_half;
+
+                na = (r << n_digits_half) | (a0 & mask.front());
+                nq = na / b;
+                r = na % b;
+                q |= nq;
+            }
+            else
+            {
+                index_t d = n_digits - std::bit_width(b);
+                if (d != 0)
+                {
+                    b <<= d;
+                    a1 <<= d;
+                    a1 |= (a0 >> (n_digits - d));
+                    a0 <<= d;
+                }
+
+                const index_t b0 = b & mask.front();
+                const index_t b1 = b >> n_digits_half;
+
+                index_t nq, nr;
+                if ((a1 >> n_digits_half) == b1)
+                {
+                    nq = max_half;
+                    nr = (a1 & mask.front()) + b1;
+                }
+                else
+                {
+                    nq = a1 / b1;
+                    nr = a1 % b1;
+                }
+
+                index_t mul = nq * b0;
+                while (nr <= max_half and mul > ((nr << n_digits_half) | (a0 >> n_digits_half)))
+                {
+                    --nq;
+                    mul -= b0;
+                    nr += b1;
+                }
+
+                q = nq << n_digits_half;
+                index_t na = ((a1 << n_digits_half) | (a0 >> n_digits_half)) - b * nq;
+
+                if ((na >> n_digits_half) == b1)
+                {
+                    nq = max_half;
+                    nr = (na & mask.front()) + b1;
+                }
+                else
+                {
+                    nq = na / b1;
+                    nr = na % b1;
+                }
+
+                mul = nq * b0;
+                while (nr <= max_half and mul > ((nr << n_digits_half) | (a0 & mask.front())))
+                {
+                    --nq;
+                    mul -= b0;
+                    nr += b1;
+                }
+
+                q |= nq;
+                r = ((na << n_digits_half) | (a0 & mask.front())) - b * nq;
+                r >>= d;
+            }
+        }
+
+        return {q, r};
+    }
 
     unsigned_number_t::unsigned_number_t(index_t num)
     {
@@ -557,8 +705,8 @@ namespace Machine
             for (index_t j = 0; j != sb; ++j)
             {
                 std::array<index_t, 2> c = double_word_multiplication(va[i], vb[j]);
-                double_word_addition(c, vr[i + j]);
-                double_word_addition(c, carry);
+                double_word_addition(c.front(), c.back(), vr[i + j]);
+                double_word_addition(c.front(), c.back(), carry);
                 
                 vr[i + j] = c.front();
                 carry = c.back();
@@ -622,9 +770,6 @@ namespace Machine
 
     std::array<unsigned_number_t, 2> divide(unsigned_number_t a, index_t b)
     {
-        static constexpr index_t max_half = unsigned_number_t::max_half;
-        static constexpr index_t n_digits_half = unsigned_number_t::n_digits_half;
-
         if (b == 0)
             throw std::runtime_error{"In Machine::divide(unsigned_number_t, index_t):\n"
                 "Division by 0.\n"};
@@ -632,27 +777,146 @@ namespace Machine
         if (a.zero())
             return {};
 
-        if (b > max_half)
-            return divide(std::move(a), unsigned_number_t{b});
-
-        index_t sa = std::size(a.digits_) * 2;
+        std::vector<index_t> &va = a.digits_;
+        index_t sa = std::size(va);
 
         index_t r = 0;
         for (index_t i = sa - 1; i != negative_1; --i)
         {
-            index_t na = a.load_half_word(i) + (r << n_digits_half);
-            index_t nr = na / b;
-            r = na % b;
+            index_t c = va[i];
+            std::array<index_t, 2> d = double_word_division(c, r, b);
 
-            a.store_half_word(i, nr);
+            va[i] = d.front();
+            r = d.back();
         }
 
         a.normalise();
+
         return {a, r};
     }
 
     std::array<unsigned_number_t, 2> divide(unsigned_number_t a, unsigned_number_t b)
     {
+        static constexpr index_t max = unsigned_number_t::max;
+        static constexpr index_t n_digits = unsigned_number_t::n_digits;
+
+        if (b.zero())
+            throw std::runtime_error{"In Machine::divide(unsigned_number_t, unsigned_number_t):\n"
+                "Division by 0.\n"};
+
+        if (a.zero())
+            return {};
+
+        if (a < b)
+            return {0, std::move(a)};
+
+        if (std::size(b.digits()) == 1)
+            return divide(std::move(a), b.digits().front());
+
+        std::vector<index_t> &va = a.digits_;
+        std::vector<index_t> &vb = b.digits_;
+
+        std::array<unsigned_number_t, 2> ret{};
+        index_t d, sa, sb;
+        {
+            d = n_digits - std::bit_width(b.digits().back());
+
+            a <<= d;
+            b <<= d;
+
+            sb = std::size(vb);
+            b.digits_.push_back(0);
+
+            sa = std::size(va);
+            if (sa <= sb or va.back() >= vb.back())
+            {
+                va.push_back(0);
+                ++sa;
+            }
+
+            ret.front().digits_.resize(sa - sb);
+        }
+
+        const index_t v1 = vb[sb - 1];
+        const index_t v2 = vb[sb - 2];
+
+        for (index_t i = sa - sb - 1; i != negative_1; --i)
+        {
+            index_t q;
+            {
+                index_t n0 = va[i + sb];
+                index_t n1 = va[i + sb - 1];
+                index_t n2 = va[i + sb - 2];
+
+                bool overflow_r;
+                index_t r;
+                if (n0 == v1)
+                {
+                    q = max;
+                    r = n1 + v1;
+                    overflow_r = r < v1;
+                }
+                else
+                {
+                    std::array<index_t, 2> c = double_word_division(n1, n0, v1);
+                    q = c.front();
+                    r = c.back();
+                    overflow_r = false;
+                }
+
+                std::array<index_t, 2> mul = double_word_multiplication(v2, q);
+                while (not overflow_r and
+                        (mul.back() > r or (mul.back() == r and mul.front() > n2)))
+                {
+                    --q;
+                    double_word_subtraction(mul.front(), mul.back(), v2);
+                    r += v1;
+                    overflow_r = r < v1;
+                }
+            }
+
+            if (q != 0)
+            {
+                index_t mul_carry = 0;
+                index_t sub_carry = 0;
+                for (index_t j = 0; j != sb + 1; ++j)
+                {
+                    std::array<index_t, 2> t = double_word_multiplication(q, vb[j]);
+                    double_word_addition(t.front(), t.back(), mul_carry);
+                    mul_carry = t.back();
+                    
+                    va[i + j] -= sub_carry;
+                    sub_carry = sub_carry and va[i + j] == max;
+
+                    sub_carry = va[i + j] < t.front();
+                    va[i + j] -= t.front();
+                }
+
+                if (sub_carry)
+                {
+                    --q;
+
+                    index_t carry = 0;
+                    for (index_t j = 0; j != sb + 1; ++j)
+                    {
+                        va[i + j] += carry;
+                        carry = carry and va[i + j] == 0;
+
+                        va[i + j] += vb[j];
+                        carry += va[i + j] < vb[j];
+                    }
+                }
+            }
+
+            ret.front().digits_[i] = q;
+        }
+
+        ret.front().normalise();
+        a.normalise();
+        ret.back() = std::move(a) >> d;
+        return ret;
+    }
+    /*{
         static constexpr index_t max_half = unsigned_number_t::max_half;
         static constexpr index_t n_digits = unsigned_number_t::n_digits;
         static constexpr index_t n_digits_half = unsigned_number_t::n_digits_half;
@@ -718,7 +982,7 @@ namespace Machine
                 {
                     index_t c = (n0 << n_digits_half) + n1;
                     q = c / v1;
-                    r = q % v1;
+                    r = c % v1;
                 }
 
                 index_t mul = v2 * q;
@@ -787,7 +1051,7 @@ namespace Machine
 
         ret.back() = std::move(a) >> d;
         return ret;
-    }
+    }*/
 
     void swap(unsigned_number_t &arg0, unsigned_number_t &arg1) noexcept { arg0.swap(arg1); }
 
