@@ -1,87 +1,163 @@
 #include "string.hpp"
+#include "encoder.hpp"
 
 #include <algorithm>
 
 namespace Machine
 {
-    alphabet_t::alphabet_t(character_t n_characters) : n_characters_{n_characters} {}
-    character_t alphabet_t::n_characters() const { return n_characters_; }
+    alphabet_t::alphabet_t(character_t max_character) noexcept : max_character_{max_character} {}
 
-    string_t::string_t() {}
-    string_t::string_t(const alphabet_t &alphabet) : alphabet_{alphabet} {}
-    string_t::string_t(const alphabet_t &alphabet, std::vector<character_t> string) :
-        alphabet_{alphabet}, string_{std::move(string)}
+    character_t alphabet_t::max_character() const noexcept { return max_character_; }
+
+    void alphabet_t::swap(alphabet_t &arg) noexcept
+        { std::swap(max_character_, arg.max_character_); }
+
+    string_t::string_character_proxy_t::string_character_proxy_t(string_t *ptr, index_t pos) :
+        ptr_{ptr}, pos_{pos} {}
+
+    string_t::string_character_proxy_t::operator character_t() const
     {
-        if (std::ranges::any_of(string_, [n = alphabet_.n_characters()](const character_t &c)
-                    { return c >= n; }))
-            throw std::runtime_error
-                {"In string_t::string_t(const alphabet_t &, std::vector<character_t>)."};
-        return;
+        if (not ptr_ or pos_ >= ptr_->size())
+            throw std::runtime_error{"In Machine::string_t::string_character_proxy_t::"
+                "operator character_t():\nOut of bounds.\n"};
+
+        return ptr_->string_[pos_];
     }
 
-    string_t::string_t(const std::string &string) : alphabet_{256}
+    const string_t::string_character_proxy_t &string_t::string_character_proxy_t::operator=(
+            character_t c) const
     {
-        string_.resize(std::size(string));
+        if (not ptr_ or pos_ >= ptr_->size())
+            throw std::runtime_error{"In Machine::string_t::string_character_proxy_t::"
+                "operator=(character_t):\nOut of bounds.\n"};
 
-        auto j = std::rbegin(string_);
-        for (auto i = std::cbegin(string); i != std::cend(string); ++i, ++j)
-            *j = static_cast<character_t>(*i);
-        pos_ = std::size(string) - 1;
-        return;
+        ptr_->string_[pos_] = c;
+
+        return *this;
     }
 
-    bool string_t::empty() const { return pos_ == negative_1; }
+    string_t::string_character_proxy_t &string_t::string_character_proxy_t::increment(integer_t arg)
+        { pos_ += arg; return *this; }
+
+    string_t::string_character_const_proxy_t::string_character_const_proxy_t(
+            const string_t *ptr, index_t pos) : ptr_{ptr}, pos_{pos} {}
+
+    string_t::string_character_const_proxy_t::operator character_t() const
+    {
+        if (not ptr_ or pos_ >= ptr_->size())
+            throw std::runtime_error{"In Machine::string_t::string_character_const_proxy_t::"
+                "operator character_t():\nOut of bounds.\n"};
+
+        return ptr_->string_[pos_];
+    }
+
+    string_t::string_character_const_proxy_t &string_t::string_character_const_proxy_t::increment(
+            integer_t arg)
+        { pos_ += arg; return *this; }
+
+    string_t::string_pos_proxy_t::string_pos_proxy_t(string_t *ptr) noexcept : ptr_{ptr} {}
+
+    string_t::string_pos_proxy_t::operator index_t() const { return ptr_->pos_; }
+
+    string_t::string_pos_proxy_t &string_t::string_pos_proxy_t::operator=(index_t pos)
+    {
+        if (not ((pos == negative_1 and ptr_->empty()) or pos < ptr_->size()))
+            throw std::runtime_error{"In Machine::string_t::string_pos_proxy_t::operator=(index_t):"
+                "\nString overflow.\n"};
+        ptr_->pos_ = pos;
+
+        return *this;
+    }
+
+    string_t::string_pos_const_proxy_t::string_pos_const_proxy_t(const string_t *ptr) noexcept :
+        ptr_{ptr} {}
+
+    string_t::string_pos_const_proxy_t::operator index_t() const { return ptr_->pos_; }
+
+    string_t::string_t() noexcept(noexcept(std::vector<character_t>())) {}
+
+    string_t::string_t(const alphabet_t &alphabet) noexcept(noexcept(std::vector<character_t>())) :
+        alphabet_{alphabet} {}
+
+    bool string_t::empty() const noexcept { return pos_ == negative_1; }
+
+    std::size_t string_t::size() const noexcept { return std::size(string_); }
+
+    void string_t::resize(index_t arg)
+    {
+        string_.resize(arg);
+        if (pos_ >= size())
+            pos_ = size() - 1;
+        return;
+    }
 
     character_t string_t::see() const
     {
         if (pos_ == negative_1)
-            throw read_past_eof_t{};
+            throw std::runtime_error{"In Machine::string_t::see() const:\n"
+                "Read past end of file.\n"};
         return string_[pos_];
     }
 
-    bool string_t::see(character_t c) const { return pos_ != negative_1 and string_[pos_] == c; }
+    bool string_t::see(character_t c) const noexcept
+        { return pos_ != negative_1 and string_[pos_] == c; }
 
     character_t string_t::pop()
     {
         if (pos_ == negative_1)
-            throw read_past_eof_t{};
-        return string_[pos_--];
+            throw std::runtime_error{"In Machine::string_t::pop() const:\n"
+                "Read past end of file.\n"};
+
+        if (pos_ != std::size(string_) - 1)
+            throw std::runtime_error{"In Machine::string_t::pop() const:\n"
+                "Can pop only if pos is set to the last element of the string.\n"};
+
+        character_t ret = string_[pos_--];
+        string_.pop_back();
+        return ret;
     }
 
     void string_t::push(character_t c)
     {
-        if (c >= alphabet_.n_characters())
-            throw invalid_character_t{};
+        if (c > alphabet_.max_character())
+            throw std::runtime_error{"In Machine::string_t::push(character_t):\n"
+                "Argument '" + std::to_string(c) + "' is larger than the maximum allowed by the " +
+                "alphabet '" + std::to_string(alphabet().max_character()) + "'\n."};
+
+        if (pos_ != std::size(string_) - 1)
+            throw std::runtime_error{"In Machine::string_t::push(character_t):\n"
+                "Can push only if pos is set to the last element of the string."};
         ++pos_;
-        if (pos_ == std::size(string_))
-            string_.push_back(c);
-        else
-            string_[pos_] = c;
+        string_.push_back(c);
         return;
     }
 
-    index_t string_t::get_pos() const { return pos_; }
+    string_t::string_pos_proxy_t string_t::pos() noexcept { return {this}; }
 
-    void string_t::set_pos(index_t pos)
-    {
-        if (not ((pos_ == negative_1 and std::empty(string_)) or pos_ < std::size(string_)))
-            throw string_overflow_t{};
-        pos_ = pos;
-        return;
-    }
+    string_t::string_pos_const_proxy_t string_t::pos() const noexcept { return {this}; }
+
+    bool string_t::athome() const noexcept { return pos_ == 0; }
+
+    bool string_t::top() const noexcept { return pos_ == std::size(string_) - 1; }
 
     void string_t::move_l()
     {
-        if (pos_ == negative_1)
-            throw read_past_eof_t{};
+        if (pos_ == negative_1 or pos_ == 0)
+            throw std::runtime_error{"In Machine::string_t::move_l() const:\n"
+                "Read past end of file.\n"};
         --pos_;
         return;
     }
 
-    void string_t::move_r(character_t default_character)
+    void string_t::move_r(character_t c)
     {
+        if (c > alphabet_.max_character())
+            throw std::runtime_error{"In Machine::string_t::move_r(character_t):\n"
+                "Argument '" + std::to_string(c) + "' is larger than the maximum allowed by the " +
+                "alphabet '" + std::to_string(alphabet().max_character()) + "'\n."};
+
         if (pos_ == std::size(string_) - 1)
-            string_.push_back(default_character);
+            string_.push_back(c);
         ++pos_;
         return;
     }
@@ -89,33 +165,40 @@ namespace Machine
     void string_t::print(character_t character)
     {
         if (pos_ == negative_1)
-            throw read_past_eof_t{};
+            throw std::runtime_error{"In Machine::string_t::print(character_t) const:\n"
+                "Print past end of file.\n"};
         string_[pos_] = character;
     }
 
-    string_t &string_t::clear() { string_.clear(); pos_ = negative_1; return *this; }
+    string_t &string_t::clear() noexcept { string_.clear(); pos_ = negative_1; return *this; }
 
-    const alphabet_t &string_t::alphabet() const { return alphabet_; }
+    const alphabet_t &string_t::alphabet() const noexcept { return alphabet_; }
 
-    std::string string_t::to_ascii() const
+    std::string string_t::print_state(const encoder_t &encoder) const
     {
-        if (alphabet().n_characters() != 256)
-            throw std::runtime_error{"In string_t::to_ascii()."};
+        std::string ret{};
 
-        std::string ret;
-        for (index_t i = pos_; i != negative_1; --i)
-            ret.push_back(static_cast<char>(string_[i]));
+        for (auto i = std::cbegin(string_); i != std::cend(string_); ++i)
+            ret.push_back(encoder(*i));
 
         return ret;
     }
 
-    std::vector<character_t> &string_t::data() { return string_; }
-    const std::vector<character_t> &string_t::data() const { return string_; }
+    std::string string_t::print_state_reverse(const encoder_t &encoder) const
+    {
+        std::string ret{};
+
+        for (auto i = std::crbegin(string_); i != std::crend(string_); ++i)
+            ret.push_back(encoder(*i));
+
+        return ret;
+    }
 
     std::strong_ordering string_t::operator<=>(const string_t &arg) const
     {
         if (alphabet_ != arg.alphabet_)
-            throw std::runtime_error{"In string_t::operator<=>(const string_t &) const."};
+            throw std::runtime_error{"In Machine::string_t::operator<=>(const string_t &) const:"
+            "\nThe strings have different alphabet.\n"};
 
 
         for(auto i = std::crbegin(string_), j = std::crbegin(arg.string_); ;++i, ++j)
@@ -140,5 +223,55 @@ namespace Machine
         { return (*this <=> arg) == std::strong_ordering::equivalent; }
 
     bool string_t::operator!=(const string_t &arg) const { return not (*this == arg); }
+
+    void string_t::swap(string_t &arg) noexcept
+    {
+        using std::swap;
+
+        swap(alphabet_, arg.alphabet_);
+        swap(string_, arg.string_);
+        swap(pos_, arg.pos_);
+
+        return;
+    }
+
+    string_t::string_character_proxy_t string_t::operator[](index_t arg) { return {this, arg}; }
+
+    string_t::string_character_const_proxy_t string_t::operator[](index_t arg) const
+        { return {this, arg}; }
+
+    string_iterator_t string_t::begin() noexcept
+        { return {this, 0}; }
+    string_iterator_t string_t::end() noexcept
+        { return {this, size()}; }
+
+    string_const_iterator_t string_t::begin() const noexcept
+        { return {this, 0}; }
+    string_const_iterator_t string_t::end() const noexcept
+        { return {this, size()}; }
+
+    string_const_iterator_t string_t::cbegin() noexcept
+        { return {this, 0}; }
+    string_const_iterator_t string_t::cend() noexcept
+        { return {this, size()}; }
+
+    string_reverse_iterator_t string_t::rbegin() noexcept
+        { return {this, size() - 1}; }
+    string_reverse_iterator_t string_t::rend() noexcept
+        { return {this, negative_1}; }
+
+    string_const_reverse_iterator_t string_t::rbegin() const noexcept
+        { return {this, size() - 1}; }
+    string_const_reverse_iterator_t string_t::rend() const noexcept
+        { return {this, negative_1}; }
+
+    string_const_reverse_iterator_t string_t::crbegin() noexcept
+        { return {this, size() - 1}; }
+    string_const_reverse_iterator_t string_t::crend() noexcept
+        { return {this, negative_1}; }
+
+    void swap(alphabet_t &arg0, alphabet_t &arg1) noexcept { arg0.swap(arg1); }
+
+    void swap(string_t &arg0, string_t &arg1) noexcept { arg0.swap(arg1); }
 }
 

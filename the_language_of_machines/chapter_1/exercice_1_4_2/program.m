@@ -1,4 +1,3 @@
-ascii;
 control 0 : Accept 1;
 input;
 counter zero zero;

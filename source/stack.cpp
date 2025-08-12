@@ -4,98 +4,88 @@ namespace Machine
 {
     stack_initialiser_empty_t *stack_initialiser_empty_t::clone() const
         { return new stack_initialiser_empty_t{*this}; }
-    void stack_initialiser_empty_t::initialise(device_t &device, const string_t &) const
-        { dynamic_cast<stack_t &>(device).string().clear(); }
+
+    void stack_initialiser_empty_t::initialise(device_t &device, const std::string &) const
+        { dynamic_cast<stack_t &>(device).string() = string_t{device.encoder().alphabet()}; }
 
     stack_initialiser_string_t *stack_initialiser_string_t::clone() const
         { return new stack_initialiser_string_t{*this}; }
-    void stack_initialiser_string_t::initialise(device_t &device, const string_t &string) const
-    {
-        string_t &string_ = dynamic_cast<stack_t &>(device).string();
-        if (string_.alphabet() != string.alphabet())
-            throw std::runtime_error(
-                    "In stack_initialiser_t::initialise(device_t &, cons string_t &)");
-        string_ = string;
-        return;
-    }
+    
+    void stack_initialiser_string_t::initialise(device_t &device, const std::string &string) const
+        { dynamic_cast<stack_t &>(device).string() = device.encoder()(string); }
 
     stack_terminator_empty_t *stack_terminator_empty_t::clone() const
         { return new stack_terminator_empty_t{*this}; }
+
     bool stack_terminator_empty_t::terminating(const device_t &device) const
         { return dynamic_cast<const stack_t &>(device).string().empty(); }
-    string_t stack_terminator_empty_t::terminate(const device_t &device) const
-        { return dynamic_cast<const stack_t &>(device).string(); }
+
+    std::string stack_terminator_empty_t::terminate(const device_t &) const
+        { return {}; }
 
     stack_terminator_string_t *stack_terminator_string_t::clone() const
         { return new stack_terminator_string_t{*this}; }
+
     bool stack_terminator_string_t::terminating(const device_t &) const
         { return true; }
-    string_t stack_terminator_string_t::terminate(const device_t &device) const
-    {
-        const string_t &string = dynamic_cast<const stack_t &>(device).string();
 
-        string_t ret{string.alphabet()};
-
-        for (auto it = std::crbegin(string.data()); it != std::crend(string.data()); ++it)
-            ret.push(*it);
-        return ret;
-    }
-
-
+    std::string stack_terminator_string_t::terminate(const device_t &device) const
+        { return device.encoder()(dynamic_cast<const stack_t &>(device).string()); }
 
     stack_t::stack_t(const stack_t &arg) :
+        device_t{std::unique_ptr<encoder_t>{arg.encoder_->clone()}},
         string_{arg.string_},
-        initialiser_{arg.initialiser_->clone()},
-        terminator_{arg.terminator_->clone()} {}
-
-    stack_t &stack_t::operator=(const stack_t &arg)
+        initialiser_{std::unique_ptr<stack_initialiser_t>{arg.initialiser_->clone()}},
+        terminator_{std::unique_ptr<stack_terminator_t>{arg.terminator_->clone()}}
     {
-        string_ = arg.string_;
-        initialiser_.reset(arg.initialiser_->clone());
-        terminator_.reset(arg.terminator_->clone());
-        return *this;
+        if (not encoder_)
+            encoder_.reset(new encoder_ascii_t{});
     }
 
-    stack_t::stack_t(const alphabet_t &alphabet,
-            const stack_initialiser_t &initialiser, const stack_terminator_t &terminator) :
-        string_{alphabet},
-        initialiser_{initialiser.clone()},
-        terminator_{terminator.clone()} {}
+    stack_t &stack_t::operator=(const stack_t &arg) { return *this = stack_t{arg}; }
 
-    stack_t::stack_t(const alphabet_t &alphabet,
+    stack_t::stack_t(std::unique_ptr<encoder_t> encoder_,
             std::unique_ptr<stack_initialiser_t> initialiser,
             std::unique_ptr<stack_terminator_t> terminator) :
-        string_{alphabet},
+        device_t{std::move(encoder_)},
         initialiser_{std::move(initialiser)},
         terminator_{std::move(terminator)} {}
 
     stack_t *stack_t::clone() const { return new stack_t{*this}; }
 
-    const alphabet_t &stack_t::alphabet() const { return string_.alphabet(); }
     string_t &stack_t::string() { return string_; }
+
     const string_t &stack_t::string() const { return string_; }
+
     const stack_initialiser_t &stack_t::initialiser() const { return *initialiser_; }
+
     const stack_terminator_t &stack_t::terminator() const { return *terminator_; }
+
+    std::string stack_t::print_state() const { return string_.print_state(encoder()); }
 
     bool stack_operation_t::correct_device(const device_t &device) const
         { return typeid(device) == typeid(stack_t); }
 
     stack_operation_push_t::stack_operation_push_t(character_t character) :
         character_{character} {}
+
     stack_operation_push_t *stack_operation_push_t::clone() const
         { return new stack_operation_push_t{*this}; }
 
     bool stack_operation_push_t::applicable(const device_t &) const { return true; }
+
     void stack_operation_push_t::apply(device_t &device) const
         { dynamic_cast<stack_t &>(device).string().push(character_); }
 
     bool stack_operation_push_t::intersecting_domain(const operation_t &) const { return true; }
+
     bool stack_operation_push_t::intersecting_domain(const terminator_t &) const { return true; }
 
     character_t stack_operation_push_t::character() const { return character_; }
 
     stack_operation_pop_t::stack_operation_pop_t(character_t character) :
         character_{character} {}
+
     stack_operation_pop_t *stack_operation_pop_t::clone() const
         { return new stack_operation_pop_t{*this}; }
 
@@ -124,8 +114,8 @@ namespace Machine
         if (typeid(operation) == typeid(noop_operation_t))
             return true;
 
-        throw std::runtime_error(
-                "In stack_operation_pop_t::intersecting_domain(const operation_t &).");
+        throw std::runtime_error{"In Machine::stack_operation_pop_t::intersecting_domain("
+            "const operation_t &):\nUnknown operation.\n"};
     }
 
     bool stack_operation_pop_t::intersecting_domain(const terminator_t &terminator) const
@@ -135,19 +125,21 @@ namespace Machine
         if (typeid(terminator) == typeid(stack_terminator_string_t))
             return true;
 
-        throw std::runtime_error(
-                "In stack_operation_pop_t::intersecting_domain(const terminator_t &).");
+        throw std::runtime_error{"In Machine::stack_operation_pop_t::intersecting_domain("
+            "const terminator_t &):\nUnknown terminator.\n"};
     }
 
     character_t stack_operation_pop_t::character() const { return character_; }
 
     stack_operation_top_t::stack_operation_top_t(character_t character) :
         character_{character} {}
+
     stack_operation_top_t *stack_operation_top_t::clone() const
         { return new stack_operation_top_t{*this}; }
 
     bool stack_operation_top_t::applicable(const device_t &device) const
         { return dynamic_cast<const stack_t &>(device).string().see(character_); }
+
     void stack_operation_top_t::apply(device_t &device) const
     {
         if (not applicable(device))
@@ -169,8 +161,8 @@ namespace Machine
         if (typeid(operation) == typeid(noop_operation_t))
             return true;
 
-        throw std::runtime_error(
-                "In stack_operation_top_t::intersecting_domain(const operation_t &).");
+        throw std::runtime_error{"In Machine::stack_operation_top_t::intersecting_domain("
+            "const operation_t &):\nUnknown operation.\n"};
     }
 
     character_t stack_operation_top_t::character() const { return character_; }
@@ -182,8 +174,8 @@ namespace Machine
         if (typeid(terminator) == typeid(stack_terminator_string_t))
             return true;
 
-        throw std::runtime_error(
-                "In stack_operation_top_t::intersecting_domain(const terminator_t &).");
+        throw std::runtime_error{"In Machine::stack_operation_top_t::intersecting_domain("
+            "const terminator_t &):\nUnknown terminator.\n"};
     }
 
     stack_operation_empty_t *stack_operation_empty_t::clone() const
@@ -212,8 +204,8 @@ namespace Machine
         if (typeid(operation) == typeid(noop_operation_t))
             return true;
 
-        throw std::runtime_error(
-                "In stack_operation_empty_t::intersecting_domain(const operation_t &).");
+        throw std::runtime_error{"In Machine::stack_operation_empty_t::intersecting_domain("
+            "const operation_t &):\nUnknown operation.\n"};
     }
 
     bool stack_operation_empty_t::intersecting_domain(const terminator_t &) const

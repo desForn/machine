@@ -1,4 +1,3 @@
-ascii;
 control 0 : Accept 11;
 input;
 tape * empty always;

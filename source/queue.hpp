@@ -1,7 +1,7 @@
 #pragma once
 #include "machine.hpp"
 
-#include <queue>
+#include <deque>
 
 namespace Machine
 {
@@ -29,7 +29,7 @@ namespace Machine
     public:
         queue_initialiser_empty_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const string_t &) const override;
+        virtual void initialise(device_t &, const std::string &) const override;
     };
 
     class queue_initialiser_string_t final : public queue_initialiser_t
@@ -37,7 +37,7 @@ namespace Machine
     public:
         queue_initialiser_string_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const string_t &) const override;
+        virtual void initialise(device_t &, const std::string &) const override;
     };
 
     class queue_terminator_t : public terminator_t
@@ -53,7 +53,7 @@ namespace Machine
         queue_terminator_empty_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
     };
 
     class queue_terminator_string_t final : public queue_terminator_t
@@ -62,16 +62,15 @@ namespace Machine
         queue_terminator_string_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
     };
 
     class queue_t final : public device_t
     {
     private:
-        std::queue<character_t> queue_{};
+        std::deque<character_t> queue_{};
         std::unique_ptr<queue_initialiser_t> initialiser_;
         std::unique_ptr<queue_terminator_t> terminator_;
-        alphabet_t alphabet_;
 
     public:
         queue_t() = delete;
@@ -83,17 +82,17 @@ namespace Machine
         queue_t(queue_t &&) noexcept = default;
         queue_t &operator=(queue_t &&) noexcept = default;
 
-        queue_t(const alphabet_t &, const queue_initialiser_t &, const queue_terminator_t &);
-        queue_t(const alphabet_t &,
+        queue_t(std::unique_ptr<encoder_t>,
                 std::unique_ptr<queue_initialiser_t>, std::unique_ptr<queue_terminator_t>);
+
         queue_t *clone() const override;
             
     public:
-        const alphabet_t &alphabet() const;
-        std::queue<character_t> &queue();
-        const std::queue<character_t> &queue() const;
+        std::deque<character_t> &queue();
+        const std::deque<character_t> &queue() const;
         const queue_initialiser_t &initialiser() const override;
         const queue_terminator_t &terminator() const override;
+        std::string print_state() const override;
     };
 
     class queue_operation_t : public operation_t

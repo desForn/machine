@@ -1,4 +1,3 @@
-ascii;
 control 1 : Accept 3 : Reject 4;
 input;
 stack empty empty;

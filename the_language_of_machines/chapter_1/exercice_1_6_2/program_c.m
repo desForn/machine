@@ -1,4 +1,3 @@
-ascii;
 control 17 : Halt 18 22;
 input;
 output;

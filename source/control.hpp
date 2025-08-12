@@ -17,12 +17,11 @@ namespace Machine
         index_t initial_state_;
 
     public:
-        control_initialiser_t();
-        control_initialiser_t(index_t);
+        control_initialiser_t(index_t) noexcept;
         control_initialiser_t *clone() const override;
 
     public:
-        void initialise(device_t &, const string_t &) const override;
+        void initialise(device_t &, const std::string &) const override;
         index_t initial_state() const;
     };
 
@@ -37,7 +36,7 @@ namespace Machine
 
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
         bool terminating_state(index_t) const;
         const std::unordered_map<index_t, string_t> &terminating_states() const;
     };
@@ -46,22 +45,30 @@ namespace Machine
     {
     private:
         index_t state_{negative_1};
-        control_initialiser_t initialiser_;
-        control_terminator_t terminator_;
+        std::unique_ptr<control_initialiser_t> initialiser_;
+        std::unique_ptr<control_terminator_t> terminator_;
 
     public:
-        control_t(control_terminator_t);
-        control_t(control_initialiser_t, control_terminator_t);
-        control_t(std::unordered_map<index_t, string_t>);
-        control_t(control_initialiser_t, std::unordered_map<index_t, string_t>);
+        control_t() = delete;
+        ~control_t() = default;
+
+        control_t(const control_t &);
+        control_t &operator=(const control_t &);
+
+        control_t(control_t &&) noexcept = default;
+        control_t &operator=(control_t &&) noexcept = default;
+
+        control_t(std::unique_ptr<encoder_t>, std::unique_ptr<control_initialiser_t>,
+                std::unique_ptr<control_terminator_t>);
         control_t *clone() const override;
 
     public:
         const control_initialiser_t &initialiser() const override;
         const control_terminator_t &terminator() const override;
+        std::string print_state() const override;
 
-        index_t &state();
-        const index_t &state() const;
+        index_t &state() noexcept;
+        const index_t &state() const noexcept;
     };
 
     class control_operation_t final : public operation_t
@@ -71,7 +78,7 @@ namespace Machine
         index_t to_;
 
     public:
-        control_operation_t(index_t, index_t);
+        control_operation_t(index_t, index_t) noexcept;
         control_operation_t *clone() const override;
 
     public:
@@ -83,8 +90,8 @@ namespace Machine
         bool intersecting_domain(const terminator_t &) const override;
 
     public:  
-        index_t from() const;
-        index_t to() const;
+        index_t from() const noexcept;
+        index_t to() const noexcept;
     };
 }
 

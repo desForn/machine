@@ -5,38 +5,42 @@ namespace Machine
     output_initialiser_t *output_initialiser_t::clone() const
         { return new output_initialiser_t{*this}; }
 
-    void output_initialiser_t::initialise(device_t &device, const string_t &) const
-        { dynamic_cast<output_t &>(device).string().clear(); }
+    void output_initialiser_t::initialise(device_t &device, const std::string &) const
+        { dynamic_cast<output_t &>(device).string() = string_t{device.encoder().alphabet()}; }
 
     output_terminator_t *output_terminator_t::clone() const
         { return new output_terminator_t{*this}; }
 
     bool output_terminator_t::terminating(const device_t &) const { return true; }
 
-    string_t output_terminator_t::terminate(const device_t &device) const
-    {
-        const string_t &string = dynamic_cast<const output_t &>(device).string();
-
-        string_t ret{string.alphabet()};
-
-        for (auto it = std::crbegin(string.data()); it != std::crend(string.data()); ++it)
-            ret.push(*it);
-        return ret;
-    }
+    std::string output_terminator_t::terminate(const device_t &device) const
+        { return device.encoder()(dynamic_cast<const output_t &>(device).string()); }
 
     output_initialiser_t output_t::initialiser_{};
     output_terminator_t output_t::terminator_{};
 
-    output_t::output_t(const alphabet_t &alphabet) : string_{alphabet} {}
+    output_t::output_t(const output_t &arg) :
+        device_t{std::unique_ptr<encoder_t>{arg.encoder_->clone()}}, string_{arg.string_} {}
+
+    output_t &output_t::operator=(const output_t &arg) { return *this = output_t{arg}; }
+
+    output_t::output_t(std::unique_ptr<encoder_t> encoder) : device_t{std::move(encoder)}
+    {
+        if (not encoder_)
+            encoder_.reset(new encoder_ascii_t{});
+    }
 
     output_t *output_t::clone() const { return new output_t{*this}; }
 
     const output_initialiser_t &output_t::initialiser() const { return initialiser_; }
+
     const output_terminator_t &output_t::terminator() const { return terminator_; }
 
+    std::string output_t::print_state() const { return string_.print_state(encoder()); }
+
     string_t &output_t::string() { return string_; }
+
     const string_t &output_t::string() const { return string_; }
-    const alphabet_t &output_t::alphabet() const { return string_.alphabet(); }
 
     output_operation_write_t::output_operation_write_t(character_t character):
         character_{character} {}

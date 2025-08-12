@@ -1,6 +1,5 @@
-ascii;
-control 0 : Accept 5;
-input;
+control list A c e p t : 0 : Accept 5;
+input list 0 1:;
 
 0 to 1;     scan 0;
 0 to 1;     scan 1;

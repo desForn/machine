@@ -1,4 +1,3 @@
-ascii;
 control 0 : Accept 9;
 input;
 output;

@@ -30,7 +30,7 @@ namespace Machine
     public:
         tape_initialiser_empty_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const string_t &) const override;
+        virtual void initialise(device_t &, const std::string &) const override;
     };
 
     class tape_initialiser_string_t final : public tape_initialiser_t
@@ -38,7 +38,7 @@ namespace Machine
     public:
         tape_initialiser_string_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const string_t &) const override;
+        virtual void initialise(device_t &, const std::string &) const override;
     };
 
     class tape_terminator_t : public terminator_t
@@ -54,7 +54,7 @@ namespace Machine
         tape_terminator_athome_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
     };
 
     class tape_terminator_always_t final : public tape_terminator_t
@@ -63,13 +63,13 @@ namespace Machine
         tape_terminator_always_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
     };
 
     class tape_t final : public device_t
     {
     private:
-        string_t string_;
+        string_t string_{encoder().alphabet()};
         character_t default_character_;
         std::unique_ptr<tape_initialiser_t> initialiser_;
         std::unique_ptr<tape_terminator_t> terminator_;
@@ -84,19 +84,17 @@ namespace Machine
         tape_t(tape_t &&) noexcept = default;
         tape_t &operator=(tape_t &&) noexcept = default;
 
-        tape_t(const alphabet_t &, character_t,
-                const tape_initialiser_t &, const tape_terminator_t &);
-        tape_t(const alphabet_t &, character_t,
+        tape_t(std::unique_ptr<encoder_t>, character_t,
                 std::unique_ptr<tape_initialiser_t>, std::unique_ptr<tape_terminator_t>);
         tape_t *clone() const override;
             
     public:
-        const alphabet_t &alphabet() const;
         character_t default_character() const;
         string_t &string();
         const string_t &string() const;
         const tape_initialiser_t &initialiser() const override;
         const tape_terminator_t &terminator() const override;
+        std::string print_state() const override;
     };
 
     class tape_operation_t : public operation_t

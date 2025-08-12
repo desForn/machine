@@ -61,6 +61,7 @@ namespace Machine
 
         std::string print_b_ary(character_t) const;
         std::string print_b_adic(character_t) const;
+        std::string print(const encoder_t &) const;
 
     private:
         index_t load_half_word(index_t) const;
@@ -149,6 +150,7 @@ namespace Machine
 
         std::string print_b_ary(character_t) const;
         std::string print_b_adic(character_t) const;
+        std::string print(const encoder_t &) const;
 
     public:
         bool operator==(const signed_number_t &) const;

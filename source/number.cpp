@@ -185,6 +185,25 @@ namespace Machine
     std::string unsigned_number_t::print_b_adic(character_t radix) const
         { return b_adic(radix).print_state_reverse(encoder_b_adic_t{radix}); }
 
+    std::string unsigned_number_t::print(const encoder_t &encoder) const
+    {
+        if (typeid(encoder) == typeid(encoder_b_ary_t))
+            return print_b_ary(encoder.alphabet().max_character() + 1);
+        
+        if (typeid(encoder) == typeid(encoder_signed_b_ary_t))
+            return print_b_ary(encoder.alphabet().max_character() - 1);
+
+        if (typeid(encoder) == typeid(encoder_b_adic_t))
+            return print_b_adic(encoder.alphabet().max_character() + 1);
+
+        if (typeid(encoder) == typeid(encoder_signed_b_adic_t))
+            return print_b_adic(encoder.alphabet().max_character() - 1);
+
+        else
+            throw std::runtime_error{"In Machine::unsigned_number_t::print(const encoder_t &):\n"
+                "Unknown encoder type.\n"};
+    }
+
     index_t unsigned_number_t::load_half_word(index_t index) const
         { return (digits_[index / 2] & mask[index % 2]) >> (n_digits / 2 * (index % 2)); }
 
@@ -791,6 +810,25 @@ namespace Machine
             ret.push_back(a);
 
         return ret;
+    }
+
+    std::string signed_number_t::print(const encoder_t &encoder) const
+    {
+        if (typeid(encoder) == typeid(encoder_b_ary_t))
+            return print_b_ary(encoder.alphabet().max_character() + 1);
+        
+        if (typeid(encoder) == typeid(encoder_signed_b_ary_t))
+            return print_b_ary(encoder.alphabet().max_character() - 1);
+
+        if (typeid(encoder) == typeid(encoder_b_adic_t))
+            return print_b_adic(encoder.alphabet().max_character() + 1);
+
+        if (typeid(encoder) == typeid(encoder_signed_b_adic_t))
+            return print_b_adic(encoder.alphabet().max_character() - 1);
+
+        else
+            throw std::runtime_error{"In Machine::unsigned_number_t::print(const encoder_t &):\n"
+                "Unknown encoder type.\n"};
     }
 
     bool signed_number_t::operator==(const signed_number_t &arg) const

@@ -1,4 +1,3 @@
-ascii;
 control 3 : Halt 5;
 input;
 output;

@@ -1,4 +1,3 @@
-ascii;
 control 0 : Accept 3;
 input;
 ucounter zero string;

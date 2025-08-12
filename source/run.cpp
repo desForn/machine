@@ -24,7 +24,7 @@ void run(machine_t &machine, std::string input)
             if (std::empty(machine.output()[i]))
                 continue;
             std::cout << "Device " << i << ":\t";
-            std::cout << machine.encoder()(machine.output()[i]) << '\n';
+            std::cout << machine.output()[i] << '\n';
         }
     }
 

@@ -14,7 +14,7 @@ namespace Machine
         output_initialiser_t *clone() const override;
 
     public:
-        void initialise(device_t &, const string_t &) const override;
+        void initialise(device_t &, const std::string &) const override;
     };
 
     class output_terminator_t final : public terminator_t
@@ -24,7 +24,7 @@ namespace Machine
 
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
     };
 
     class output_t final : public device_t
@@ -33,19 +33,28 @@ namespace Machine
         static output_initialiser_t initialiser_;
         static output_terminator_t terminator_;
 
-        string_t string_;
+        string_t string_{encoder().alphabet()};
 
     public:
-        output_t(const alphabet_t &);
+        output_t() = delete;
+        ~output_t() = default;
+
+        output_t(const output_t &);
+        output_t &operator=(const output_t &);
+
+        output_t(output_t &&) noexcept = default;
+        output_t &operator=(output_t &&) noexcept = default;
+
+        output_t(std::unique_ptr<encoder_t>);
         output_t *clone() const override;
 
     public:
         const output_initialiser_t &initialiser() const override;
         const output_terminator_t &terminator() const override;
+        std::string print_state() const override;
 
         string_t &string();
         const string_t &string() const;
-        const alphabet_t &alphabet() const;
     };
 
     class output_operation_write_t final : public operation_t

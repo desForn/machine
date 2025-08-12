@@ -28,7 +28,7 @@ namespace Machine
     public:
         stack_initialiser_empty_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const string_t &) const override;
+        virtual void initialise(device_t &, const std::string &) const override;
     };
 
     class stack_initialiser_string_t final : public stack_initialiser_t
@@ -36,7 +36,7 @@ namespace Machine
     public:
         stack_initialiser_string_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const string_t &) const override;
+        virtual void initialise(device_t &, const std::string &) const override;
     };
 
     class stack_terminator_t : public terminator_t
@@ -52,7 +52,7 @@ namespace Machine
         stack_terminator_empty_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
     };
 
     class stack_terminator_string_t final : public stack_terminator_t
@@ -61,13 +61,13 @@ namespace Machine
         stack_terminator_string_t *clone() const override;
     public:
         bool terminating(const device_t &) const override;
-        string_t terminate(const device_t &) const override;
+        std::string terminate(const device_t &) const override;
     };
 
     class stack_t final : public device_t
     {
     private:
-        string_t string_;
+        string_t string_{encoder().alphabet()};
         std::unique_ptr<stack_initialiser_t> initialiser_;
         std::unique_ptr<stack_terminator_t> terminator_;
 
@@ -81,17 +81,16 @@ namespace Machine
         stack_t(stack_t &&) noexcept = default;
         stack_t &operator=(stack_t &&) noexcept = default;
 
-        stack_t(const alphabet_t &, const stack_initialiser_t &, const stack_terminator_t &);
-        stack_t(const alphabet_t &,
+        stack_t(std::unique_ptr<encoder_t>,
                 std::unique_ptr<stack_initialiser_t>, std::unique_ptr<stack_terminator_t>);
         stack_t *clone() const override;
             
     public:
-        const alphabet_t &alphabet() const;
         string_t &string();
         const string_t &string() const;
         const stack_initialiser_t &initialiser() const override;
         const stack_terminator_t &terminator() const override;
+        std::string print_state() const override;
     };
 
     class stack_operation_t : public operation_t
