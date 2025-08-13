@@ -30,6 +30,7 @@ void run(machine_t &machine, std::string input)
 
     else
         std::cerr << "An error has occured while running the machine with input\n" << input << '\n';
+
     return;
 }
 

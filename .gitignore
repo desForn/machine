@@ -3,3 +3,4 @@ source/makefile
 object/*\.o
 object/run
 test/number/number_test
+doc/

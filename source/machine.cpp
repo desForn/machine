@@ -18,6 +18,7 @@
 #include <utility>
 #include <string>
 #include <sstream>
+#include <limits>
 
 namespace Machine
 {
@@ -2042,6 +2043,32 @@ namespace Machine
         return;
     }
 
+    machine_t::machine_t(const machine_t &arg) :
+        instruction_set_{arg.instruction_set_},
+        applicable_instructions_{arg.applicable_instructions_},
+        search_table_{arg.search_table_},
+        output_{arg.output_},
+        computation_{arg.computation_},
+        computation_bits_{arg.computation_bits_},
+        next_instruction_{arg.next_instruction_},
+        state_{arg.state_},
+        deterministic_{arg.deterministic_}
+    {
+        devices_.reserve(std::size(arg.devices_));
+
+        for (const std::unique_ptr<device_t> &i : arg.devices_)
+        {
+            devices_.emplace_back(i->clone());
+
+            if (arg.first_control_ == i.get())
+                first_control_ = dynamic_cast<control_t *>(devices_.back().get());
+        }
+
+        return;
+    }
+
+    machine_t &machine_t::operator=(const machine_t &arg) { return *this = machine_t{arg}; }
+
     machine_t::machine_t(std::vector<std::unique_ptr<device_t>> devices,
             std::vector<std::shared_ptr<operation_t>> instruction_set) :
         devices_{std::move(devices)}, instruction_set_{std::move(instruction_set)}
@@ -2100,6 +2127,11 @@ namespace Machine
                         { return (*a).intersecting_domain((*b).terminator()); });
         }
 
+        computation_bits_ = std::bit_width(std::size(instruction_set_) / n);
+
+        if (computation_bits_ > std::numeric_limits<index_t>::digits)
+            throw_error("The instruction set cannot have more instructions than the maximum number"
+                " representable by index_t.");
         if (not first_control_)
             return;
 
@@ -2153,9 +2185,9 @@ namespace Machine
         return;
     }
 
-    machine_t &machine_t::load(std::istream &stream) { return *this = machine_t{stream}; }
+    machine_t &machine_t::load_program(std::istream &stream) { return *this = machine_t{stream}; }
 
-    void machine_t::store(std::ostream &arg) const
+    void machine_t::store_program(std::ostream &arg) const
     {
         std::ostringstream stream;
 
@@ -2184,8 +2216,8 @@ namespace Machine
                 stream << '\n';
 
             if (std::size(instruction.str()) > instruction_length)
-                throw std::runtime_error{"In Machine::machine_t::store(std::ostream &) const\n"
-                    "Instruction string is too long.\n"};
+                throw std::runtime_error{"In Machine::machine_t::store_program"
+                    "(std::ostream &) const\nInstruction string is too long.\n"};
 
             ++c;
             if (c == std::size(devices_))
@@ -2203,6 +2235,29 @@ namespace Machine
         return;
     }
 
+    std::vector<std::string> machine_t::print_instruction(index_t arg) const
+    {
+        index_t n = std::size(devices_);
+        arg *= n;
+
+        if (arg > std::size(instruction_set_))
+            throw std::runtime_error{"In Machine::machine_t::print_instruction(index_t) const:\n"
+                "Invalid argument.\n"};
+
+        if (arg == std::size(instruction_set_))
+            return {"Terminate"};
+
+        auto d = std::cbegin(devices_);
+
+        std::vector<std::string> ret;
+        for (auto begin = std::cbegin(instruction_set_) + arg, end = begin + n;
+             begin != end;
+             ++begin, ++d)
+            ret.emplace_back(print_operation(**begin, (*d)->encoder()));
+
+        return ret;
+    }
+
     const std::vector<std::unique_ptr<device_t>> &machine_t::devices() const noexcept
         { return devices_; }
 
@@ -2217,6 +2272,9 @@ namespace Machine
 
     void machine_t::initialise(const std::string &input)
     {
+        computation_.clear();
+        computation_size_ = 0;
+
         state_ = machine_state_t::running;
         for (auto &i : devices_)
             i->initialise(input);
@@ -2226,24 +2284,49 @@ namespace Machine
         return;
     }
 
+    void machine_t::initialise(std::span<const std::string> input)
+    {
+        if (std::size(input) == 1)
+            return initialise(input.front());
+        if (std::size(input) != std::size(devices_))
+            throw std::runtime_error{"In Machine::machine_t::initialise(std::span<const std::string"
+                ">):\nInvalid argument.\n"};
+
+        computation_.clear();
+        computation_size_ = 0;
+
+        state_ = machine_state_t::running;
+        auto i = std::begin(input);
+        auto j = std::begin(devices_);
+        for(; i != std::end(input); ++i, ++j)
+            (*j)->initialise(*i);
+
+        applicable_instructions_apparatus();
+
+        return;
+    }
+
     void machine_t::next()
     {
-        if (state_ != machine_state_t::running)
+        if (next_instruction_ == negative_1)
             return;
 
-        if (terminating())
+        if (next_instruction_ == std::size(instruction_set_))
             terminate();
 
         else
         {
             auto i = std::begin(devices_);
-            auto j = std::cbegin(applicable_instructions_);
+            auto j = std::begin(instruction_set_) + next_instruction_;
 
             for (; i != std::end(devices_); ++i, ++j)
                 (**j).apply(**i);
+
+            computation_append();
+            applicable_instructions_apparatus();
         }
 
-        applicable_instructions_apparatus();
+
         return;
     }
 
@@ -2261,21 +2344,78 @@ namespace Machine
         return;
     }
 
-    std::vector<std::span<const std::shared_ptr<operation_t>>>
-        machine_t::applicable_instructions() const
+    std::vector<std::string> machine_t::applicable_instructions() const
     {
-        std::vector<std::span<const std::shared_ptr<operation_t>>> ret;
-        index_t n = std::size(devices_);
-        for (auto i = std::cbegin(applicable_instructions_);
-             i < std::cend(applicable_instructions_); i += n)
-            ret.emplace_back(i, i + n);
+        static constexpr index_t alignment_size = 16;
+
+        std::vector<std::string> ret;
+        
+        std::vector<std::string> instructions;
+        for (auto i : applicable_instructions_)
+        {
+            std::ostringstream s;
+            instructions = print_instruction(
+                        std::distance(std::begin(instruction_set_), i) * std::size(devices_));
+
+            for (auto j = std::begin(instructions); j != std::end(instructions); ++j)
+            {
+                s << *j << ';';
+                if (j != std::end(instructions) - 1)
+                    for (index_t k = std::size(s.str()) % alignment_size; k != alignment_size; ++k)
+                        s << ' ';
+            }
+
+            ret.emplace_back(std::move(s).str());
+        }
+
         return ret;
     }
 
-    bool machine_t::terminating() const
+    void machine_t::select_instruction(index_t arg)
     {
-        return std::ranges::all_of(devices_, [](const auto &i) { return i->terminating(); });
+        if (arg >= std::size(applicable_instructions_))
+            throw std::runtime_error{"In Machine::machine_t::select_instruction(index_t):\n"
+                "Invalid argument.\n"};
+
+        next_instruction_ = 
+            std::distance(std::cbegin(instruction_set_), applicable_instructions_[arg]);
+
+        return;
     }
+
+    index_t machine_t::computation(index_t arg) const
+    {
+        static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
+
+        index_t start_bit = arg * computation_bits_;
+        index_t last_bit = start_bit + computation_bits_ - 1;
+
+        if (last_bit >= computation_size_)
+            throw std::runtime_error{"In Machine::machine_t::computation(index_t) const:\n"
+                "Invalid argument.\n"};
+
+        index_t start_word = start_bit / n_digits;
+        index_t start_offset = start_bit % n_digits;
+        index_t last_word = last_bit / n_digits;
+        index_t last_offset = last_bit % n_digits;
+
+        index_t ret0 = computation_[last_word];
+        ret0 <<= (n_digits - 1 - last_offset);
+        ret0 >>= (n_digits - computation_bits_);
+
+        if (start_word == last_word)
+            return ret0;
+
+        index_t ret1 = computation_[start_word];
+        ret1 >>= start_offset;
+
+        return ret0 | ret1;
+    }
+
+    index_t machine_t::computation_size() const { return computation_size_ / computation_bits_; }
+
+    bool machine_t::terminating() const
+        { return std::ranges::all_of(devices_, [](const auto &i) { return i->terminating(); }); }
 
     void machine_t::terminate()
     {
@@ -2284,6 +2424,8 @@ namespace Machine
         for (const auto &i : devices_)
             output_.emplace_back(i->terminate());
         state_ = machine_state_t::halted;
+        computation_append();
+        next_instruction_ = negative_1;
         applicable_instructions_.clear();
         return;
     }
@@ -2291,14 +2433,16 @@ namespace Machine
     void machine_t::applicable_instructions_apparatus()
     {
         applicable_instructions_.clear();
+        next_instruction_ = negative_1;
 
-        if (state_ == machine_state_t::halted or state_ == machine_state_t::invalid or
+        if (state_ == machine_state_t::halted or
+            state_ == machine_state_t::invalid or
             state_ == machine_state_t::blocked)
             return;
 
         index_t n = std::size(devices_);
 
-        decltype(std::begin(instruction_set_)) begin_search, end_search;
+        std::vector<std::shared_ptr<operation_t>>::const_iterator begin_search, end_search;
 
         if (not first_control_)
         {
@@ -2316,19 +2460,48 @@ namespace Machine
             if (std::equal(begin_search, begin_search + n, std::cbegin(devices_),
                         [](const auto &a, const auto &b)
                         { return (*a).applicable(*b); }))
-                for (auto i = begin_search; i != begin_search + n; ++i)
-                    applicable_instructions_.emplace_back((*i)->clone());
+            {
+                applicable_instructions_.emplace_back(begin_search);
+                next_instruction_ = std::distance(std::cbegin(instruction_set_), begin_search);
+            }
+
+        if (terminating())
+        {
+            applicable_instructions_.emplace_back(std::cend(instruction_set_));
+            next_instruction_ = std::size(instruction_set_);
+        }
 
         index_t s = std::size(applicable_instructions_);
-        if (terminating())
-            s += n;
-
         if (s == 0)
             state_ = machine_state_t::blocked;
-        else if (s == n)
+        else if (s == 1)
             state_ = machine_state_t::running;
         else
+        {
+            next_instruction_ = negative_1;
             state_ = machine_state_t::non_deterministic_decision;
+        }
+
+        return;
+    }
+
+    void machine_t::computation_append()
+    {
+        static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
+
+        index_t offset = computation_size_ % n_digits;
+
+        computation_size_ += computation_bits_;
+
+        index_t to_append = next_instruction_ / std::size(devices_);
+
+        if (offset == 0)
+            computation_.emplace_back(to_append << offset);
+        else
+            computation_.back() |= (to_append << offset);
+
+        if (offset + computation_bits_ > n_digits)
+            computation_.emplace_back(to_append >> (n_digits - offset));
 
         return;
     }

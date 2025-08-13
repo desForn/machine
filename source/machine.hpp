@@ -29,9 +29,14 @@ namespace Machine
     private:
         std::vector<std::unique_ptr<device_t>> devices_;
         std::vector<std::shared_ptr<operation_t>> instruction_set_;
-        std::vector<std::shared_ptr<operation_t>> applicable_instructions_{};
-        std::vector<std::vector<std::shared_ptr<operation_t>>::iterator> search_table_{};
+        std::vector<std::vector<std::shared_ptr<operation_t>>::const_iterator>
+            applicable_instructions_{};
+        std::vector<std::vector<std::shared_ptr<operation_t>>::const_iterator> search_table_{};
         std::vector<std::string> output_{};
+        std::vector<index_t> computation_{};
+        index_t computation_size_{0};
+        index_t computation_bits_{0};
+        index_t next_instruction_{negative_1};
         control_t *first_control_{nullptr};
         machine_state_t state_{machine_state_t::invalid};
         bool deterministic_{true};
@@ -40,8 +45,8 @@ namespace Machine
         machine_t() = delete;
         virtual ~machine_t() = default;
 
-        machine_t(const machine_t &) = delete;
-        machine_t &operator=(const machine_t &) = delete;
+        machine_t(const machine_t &);
+        machine_t &operator=(const machine_t &);
 
         machine_t(machine_t &&) noexcept = default;
         machine_t &operator=(machine_t &&) noexcept = default;
@@ -51,8 +56,9 @@ namespace Machine
                   std::vector<std::shared_ptr<operation_t>>);
 
     public:
-        machine_t &load(std::istream &);
-        void store(std::ostream &) const;
+        machine_t &load_program(std::istream &);
+        void store_program(std::ostream &) const;
+        std::vector<std::string> print_instruction(index_t) const;
 
     public:
         const std::vector<std::unique_ptr<device_t>> &devices() const noexcept;
@@ -63,14 +69,19 @@ namespace Machine
 
     public:
         void initialise(const std::string &);
+        void initialise(std::span<const std::string>);
         void next();
         void next(index_t);
         void run();
-        std::vector<std::span<const std::shared_ptr<operation_t>>> applicable_instructions() const;
+        std::vector<std::string> applicable_instructions() const;
+        void select_instruction(index_t);
+        index_t computation(index_t) const;
+        index_t computation_size() const;
         bool terminating() const;
     private:
         void terminate();
         void applicable_instructions_apparatus();
+        void computation_append();
     };
     
     class device_t
