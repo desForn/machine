@@ -4,3 +4,8 @@ object/*\.o
 object/run
 test/number/number_test
 doc/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+
