@@ -193,7 +193,7 @@ namespace Machine
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
                 std::vector<std::shared_ptr<int>> dimensions_;
-                std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
+                index_t padding_{0};
 
             public:
                 program_t() = delete;

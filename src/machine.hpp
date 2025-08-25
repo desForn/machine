@@ -76,6 +76,9 @@ namespace Machine
         void next(index_t);
         void run();
         std::vector<std::string> print_applicable_instructions() const;
+        std::string print_encoder(index_t) const;
+        std::string print_initialiser(index_t) const;
+        std::string print_terminator(index_t) const;
         void select_instruction(index_t);
         index_t computation(index_t) const;
         index_t computation_size() const;

@@ -22,7 +22,7 @@
 
 namespace Machine
 {
-    std::shared_ptr<operation_t> control_operation(character_t from, character_t to)
+    static std::shared_ptr<operation_t> control_operation(character_t from, character_t to)
     {
         static std::unordered_map<std::array<character_t, 2>, std::shared_ptr<operation_t>> map;
 
@@ -42,7 +42,8 @@ namespace Machine
         return a.first->second;
     }
 
-    std::shared_ptr<operation_t> operation(character_t operation_id, character_t operation_argument)
+    static std::shared_ptr<operation_t> operation(
+        character_t operation_id, character_t operation_argument)
     {
         static const std::runtime_error error_0{
             "In Machine::operation(const std::array<character_t, 2> &):\n"
@@ -373,7 +374,7 @@ namespace Machine
         }
     }
 
-    std::shared_ptr<operation_t> compound_tape_operation(character_t flag, 
+    static std::shared_ptr<operation_t> compound_tape_operation(character_t flag, 
             character_t see_character, character_t print_character)
     {
         static const std::string error{
@@ -418,7 +419,7 @@ namespace Machine
         return a.first->second;
     }
 
-    void get_char(char &c, std::istream &stream, index_t &line, index_t &column)
+    static void get_char(char &c, std::istream &stream, index_t &line, index_t &column)
     {
         stream.get(c);
         ++column;
@@ -429,7 +430,7 @@ namespace Machine
         }
     }
 
-    std::string read_token(std::istream &stream, index_t &line, index_t &column)
+    static std::string read_token(std::istream &stream, index_t &line, index_t &column)
     {
         std::string ret{};
 
@@ -468,7 +469,7 @@ namespace Machine
         return ret;
     }
 
-    character_t read_character(std::istream &stream, index_t &line, index_t& column,
+    static character_t read_character(std::istream &stream, index_t &line, index_t& column,
             const encoder_t &encoder)
     {
         auto initial_pos = stream.tellg();
@@ -515,10 +516,10 @@ namespace Machine
     }
 
 
-    bool is_number(const std::string &arg)
+    static bool is_number(const std::string &arg)
         { return std::ranges::all_of(arg, [](char a){ return a >= '0' and a <= '9'; }); }
 
-    std::unique_ptr<encoder_t> read_encoder(std::istream &stream, index_t &line, index_t &column)
+    static std::unique_ptr<encoder_t> read_encoder(std::istream &stream, index_t &line, index_t &column)
     {
         static const std::string error{"In Machine::read_encoder(std::istream &):\n"};
 
@@ -630,7 +631,7 @@ namespace Machine
        return ret; 
     }
 
-    std::string print_encoder(const encoder_t &encoder)
+    static std::string print_encoder(const encoder_t &encoder)
     {
         std::string ret;
         if (typeid(encoder) == typeid(encoder_alphabetic_t))
@@ -686,7 +687,8 @@ namespace Machine
         return ret;
     }
 
-    std::unique_ptr<device_t> read_device(std::istream &stream, index_t &line, index_t &column)
+    static std::unique_ptr<device_t> read_device(
+        std::istream &stream, index_t &line, index_t &column)
     {
         static bool initialised = false;
         static std::unordered_map<std::string, index_t> keywords;
@@ -988,14 +990,15 @@ namespace Machine
         std::unreachable();
     }
 
-    std::string print_device(const device_t &device)
+    static std::array<std::string, 4> print_device(const device_t &device)
     {
         auto throw_error = [&](const std::string &arg) -> void
         {
             throw std::runtime_error{"In Machine::print_device(const device_t &):\n" + arg + "\n"};
         };
 
-        std::string ret;
+        std::string d, e, i, t;
+
         if (typeid(device) == typeid(control_t))
         {
             const control_t &control = dynamic_cast<const control_t &>(device);
@@ -1007,11 +1010,9 @@ namespace Machine
 
             const string_t *last_string = nullptr;
 
-            ret += "control ";
-            ret += print_encoder(device.encoder());
-            ret += " ";
-            ret += std::to_string(control.initialiser().initial_state());
-            ret += " ";
+            d = "control";
+            e = print_encoder(device.encoder());
+            i = std::to_string(control.initialiser().initial_state());
 
             for (const auto &i : map)
             {
@@ -1023,23 +1024,23 @@ namespace Machine
                 last_string = &i.first;
 
                 if (new_string)
-                    ret += ": " + device.encoder()(*last_string) + ", ";
+                    t += ": " + device.encoder()(*last_string) + ", ";
                 else
-                    ret += ", ";
-                ret += std::to_string(i.second);
+                    t += ", ";
+                t += std::to_string(i.second);
             }
         }
 
         else if (typeid(device) == typeid(input_t))
         {
-            ret += "input ";
-            ret += print_encoder(device.encoder());
+            d = "input";
+            e = print_encoder(device.encoder());
         }
 
         else if (typeid(device) == typeid(output_t))
         {
-            ret += "output ";
-            ret += print_encoder(device.encoder());
+            d = "output";
+            e = print_encoder(device.encoder());
         }
 
         else if (typeid(device) == typeid(stack_t))
@@ -1048,21 +1049,20 @@ namespace Machine
             const stack_initialiser_t &initialiser = stack.initialiser();
             const stack_terminator_t &terminator = stack.terminator();
 
-            ret += "stack ";
-            ret += print_encoder(device.encoder());
-            ret += " ";
+            d = "stack";
+            e = print_encoder(device.encoder());
 
             if (typeid(initialiser) == typeid(stack_initialiser_empty_t))
-                ret += "empty ";
+                i  = "empty";
             else if (typeid(initialiser) == typeid(stack_initialiser_string_t))
-                ret += "string ";
+                i = "string";
             else
                 throw_error("Unknown stack initialiser class.");
 
             if (typeid(terminator) == typeid(stack_terminator_empty_t))
-                ret += "empty";
+                t = "empty";
             else if (typeid(terminator) == typeid(stack_terminator_string_t))
-                ret += "string";
+                t = "string";
             else
                 throw_error("Unknown stack terminator class.");
         }
@@ -1074,21 +1074,20 @@ namespace Machine
             const unsigned_counter_initialiser_t &initialiser = unsigned_counter.initialiser();
             const unsigned_counter_terminator_t &terminator = unsigned_counter.terminator();
 
-            ret += "ucounter ";
-            ret += print_encoder(device.encoder());
-            ret += " ";
+            d = "ucounter";
+            e = print_encoder(device.encoder());
 
             if (typeid(initialiser) == typeid(unsigned_counter_initialiser_zero_t))
-                ret += "zero ";
+                i = "zero";
             else if (typeid(initialiser) == typeid(unsigned_counter_initialiser_string_t))
-                ret += "string ";
+                i = "string";
             else
                 throw_error("Unknown ucounter initialiser class.");
 
             if (typeid(terminator) == typeid(unsigned_counter_terminator_zero_t))
-                ret += "zero";
+                t = "zero";
             else if (typeid(terminator) == typeid(unsigned_counter_terminator_string_t))
-                ret += "string";
+                t = "string";
             else
                 throw_error("Unknown ucounter terminator class.");
         }
@@ -1099,21 +1098,20 @@ namespace Machine
             const counter_initialiser_t &initialiser = counter.initialiser();
             const counter_terminator_t &terminator = counter.terminator();
 
-            ret += "counter ";
-            ret += print_encoder(device.encoder());
-            ret += " ";
+            d = "counter";
+            e = print_encoder(device.encoder());
 
             if (typeid(initialiser) == typeid(counter_initialiser_zero_t))
-                ret += "zero ";
+                i = "zero";
             else if (typeid(initialiser) == typeid(counter_initialiser_string_t))
-                ret += "string ";
+                i = "string";
             else
                 throw_error("Unknown counter initialiser class.");
 
             if (typeid(terminator) == typeid(counter_terminator_zero_t))
-                ret += "zero";
+                t = "zero";
             else if (typeid(terminator) == typeid(counter_terminator_string_t))
-                ret += "string";
+                t = "string";
             else
                 throw_error("Unknown counter terminator class.");
         }
@@ -1124,24 +1122,21 @@ namespace Machine
             const tape_initialiser_t &initialiser = tape.initialiser();
             const tape_terminator_t &terminator = tape.terminator();
 
-            ret += "tape ";
-            ret += " ";
-            ret += print_encoder(device.encoder());
-            ret += " ";
-            ret += std::to_string(tape.default_character());
-            ret += " ";
+            d = "tape";
+            e = print_encoder(device.encoder()) + ' ';
+            e += std::to_string(tape.default_character());
 
             if (typeid(initialiser) == typeid(tape_initialiser_empty_t))
-                ret += "empty ";
+                i = "empty";
             else if (typeid(initialiser) == typeid(tape_initialiser_string_t))
-                ret += "string ";
+                i = "string";
             else
                 throw_error("Unknown tape initialiser class.");
 
             if (typeid(terminator) == typeid(tape_terminator_athome_t))
-                ret += "athome";
+                t = "athome";
             else if (typeid(terminator) == typeid(tape_terminator_always_t))
-                ret += "always";
+                t = "always";
             else
                 throw_error("Unknown tape terminator class.");
         }
@@ -1152,21 +1147,20 @@ namespace Machine
             const queue_initialiser_t &initialiser = queue.initialiser();
             const queue_terminator_t &terminator = queue.terminator();
 
-            ret += "queue ";
-            ret += print_encoder(device.encoder());
-            ret += " ";
+            d = "queue";
+            e = print_encoder(device.encoder());
 
             if (typeid(initialiser) == typeid(queue_initialiser_empty_t))
-                ret += "empty ";
+                i = "empty";
             else if (typeid(initialiser) == typeid(queue_initialiser_string_t))
-                ret += "string ";
+                i = "string";
             else
                 throw_error("Unknown queue initialiser class.");
 
             if (typeid(terminator) == typeid(queue_terminator_empty_t))
-                ret += "empty";
+                t = "empty";
             else if (typeid(terminator) == typeid(queue_terminator_string_t))
-                ret += "string";
+                t = "string";
             else
                 throw_error("Unknown queue terminator class.");
         }
@@ -1174,10 +1168,10 @@ namespace Machine
         else
             throw_error("Unknown device class.");
 
-        return ret;
+        return {d, e, i, t};
     }
 
-    std::shared_ptr<operation_t> read_operation
+    static std::shared_ptr<operation_t> read_operation
         (std::istream &stream, index_t &line, index_t &column,
          const device_t &device)
     {
@@ -1797,7 +1791,7 @@ namespace Machine
         }
     }
 
-    std::string print_operation(const operation_t &operation, const encoder_t &encoder,
+    static std::string print_operation(const operation_t &operation, const encoder_t &encoder,
             index_t *control_state = nullptr)
     {
         std::string ret;
@@ -1996,7 +1990,8 @@ namespace Machine
         return ret;
     }
 
-    void instruction_set_radix_sort(std::vector<std::shared_ptr<operation_t>> &instruction_set,
+    static void instruction_set_radix_sort(
+        std::vector<std::shared_ptr<operation_t>> &instruction_set,
             index_t control_index, index_t n_states, index_t stride)
     {
         if (std::empty(instruction_set))
@@ -2196,7 +2191,13 @@ namespace Machine
         std::ostringstream stream;
 
         for (const auto &i : devices_)
-            stream << print_device(*i) << ";\n";
+        {
+            std::array<std::string, 4> s = print_device(*i);
+
+            for (index_t j = 0; j != 3; ++j)
+                stream << s[j] << ' ';
+            stream << s[3] << ";\n";
+        }
         
 
         bool print_new_line = true;
@@ -2397,6 +2398,33 @@ namespace Machine
         }
 
         return ret;
+    }
+
+    std::string machine_t::print_encoder(index_t arg) const
+    {
+        if (arg >= std::size(devices_))
+            throw std::runtime_error{"In Machine::machine_t::print_encoder(index_t):\n"
+                "Invalid argument.\n"};
+
+        return print_device(*devices_[arg])[1];
+    }
+
+    std::string machine_t::print_initialiser(index_t arg) const
+    {
+        if (arg >= std::size(devices_))
+            throw std::runtime_error{"In Machine::machine_t::print_initialiser(index_t):\n"
+                "Invalid argument.\n"};
+
+        return print_device(*devices_[arg])[2];
+    }
+
+    std::string machine_t::print_terminator(index_t arg) const
+    {
+        if (arg >= std::size(devices_))
+            throw std::runtime_error{"In Machine::machine_t::print_terminator(index_t):\n"
+                "Invalid argument.\n"};
+
+        return print_device(*devices_[arg])[3];
     }
 
     void machine_t::select_instruction(index_t arg)

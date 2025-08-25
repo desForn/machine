@@ -904,7 +904,7 @@ namespace Machine
             .direction = ftxui::Direction::Right,
             .color_active = ftxui::Color::Black,
             .color_inactive = ftxui::Color::Black
-        })},
+        }) | bgcolor(ftxui::Color::GrayLight)},
         slider_y_{ftxui::Slider<float>(ftxui::SliderOption<float>{
             .value = scroll_y_.get(),
             .min = 0.f,
@@ -913,12 +913,9 @@ namespace Machine
             .direction = ftxui::Direction::Down,
             .color_active = ftxui::Color::Black,
             .color_inactive = ftxui::Color::Black
-        })}
+        }) | bgcolor(ftxui::Color::GrayLight)}
     {
         using namespace ftxui;
-
-        slider_x_ |= bgcolor(Color::GrayLight);
-        slider_y_ |= bgcolor(Color::GrayLight);
 
         component_ = Renderer(child_component_, [this]
             {
@@ -944,10 +941,9 @@ namespace Machine
                         if (std::size(dimensions_) != n + 1)
                         {
                             dimensions_.clear();
+                            int width = (console_->tui().width(0) - 4) / n - 1;
                             for (index_t i = 0; i != n + 1; ++i)
-                                dimensions_.emplace_back(
-                                    std::make_shared<int>((console_->tui().width(3) - 4) /
-                                        std::size(devices)));
+                                dimensions_.emplace_back(std::make_shared<int>(width));
                             *(dimensions_.front()) = 4;
                         }
 
@@ -956,17 +952,17 @@ namespace Machine
                         for (index_t i = 0; i != n - 1; ++i)
                         {
                             std::string s = devices[i]->print_name();
-                            *(dimensions_[i + 1]) = std::max(*(dimensions_[i]),
+                            *(dimensions_[i + 1]) = std::max(*(dimensions_[i + 1]),
                                     static_cast<int>(std::size(s)));
                             header.emplace_back(Renderer([s = std::move(s)] { return text(s); }));
                         }
 
                         {
                             std::string s = devices.back()->print_name();
-                            *padding_ = std::size(s);
+                            padding_ = std::size(s);
                             header.emplace_back(Renderer([s = std::move(s), &p = padding_] mutable
                                 {
-                                    s.resize(*p, ' ');
+                                    s.resize(p, ' ');
                                     return text(s);
                                 }));
                         }
@@ -978,6 +974,85 @@ namespace Machine
                                     frame | flex; });
 
                         std::vector<Components> rows;
+
+                        rows.emplace_back(Components{Renderer([]{ return text("E"); })});
+                        for (index_t i = 0; i != n - 1; ++i)
+                        {
+                            std::string s = focus->print_encoder(i);
+                            *(dimensions_[i + 1]) = std::max(*(dimensions_[i + 1]),
+                                    static_cast<int>(std::size(s)));
+
+                            rows.back().emplace_back(Renderer(
+                                [s = std::move(s), d = dimensions_[i + 1]] mutable
+                                {
+                                    s.resize(*d, ' ');
+                                    return text(s);
+                                }));
+                        }
+
+                        {
+                            std::string s = focus->print_encoder(n - 1);
+                            padding_ = std::max(padding_, std::size(s));
+                            rows.back().emplace_back(Renderer(
+                                [s = std::move(s), &p = padding_] mutable
+                                {
+                                    s.resize(p, ' ');
+                                    return text(s);
+                                }));
+                        }
+
+                        rows.emplace_back(Components{Renderer([]{ return text("I"); })});
+                        for (index_t i = 0; i != n - 1; ++i)
+                        {
+                            std::string s = focus->print_initialiser(i);
+                            *(dimensions_[i + 1]) = std::max(*(dimensions_[i + 1]),
+                                    static_cast<int>(std::size(s)));
+
+                            rows.back().emplace_back(Renderer(
+                                [s = std::move(s), d = dimensions_[i + 1]] mutable
+                                {
+                                    s.resize(*d, ' ');
+                                    return text(s);
+                                }));
+                        }
+
+                        {
+                            std::string s = focus->print_terminator(n - 1);
+                            padding_ = std::max(padding_, std::size(s));
+                            rows.back().emplace_back(Renderer(
+                                [s = std::move(s), &p = padding_] mutable
+                                {
+                                    s.resize(p, ' ');
+                                    return text(s);
+                                }));
+                        }
+
+                        rows.emplace_back(Components{Renderer([]{ return text("T"); })});
+                        for (index_t i = 0; i != n - 1; ++i)
+                        {
+                            std::string s = focus->print_terminator(i);
+                            *(dimensions_[i + 1]) = std::max(*(dimensions_[i + 1]),
+                                    static_cast<int>(std::size(s)));
+
+                            rows.back().emplace_back(Renderer(
+                                [s = std::move(s), d = dimensions_[i + 1]] mutable
+                                {
+                                    s.resize(*d, ' ');
+                                    return text(s);
+                                }));
+                        }
+
+                        {
+                            std::string s = focus->print_terminator(n - 1);
+                            padding_ = std::max(padding_, std::size(s));
+                            rows.back().emplace_back(Renderer(
+                                [s = std::move(s), &p = padding_] mutable
+                                {
+                                    s.resize(p, ' ');
+                                    return text(s);
+                                }));
+                        }
+
                         const auto &instruction_set = focus->instruction_set();
                         for (index_t i = 0; i != std::size(instruction_set) / n; ++i)
                         {
@@ -987,20 +1062,29 @@ namespace Machine
 
                             for (index_t j = 0; j != n; ++j)
                             {
+                                std::string s = std::move(instruction[j]);
                                 if (j != n - 1)
-                                    row.emplace_back(Renderer([s = std::move(instruction[j])]
-                                        { return text(s); }));
+                                {
+                                    *(dimensions_[j + 1]) = std::max(*(dimensions_[j + 1]),
+                                        static_cast<int>(std::size(s)));
+
+                                    row.emplace_back(Renderer(
+                                        [s = std::move(s), d = dimensions_[j + 1]] mutable
+                                        {
+                                            s.resize(*d, ' ');
+                                            return text(s);
+                                        }));
+                                }
 
                                 else
                                 {
-                                    std::string s = std::move(instruction[j]);
-                                    *padding_ = std::max(*padding_, std::size(s));
+                                    padding_ = std::max(padding_, std::size(s));
                                     row.emplace_back(Renderer(
-                                        [s = std::move(s), p = padding_] mutable
-                                            {
-                                                s.resize(*p, ' ');
-                                                return text(s);
-                                            }));
+                                        [s = std::move(s), &p = padding_] mutable
+                                        {
+                                            s.resize(p, ' ');
+                                            return text(s);
+                                        }));
                                 }
                             }
 
