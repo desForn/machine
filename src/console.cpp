@@ -465,7 +465,7 @@ namespace Machine
                         std::string s;
                         if (c == console_t::console_state_t::empty)
                             s = "Not applicable";
-                        else if (c | console_t::console_state_t::deterministic)
+                        else if (c & console_t::console_state_t::deterministic)
                             s = "Yes";
                         else
                             s = "No";

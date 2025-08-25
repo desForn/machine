@@ -1,7 +1,7 @@
 *
-!src/*
-!test/*
-!the_language_of_machines/*
+!src*
+!test*
+!the_language_of_machines*
 !CMakeLists.txt
 *~
 
