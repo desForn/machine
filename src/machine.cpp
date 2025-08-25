@@ -2408,6 +2408,8 @@ namespace Machine
         next_instruction_ = 
             std::distance(std::cbegin(instruction_set_), applicable_instructions_[arg]);
 
+        state_ = machine_state_t::running;
+
         return;
     }
 

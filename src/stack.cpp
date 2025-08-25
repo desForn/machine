@@ -12,7 +12,15 @@ namespace Machine
         { return new stack_initialiser_string_t{*this}; }
     
     void stack_initialiser_string_t::initialise(device_t &device, const std::string &string) const
-        { dynamic_cast<stack_t &>(device).string() = device.encoder()(string); }
+    {
+        string_t & string_ = dynamic_cast<stack_t &>(device).string();
+        string_.clear();
+
+        for (auto i = std::cbegin(string); i != std::cend(string); ++i)
+            string_.push(device.encoder()(*i));
+
+        return;
+    }
 
     stack_terminator_empty_t *stack_terminator_empty_t::clone() const
         { return new stack_terminator_empty_t{*this}; }

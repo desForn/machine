@@ -30,16 +30,19 @@ namespace Machine
             class devices_t
             {
             private:
+                console_t *console_;
+                volatile bool update_ = true;
                 ftxui::Component component_;
-                ftxui::Component child_component_;
+                ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
                 std::vector<std::shared_ptr<int>> dimensions_{
-                    std::make_shared<int>(6), std::make_shared<int>(16)};
+                    std::make_shared<int>(6), std::make_shared<int>(6), std::make_shared<int>(6),
+                    std::make_shared<int>(6)};
+                std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
                 std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
                 std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
-                std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
-                console_t *console_;
+                std::vector<std::shared_ptr<std::string>> input_strings_;
 
             public:
                 devices_t() = delete;
@@ -55,49 +58,14 @@ namespace Machine
 
             public:
                 void update();
-                ftxui::Component &component();
-            };
-
-            class input_output_t
-            {
-            private:
-                ftxui::Component component_;
-                ftxui::Component child_component_;
-                std::vector<std::shared_ptr<int>> dimensions_{std::make_shared<int>(6),
-                    std::make_shared<int>(6)};
-                std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
-                std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
-                ftxui::Component slider_x_;
-                ftxui::Component slider_y_;
-                std::vector<std::shared_ptr<std::string>> input_strings_;
-                std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
-
-                console_t *console_;
-
-            public:
-                input_output_t() = delete;
-                ~input_output_t() = default;
-
-                input_output_t(const input_output_t &) = delete;
-                input_output_t &operator=(const input_output_t &) = delete;
-
-                input_output_t(input_output_t &&) noexcept = delete;
-                input_output_t &operator=(input_output_t &&) noexcept = delete;
-
-                input_output_t(console_t *);
-
-            public:
-                void update();
-                ftxui::Component &component();
                 std::vector<std::shared_ptr<std::string>> &input_strings();
+                ftxui::Component &component();
             };
 
             class summary_t
             {
             private:
                 ftxui::Component component_;
-                ftxui::Component auxiliary_component_;
-                std::vector<std::shared_ptr<int>> dimensions_;
                 console_t *console_;
 
             public:
@@ -113,27 +81,30 @@ namespace Machine
                 summary_t(console_t *);
 
             public:
-                void update();
                 ftxui::Component &component();
             };
 
             class applicable_instructions_t
             {
             private:
+                struct bool_struct { bool bool_; };
+
+                console_t *console_;
+                volatile bool update_ = true;
                 ftxui::Component component_;
-                ftxui::Component child_component_;
+                ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
                 std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
                 std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
                 std::vector<std::shared_ptr<int>> dimensions_;
                 std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
-                volatile bool update_ = true;
-                console_t *console_;
+                std::vector<bool_struct> bool_vector_;
+                index_t selected_;
 
             public:
                 applicable_instructions_t() = delete;
-                ~applicable_instructions_t() = default;
+                ~applicable_instructions_t() = default; 
 
                 applicable_instructions_t(const applicable_instructions_t &) = delete;
                 applicable_instructions_t &operator=(const applicable_instructions_t &) = delete;
@@ -155,22 +126,18 @@ namespace Machine
                 const std::vector<std::string> tab_entries_
                     {"Initialise all ", "Initialise individually", "Load program"};
 
+                console_t *console_;
+                volatile bool update_ = true;
                 ftxui::Component component_;
-                ftxui::Component auxiliary_component_;
+                ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
+                std::vector<std::shared_ptr<std::string>> strings_;
                 ftxui::ButtonOption button_style_{ftxui::ButtonOption::Simple()};
                 ftxui::InputOption input_style_{ftxui::InputOption::Default()};
-                ftxui::Component step_button_;
-                ftxui::Component run_button_;
                 std::shared_ptr<int> tab_selected_{std::make_shared<int>(0)};
-                std::vector<std::shared_ptr<std::string>> strings_;
                 std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
                 std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
-                console_t *console_;
-                bool update_initialisers_{true};
-                ftxui::Components initialisers_;
-                ftxui::Component tab_;
 
             public:
                 menu_t() = delete;
@@ -193,8 +160,9 @@ namespace Machine
             class machines_t
             {
             private:
-                ftxui::Component component_;
                 console_t *console_;
+                volatile bool update_ = true;
+                ftxui::Component component_;
 
             public:
                 machines_t() = delete;
@@ -209,21 +177,23 @@ namespace Machine
                 machines_t(console_t *);
 
             public:
+                void update();
                 ftxui::Component &component();
             };
 
             class program_t
             {
             private:
+                console_t *console_;
+                volatile bool update_ = true;
                 ftxui::Component component_;
-                ftxui::Component auxiliary_component_;
+                ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
                 std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
                 std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
                 std::vector<std::shared_ptr<int>> dimensions_;
                 std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
-                console_t *console_;
 
             public:
                 program_t() = delete;
@@ -247,14 +217,11 @@ namespace Machine
 
             console_t *console_;
             devices_t devices_{console_};
-            input_output_t input_output_{console_};
             summary_t summary_{console_};
             applicable_instructions_t applicable_instructions_{console_};
             menu_t menu_{console_};
             machines_t machines_{console_};
             program_t program_{console_};
-            bool looping_ = false;
-            bool relaunch_ = false;
 
         public:
             tui_t() = delete;
@@ -270,7 +237,6 @@ namespace Machine
 
         public:
             devices_t &devices();
-            input_output_t &input_output();
             summary_t &summary();
             applicable_instructions_t &applicable_instructions();
             menu_t &menu();

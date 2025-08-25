@@ -397,7 +397,13 @@ namespace Machine
     }
 
     std::string unsigned_number_t::print_b_ary(character_t radix) const
-        { return b_ary(radix).print_state_reverse(encoder_b_ary_t{radix}); }
+    {
+        std::string ret = b_ary(radix).print_state_reverse(encoder_b_ary_t{radix});
+        if (std::empty(ret))
+            ret = "0";
+
+        return ret;
+    }
 
     std::string unsigned_number_t::print_b_adic(character_t radix) const
         { return b_adic(radix).print_state_reverse(encoder_b_adic_t{radix}); }

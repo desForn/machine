@@ -1,11 +1,7 @@
+*
+!src/*
+!test/*
+!the_language_of_machines/*
+!CMakeLists.txt
 *~
-source/makefile
-object/*\.o
-object/run
-test/number/number_test
-doc/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-
 

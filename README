@@ -3,3 +3,6 @@ This projects implements machines as in
 At the long term I expect to also implement techniques from
     Compilers: Principles, Techniques, and Tools
 The project is at a very initial stage.
+
+For an example, build and run ./tui. It contains a 3 unsigned counter machine that accepts w#w,
+where w ∈ {a, b}*
