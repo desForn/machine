@@ -1,6 +1,8 @@
 #pragma once
 #include "machine.hpp"
-#include <deque>
+
+#include <list>
+#include <thread>
 #include <atomic>
 
 #include "ftxui/component/captured_mouse.hpp"
@@ -24,9 +26,10 @@ namespace Machine
             stopped = 16,
         };
 
+    private:
         class tui_t
         {
-        public:
+        private:
             class devices_t
             {
             private:
@@ -257,8 +260,43 @@ namespace Machine
             static ftxui::ScreenInteractive &screen();
         };
 
+        class worker_t
+        {
+        private:
+            const console_t *console_;
+            std::thread thread_{[this]{ thread_function(); }};
+            std::list<std::shared_ptr<machine_t>> list_{};
+            std::mutex mutex_{};
+            std::atomic<bool> pause_ = false;
+            std::atomic<bool> finished_ = false;
+
+        public:
+            void add(std::shared_ptr<machine_t>);
+            void add(std::list<std::shared_ptr<machine_t>>);
+            
+            void pause();
+            bool finished();
+
+        private:
+            void step(std::shared_ptr<machine_t> &);
+            void thread_funtion();
+        };
+
+        enum class request_t
+        {
+            wait,
+            step,
+            run,
+            step_all,
+            run_all,
+            break_signal
+        };
+
     private:
         std::vector<std::shared_ptr<machine_t>> machines_{};
+        std::list<std::shared_ptr<machine_t>> unassigned_machines_{};
+        std::list<std::shared_ptr<machine_t>> halted_blocked_machines_{};
+        std::vector<worker_t> workers_;
         std::shared_ptr<machine_t> focus_{nullptr};
         console_state_t state_{console_state_t::empty};
         std::vector<std::shared_ptr<std::string>> strings_{std::make_shared<std::string>(),
@@ -267,7 +305,7 @@ namespace Machine
         tui_t tui_{this};
 
     public:
-        console_t() = default;
+        console_t();
         ~console_t() = default;
 
         console_t(const console_t &) = delete;
@@ -277,21 +315,25 @@ namespace Machine
         console_t &operator=(console_t &&) noexcept = delete;
 
     public:
+        console_t &load_program(std::string);
+        console_t &initialise_all(std::string);
+        console_t &initialise_inidividually(const std::vector<std::string> &);
+        void step();
+        void run();
+        void step_all();
+        void run_all();
+
+    private:
         void load_program();
         void initialise_all();
         void initialise_individually();
-        void step();
-        void run();
         std::shared_ptr<std::string> program_name();
         std::shared_ptr<std::string> initialiser_string();
         std::shared_ptr<std::string> initialiser_string_vector(index_t);
-
-    private:
-        void reset();
+        tui_t &tui();
 
     public:
         std::shared_ptr<machine_t> focus();
-        tui_t &tui();
         void tui_loop();
     };
 }

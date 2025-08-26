@@ -58,6 +58,7 @@ namespace Machine
     public:
         void load_program(std::ifstream &);
         void store_program(std::ostream &) const;
+        index_t n_applicable_instructions() const;
         std::vector<std::string> print_instruction(index_t) const;
         std::vector<std::string> print_state() const;
         std::string next_instruction(index_t) const;

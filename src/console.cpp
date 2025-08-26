@@ -759,27 +759,57 @@ namespace Machine
                         Button("Step", [c = console_] { c->step(); }, button_style_);
                     Component run_button =
                         Button("Run", [c = console_] { c->run(); }, button_style_);
+                    Component step_all_button =
+                        Button("Step all", [c = console_] { c->step_all(); }, button_style_);
+                    Component run_all_button =
+                        Button("Run all", [c = console_] { c->run_all(); }, button_style_);
 
-                    Component buttons = Container::Horizontal({
-                        Renderer(step_button, [f = focus, s = step_button, &t = console_->tui()]
-                            {
-                                Element ret = s->Render();
-                                ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
+                    Component buttons = Container::Vertical({
+                        Container::Horizontal({
+                            Renderer(step_button, [f = focus, s = step_button, &t = console_->tui()]
+                                {
+                                    Element ret = s->Render();
+                                    ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
 
-                                if (not f or f->state() != machine_t::machine_state_t::running)
-                                    return ret | inverted;
-                                else
-                                    return ret;
+                                    if (not f or f->state() != machine_t::machine_state_t::running)
+                                        return ret | inverted;
+                                    else
+                                        return ret;
+                                }),
+                            Renderer(run_button, [f = focus, s = run_button, &t = console_->tui()]
+                                {
+                                    Element ret = s->Render();
+                                    ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
+
+                                    if (not f or f->state() != machine_t::machine_state_t::running)
+                                        return ret | inverted;
+                                    else
+                                        return ret;
+                                })
                             }),
-                        Renderer(run_button, [f = focus, s = run_button, &t = console_->tui()]
-                            {
-                                Element ret = s->Render();
-                                ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
+                        Container::Horizontal({
+                            Renderer(step_all_button,
+                                [f = focus, s = step_all_button, &t = console_->tui()]
+                                {
+                                    Element ret = s->Render();
+                                    ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
 
-                                if (not f or f->state() != machine_t::machine_state_t::running)
-                                    return ret | inverted;
-                                else
-                                    return ret;
+                                    if (not f or f->state() != machine_t::machine_state_t::running)
+                                        return ret | inverted;
+                                    else
+                                        return ret;
+                                }),
+                            Renderer(run_all_button,
+                                [f = focus, s = run_all_button, &t = console_->tui()]
+                                {
+                                    Element ret = s->Render();
+                                    ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
+
+                                    if (not f or f->state() != machine_t::machine_state_t::running)
+                                        return ret | inverted;
+                                    else
+                                        return ret;
+                                })
                             })
                         });
 
@@ -1241,6 +1271,142 @@ namespace Machine
 
     ftxui::ScreenInteractive &console_t::tui_t::screen() { return tui_t::screen_; }
 
+    void console_t::worker_t::add(std::shared_ptr<machine_t> arg)
+    {
+        std::lock_guard<std::mutex> lock{mutex_};
+
+        list_.emplace_back(std::move(arg));
+
+        return;
+    }
+
+    void console_t::worker_t::add(std::list<std::shared_ptr<machine_t>> arg)
+    {
+        std::lock_guard<std::mutex> lock{mutex_};
+
+        list_.splice(std::cend(list_), arg);
+
+        return;
+    }
+
+    console_t::worker_t::worker_t(const console_t *console) : console_{console} {}
+
+    void console_t::worker_t::pause() { pause_ = true; }
+
+    bool console_t::worker_t::finished() { return finished_; }
+
+    void console_t::worker_t::step(std::shared_ptr<machine_t> &arg, bool add_to_console)
+    {
+        if (not arg)
+            return;
+
+        if (arg->state() == machine_t::machine_state_t::running)
+        {
+            ++console().instruction_counter();
+            arg->next();
+        }
+
+        else if (console().split() and
+            arg->state() == machine_t::machine_state_t::non_deterministic_decision)
+        {
+            index_t n = arg->n_applicable_instructions();
+
+            for (index_t i = 0; i != n; ++i)
+            {
+                std::shared_ptr<machine_t> a = std::make_shared<machine_t>(*arg);
+
+                a.select_instruction(i);
+                a->next();
+                ++console().instruction_counter();
+
+                if (add_to_console)
+                    console().add(std::move(a));
+                else
+                    list_.emplace_back(std::move(a));
+            }
+        }
+    }
+
+    void console_t::worker_t::thread_function()
+    {
+        bool break_signal = false;
+
+        while (not break_signal)
+        {
+            std::unique_lock<std::mutex> lock(console().mutex());
+
+            console().cv().wait(lock, []{ return console().request() != request_t::wait; });
+            
+            switch(console().request())
+            {
+                case request_t::step :
+                {
+                    std::shared_ptr<machine_t> m = console().focus();
+
+                    if (m)
+                        step(m, true);
+
+                    break;
+                }
+
+                case request_t::run :
+                {
+                    std::shared_ptr<machine_t> m = console().focus();
+
+                    pause_ = false;
+
+                    if (m)
+                        while (not pause_)
+                            step(m, true);
+
+                    break;
+                }
+
+                case request_t::step_all :
+                {
+                    lock.release();
+
+                    std::lock_guard<std::mutex> lock{mutex_};
+
+                    for (std::shared_ptr<machine_t> &i : list_)
+                        step(i, false);
+
+                    break;
+                }
+
+                case request_t::run_all
+                {
+                    lock.release();
+                    
+                    std::lock_guard<std::mutex> lock{mutex_};
+
+                    pause_ = false;
+
+                    while (not pause_)
+                        for (std::shared_ptr<machine_t> &i : list_)
+                            step(i, false);
+
+                    break;
+                }
+
+                case request_t::break_signal
+                {
+                    lock.release();
+
+                    break_signal = true;
+
+                    break;
+                }
+            }
+
+            finished_ = true;
+
+            console().cv_finished().notify_all();
+        }
+
+        return;
+    }
+
     void console_t::load_program()
     {
         bool error_in_loading = true;
@@ -1357,11 +1523,7 @@ namespace Machine
 
     void console_t::step()
     {
-        if (focus_ and focus_->state() == machine_t::machine_state_t::running)
-            ++instruction_counter_;
-            focus_->next();
-
-        tui().update();
+        workers_.front().step(focus);
 
         return;
     }
@@ -1375,6 +1537,10 @@ namespace Machine
 
         return;
     }
+
+    void console_t::step_all() { return; }
+
+    void console_t::run_all() { return; }
 
     std::shared_ptr<std::string> console_t::program_name() { return strings_[0]; }
 
