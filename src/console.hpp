@@ -3,7 +3,7 @@
 
 #include <list>
 #include <thread>
-#include <atomic>
+#include <mutex>
 
 #include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"
@@ -33,16 +33,14 @@ namespace Machine
             class devices_t
             {
             private:
-                console_t *console_;
+                console_t &console_;
                 volatile bool update_ = true;
                 ftxui::Component component_;
                 ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
-                std::vector<std::shared_ptr<int>> dimensions_{
-                    std::make_shared<int>(6), std::make_shared<int>(6), std::make_shared<int>(6),
-                    std::make_shared<int>(6)};
-                std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
-                std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
-                std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
+                std::vector<int> dimensions_{6, 5, 6, 5};
+                index_t padding_{16};
+                float scroll_x_{0};
+                float scroll_y_{0};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
                 std::vector<std::shared_ptr<std::string>> input_strings_;
@@ -57,7 +55,7 @@ namespace Machine
                 devices_t(devices_t &&) noexcept = delete;
                 devices_t &operator=(devices_t &&) noexcept = delete;
 
-                devices_t(console_t *);
+                devices_t(console_t &);
 
             public:
                 void update();
@@ -68,8 +66,8 @@ namespace Machine
             class summary_t
             {
             private:
+                console_t &console_;
                 ftxui::Component component_;
-                console_t *console_;
 
             public:
                 summary_t() = delete;
@@ -81,7 +79,7 @@ namespace Machine
                 summary_t(summary_t &&) noexcept = delete;
                 summary_t &operator=(summary_t &&) noexcept = delete;
 
-                summary_t(console_t *);
+                summary_t(console_t &);
 
             public:
                 ftxui::Component &component();
@@ -92,16 +90,16 @@ namespace Machine
             private:
                 struct bool_struct { bool bool_; };
 
-                console_t *console_;
+                console_t &console_;
                 volatile bool update_ = true;
                 ftxui::Component component_;
                 ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
-                std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
-                std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
+                float scroll_x_{0};
+                float scroll_y_{0};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
-                std::vector<std::shared_ptr<int>> dimensions_;
-                std::shared_ptr<index_t> padding_{std::make_shared<index_t>(0)};
+                std::vector<int> dimensions_;
+                index_t padding_{0};
                 std::vector<bool_struct> bool_vector_;
                 index_t selected_;
 
@@ -116,7 +114,7 @@ namespace Machine
                 applicable_instructions_t &operator=(
                         applicable_instructions_t &&) noexcept = delete;
 
-                applicable_instructions_t(console_t *);
+                applicable_instructions_t(console_t &);
 
             public:
                 void update();
@@ -129,16 +127,16 @@ namespace Machine
                 const std::vector<std::string> tab_entries_
                     {"Initialise all ", "Initialise individually", "Load program"};
 
-                console_t *console_;
+                console_t &console_;
                 volatile bool update_ = true;
                 ftxui::Component component_;
                 ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
                 std::vector<std::shared_ptr<std::string>> strings_;
                 ftxui::ButtonOption button_style_{ftxui::ButtonOption::Simple()};
                 ftxui::InputOption input_style_{ftxui::InputOption::Default()};
-                std::shared_ptr<int> tab_selected_{std::make_shared<int>(0)};
-                std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
-                std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
+                int tab_selected_{2};
+                float scroll_x_{0};
+                float scroll_y_{0};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
 
@@ -152,7 +150,7 @@ namespace Machine
                 menu_t(menu_t &&) noexcept = delete;
                 menu_t &operator=(menu_t &&) noexcept = delete;
 
-                menu_t(console_t *);
+                menu_t(console_t &);
 
             public:
                 void update();
@@ -163,7 +161,7 @@ namespace Machine
             class machines_t
             {
             private:
-                console_t *console_;
+                console_t &console_;
                 volatile bool update_ = true;
                 ftxui::Component component_;
 
@@ -177,7 +175,7 @@ namespace Machine
                 machines_t(machines_t &&) noexcept = delete;
                 machines_t &operator=(machines_t &&) noexcept = delete;
 
-                machines_t(console_t *);
+                machines_t(console_t &);
 
             public:
                 void update();
@@ -187,15 +185,15 @@ namespace Machine
             class program_t
             {
             private:
-                console_t *console_;
+                console_t &console_;
                 volatile bool update_ = true;
                 ftxui::Component component_;
                 ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
-                std::shared_ptr<float> scroll_x_{std::make_shared<float>(0)};
-                std::shared_ptr<float> scroll_y_{std::make_shared<float>(0)};
+                float scroll_x_{0};
+                float scroll_y_{0};
                 ftxui::Component slider_x_;
                 ftxui::Component slider_y_;
-                std::vector<std::shared_ptr<int>> dimensions_;
+                std::vector<int> dimensions_;
                 index_t padding_{0};
 
             public:
@@ -208,7 +206,7 @@ namespace Machine
                 program_t(program_t &&) noexcept = delete;
                 program_t &operator=(program_t &&) noexcept = delete;
 
-                program_t(console_t *);
+                program_t(console_t &);
 
             public:
                 void update();
@@ -216,15 +214,15 @@ namespace Machine
             };
 
         private:
-            static ftxui::ScreenInteractive screen_;
-
-            console_t *console_;
+            console_t &console_;
+            std::unique_lock<std::mutex> lock_{console_.mutex(), std::defer_lock_t{}};
             devices_t devices_{console_};
             summary_t summary_{console_};
             applicable_instructions_t applicable_instructions_{console_};
             menu_t menu_{console_};
             machines_t machines_{console_};
             program_t program_{console_};
+            ftxui::ScreenInteractive screen_{ftxui::ScreenInteractive::Fullscreen()};
 
         public:
             tui_t() = delete;
@@ -236,7 +234,7 @@ namespace Machine
             tui_t(tui_t &&) noexcept = delete;
             tui_t &operator=(tui_t &&) noexcept = delete;
 
-            tui_t(console_t *);
+            tui_t(console_t &);
 
         public:
             devices_t &devices();
@@ -247,10 +245,8 @@ namespace Machine
             program_t &program();
             
         public:
-            void update_all();
-            void update();
-            void relaunch();
             ftxui::Component component();
+            void update_all();
             void loop();
             void exit_loop();
             int width(index_t) const;
@@ -260,53 +256,32 @@ namespace Machine
             static ftxui::ScreenInteractive &screen();
         };
 
-        class worker_t
-        {
-        private:
-            const console_t *console_;
-            std::thread thread_{[this]{ thread_function(); }};
-            std::list<std::shared_ptr<machine_t>> list_{};
-            std::mutex mutex_{};
-            std::atomic<bool> pause_ = false;
-            std::atomic<bool> finished_ = false;
-
-        public:
-            void add(std::shared_ptr<machine_t>);
-            void add(std::list<std::shared_ptr<machine_t>>);
-            
-            void pause();
-            bool finished();
-
-        private:
-            void step(std::shared_ptr<machine_t> &);
-            void thread_funtion();
-        };
-
-        enum class request_t
-        {
-            wait,
-            step,
-            run,
-            step_all,
-            run_all,
-            break_signal
-        };
+        using ptr_t = std::shared_ptr<machine_t>;
+        using list_t = std::list<ptr_t>;
+        using it_t = list_t::iterator;
 
     private:
-        std::vector<std::shared_ptr<machine_t>> machines_{};
-        std::list<std::shared_ptr<machine_t>> unassigned_machines_{};
-        std::list<std::shared_ptr<machine_t>> halted_blocked_machines_{};
-        std::vector<worker_t> workers_;
-        std::shared_ptr<machine_t> focus_{nullptr};
-        console_state_t state_{console_state_t::empty};
+        static inline list_t null_list_{nullptr};
+        static inline std::atomic<bool> console_constructed_{false};
+
+        const index_t n_threads_;
+        std::thread thread_{};
+        list_t invalid_machines_{};
+        list_t running_machines_{}; 
+        list_t halted_machines_{}; 
+        list_t blocked_machines_{}; 
+        it_t focus_{std::begin(null_list_)}; 
+        std::mutex mutex_{}; 
+        std::atomic<bool> pause_ = false;
+        std::atomic<console_state_t> state_{console_state_t::empty};
+        std::atomic<index_t> instruction_counter_{0};
         std::vector<std::shared_ptr<std::string>> strings_{std::make_shared<std::string>(),
             std::make_shared<std::string>()};
-        std::atomic<index_t> instruction_counter_{0};
-        tui_t tui_{this};
+        tui_t tui_{*this};
 
     public:
         console_t();
-        ~console_t() = default;
+        ~console_t();
 
         console_t(const console_t &) = delete;
         console_t &operator=(const console_t &) = delete;
@@ -314,27 +289,37 @@ namespace Machine
         console_t(console_t &&) noexcept = delete;
         console_t &operator=(console_t &&) noexcept = delete;
 
+        console_t(index_t);
+
     public:
         console_t &load_program(std::string);
+        console_t &initialise(std::string);
         console_t &initialise_all(std::string);
-        console_t &initialise_inidividually(const std::vector<std::string> &);
-        void step();
-        void run();
-        void step_all();
-        void run_all();
+        console_t &initialise_individually(const std::vector<std::string> &);
+        console_t &step();
+        console_t &run();
+        console_t &step_all();
+        console_t &run_all();
+        console_t &pause();
+        console_t &launch_tui();
+        console_t &close_tui();
 
     private:
+        void clear() noexcept; // The caller must have locked mutex_
+        void reset(); // Idem
+        void step(list_t &, it_t, list_t &, list_t &); // The caller must have locked mutex_ and
+                                                       // each list must be modifiable without race
+                                                       // conditions
         void load_program();
         void initialise_all();
         void initialise_individually();
         std::shared_ptr<std::string> program_name();
         std::shared_ptr<std::string> initialiser_string();
         std::shared_ptr<std::string> initialiser_string_vector(index_t);
+        it_t focus();
         tui_t &tui();
-
-    public:
-        std::shared_ptr<machine_t> focus();
-        void tui_loop();
+        std::mutex &mutex();
+        std::atomic<index_t> &instruction_counter();
     };
 }
 

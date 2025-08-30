@@ -19,17 +19,8 @@ FetchContent_Declare(ftxui
 
 FetchContent_MakeAvailable(ftxui)
 
-add_executable(run src/run.cpp)
-
-add_executable(button src/button_in_frame.cpp)
-
-target_link_libraries(button
-    PRIVATE ftxui::screen
-    PRIVATE ftxui::dom
-    PRIVATE ftxui::component
-)
-
 add_library(machine STATIC
+    src/abort.cpp
     src/string.cpp
     src/encoder.cpp
     src/number.cpp
@@ -51,8 +42,6 @@ target_link_libraries(console
     PRIVATE ftxui::dom
     PRIVATE ftxui::component
 )
-
-target_link_libraries(run PUBLIC machine)
 
 add_executable(tui src/tui.cpp)
 

@@ -22,24 +22,64 @@ namespace Machine
 
     class machine_t
     {
+    private:
+        class program_t
+        {
+        private:
+            std::vector<std::shared_ptr<operation_t>> instruction_set_;
+            std::vector<std::vector<std::shared_ptr<operation_t>>::const_iterator> search_table_;
+            index_t first_control_;
+            index_t computation_bits_;
+            bool deterministic_;
+
+        public:
+            program_t() = delete;
+            ~program_t() = default;
+
+            program_t(const program_t &) = delete;
+            program_t &operator=(const program_t &) = delete;
+
+            program_t(program_t &&) noexcept = delete;
+            program_t &operator=(program_t &&) noexcept = delete;
+
+            program_t(const std::vector<std::unique_ptr<device_t>> &,
+                      std::vector<std::shared_ptr<operation_t>>);
+
+        public:
+            template<class self_t>
+            decltype(auto) instruction_set(this self_t &&self)
+                { return (std::forward<self_t>(self).instruction_set_); }
+
+            template<class self_t>
+            decltype(auto) search_table(this self_t &&self)
+                { return (std::forward<self_t>(self).search_table_); }
+
+            template<class self_t>
+            decltype(auto) first_control(this self_t &&self)
+                { return (std::forward<self_t>(self).first_control_); }
+
+            template<class self_t>
+            decltype(auto) computation_bits(this self_t &&self)
+                { return (std::forward<self_t>(self).computation_bits_); }
+
+            template<class self_t>
+            decltype(auto) deterministic(this self_t &&self)
+                { return (std::forward<self_t>(self).deterministic_); }
+        };
+
     public:
-        enum class machine_state_t
-            { invalid, running, non_deterministic_decision, blocked, halted };
+        enum class machine_state_t { invalid, running, halted, blocked };
 
     private:
         std::vector<std::unique_ptr<device_t>> devices_;
-        std::vector<std::shared_ptr<operation_t>> instruction_set_;
+        std::shared_ptr<program_t> program_;
         std::vector<std::vector<std::shared_ptr<operation_t>>::const_iterator>
             applicable_instructions_{};
-        std::vector<std::vector<std::shared_ptr<operation_t>>::const_iterator> search_table_{};
-        std::vector<std::string> output_{};
+        std::vector<std::string> output_;
         std::vector<index_t> computation_{};
         index_t computation_size_{0};
-        index_t computation_bits_{0};
         index_t next_instruction_{negative_1};
-        control_t *first_control_{nullptr};
         machine_state_t state_{machine_state_t::invalid};
-        bool deterministic_{true};
 
     public:
         machine_t() = delete;
@@ -51,9 +91,10 @@ namespace Machine
         machine_t(machine_t &&) noexcept = default;
         machine_t &operator=(machine_t &&) noexcept = default;
 
-        machine_t(std::ifstream &);
         machine_t(std::vector<std::unique_ptr<device_t>>,
                   std::vector<std::shared_ptr<operation_t>>);
+
+        machine_t(std::ifstream &);
 
     public:
         void load_program(std::ifstream &);
@@ -81,9 +122,11 @@ namespace Machine
         std::string print_initialiser(index_t) const;
         std::string print_terminator(index_t) const;
         void select_instruction(index_t);
+        index_t selected_instruction() const;
         index_t computation(index_t) const;
         index_t computation_size() const;
         bool terminating() const;
+
     private:
         void terminate();
         void applicable_instructions_apparatus();

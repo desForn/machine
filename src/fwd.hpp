@@ -1,6 +1,9 @@
 #pragma once
+
 #include <cstddef>
 #include <type_traits>
+#include <iostream>
+#include <string>
 
 namespace Machine
 {
@@ -8,5 +11,7 @@ namespace Machine
     using integer_t = std::make_signed_t<index_t>;
     using character_t = unsigned short;
     static constexpr index_t negative_1 = static_cast<index_t>(-1);
+
+    [[noreturn]] void abort(std::string);
 }
 
