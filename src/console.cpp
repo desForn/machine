@@ -401,12 +401,8 @@ namespace Machine
                     {
                         index_t a = static_cast<index_t>(c);
                         std::string s;
-                        if (a & console_t::console_state_t::stopped)
-                            s = "Stopped";
-                        else if (a & console_t::console_state_t::running)
+                        if (a & console_t::console_state_t::running)
                             s = "Running";
-                        else if (a & console_t::console_state_t::initialised)
-                            s = "Initialised";
                         else if (a & console_t::console_state_t::program_loaded)
                             s = "Program loaded";
                         else 
@@ -690,7 +686,6 @@ namespace Machine
         strings_.emplace_back(console_.strings_[0]);
         strings_.emplace_back(console_.strings_[1]);
 
-
         component_ = Renderer(child_component_, [this]
             {
                 if (update_)
@@ -776,8 +771,7 @@ namespace Machine
                                     Element ret = s->Render();
                                     ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
 
-                                    if (not l or not *c.focus() or (**c.focus()).state() !=
-                                            machine_t::machine_state_t::running)
+                                    if (not l or not (c.state_ & console_state_t::running))
                                         return ret | inverted;
                                     else
                                         return ret;
@@ -788,8 +782,7 @@ namespace Machine
                                     Element ret = s->Render();
                                     ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
 
-                                    if (not l or not *c.focus() or (**c.focus()).state() !=
-                                            machine_t::machine_state_t::running)
+                                    if (not l or not (c.state_ & console_state_t::running))
                                         return ret | inverted;
                                     else
                                         return ret;
@@ -859,6 +852,8 @@ namespace Machine
                                     Renderer([s = strings_[0]]
                                             { return text(*s) | border |
                                                 bgcolor(Color::GrayLight); }),
+                                    Button("Clear", [s = strings_[0]]
+                                            { s->clear(); }, button_style_),
                                     Renderer([]{ return separatorDouble(); }),
                                     table | yflex_grow
                                 }) | xflex,
@@ -891,73 +886,335 @@ namespace Machine
         { return strings_; }
 
     console_t::tui_t::machines_t::machines_t(console_t &console) :
-        console_{console},
-        slider_x_{ftxui::Slider<float>(ftxui::SliderOption<float>{
-            .value = &scroll_x_,
-            .min = 0.f,
-            .max = 1.f,
-            .increment = 1e-2f,
-            .direction = ftxui::Direction::Right,
-            .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
-        }) | bgcolor(ftxui::Color::GrayLight)},
-        slider_y_{ftxui::Slider<float>(ftxui::SliderOption<float>{
-            .value = &scroll_y_,
-            .min = 0.f,
-            .max = 1.f,
-            .increment = 1e-2f,
-            .direction = ftxui::Direction::Down,
-            .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
-        }) | bgcolor(ftxui::Color::GrayLight)}
+        console_{console}
     {
         using namespace ftxui;
 
-        component_ = Container::Vertical({
-            Renderer([]{ return text("Machines") | center; }),
-            Renderer([]{ return separatorDouble(); }),
+        InputOption input_style{ftxui::InputOption::Default()};
+
+        input_style.transform = [](InputState state)
+        {
+            if (state.is_placeholder)
+                state.element |= color(Color::GrayDark);
+            else
+                state.element |= color(Color::Black);
+
+            state.element |= bgcolor(Color::GrayLight);
+            state.element |= align_right;
+
+            return state.element;
+        };
+
+        std::vector<Components> table;
+        table.emplace_back(Components{
+            Renderer([] { return text("State") | center; }),
+            Renderer([] { return separatorDouble(); }),
+            Renderer([] { return text("Invalid") | align_right; }),
+            Renderer([] { return separator(); }),
+            Renderer([] { return text("Running") | align_right; }),
+            Renderer([] { return separator(); }),
+            Renderer([] { return text("Blocked") | align_right; }),
+            Renderer([] { return separator(); }),
+            Renderer([] { return text("Halted") | align_right; })
+        });
+
+        table.emplace_back(Components{
+            Renderer([this] { return text("Count") | center; }),
+            Renderer([] { return separatorDouble(); }),
             Renderer([this]
                 {
                     std::string s;
                     if (not lock_)
-                        s = "Unavailable";
+                        s = "--";
                     else
                         s = std::to_string(std::size(console_.invalid_machines_));
-                    return text(std::string{"Invalid machines : "} + s);
+                    return text(s);
                 }),
+            Renderer([] { return separator(); }),
             Renderer([this]
                 {
                     std::string s;
                     if (not lock_)
-                        s = "Unavailable";
+                        s = "--";
                     else
                         s = std::to_string(std::size(console_.running_machines_));
-                    return text(std::string{"Running machines : "} + s);
+                    return text(s);
                 }),
+            Renderer([] { return separator(); }),
             Renderer([this]
                 {
                     std::string s;
                     if (not lock_)
-                        s = "Unavailable";
+                        s = "--";
                     else
                         s = std::to_string(std::size(console_.blocked_machines_));
-                    return text(std::string{"Blocked machines : "} + s);
+                    return text(s);
                 }),
+            Renderer([] { return separator(); }),
             Renderer([this]
                 {
                     std::string s;
                     if (not lock_)
-                        s = "Unavailable";
+                        s = "--";
                     else
                     {
-                        index_t i = 0;
-                        for (const auto &j : console_.halted_machines_)
-                            i += std::size(j.second);
-                        s = std::to_string(i);
+                        index_t c = 0;
+                        for (const auto &i : console_.halted_machines_)
+                            c += std::size(i.second);
+                        s = std::to_string(c);
                     }
 
-                    return text(std::string{"Halted machines : "} + s);
+                    return text(s);
+                })
+        });
+
+        Component invalid_buttons = Container::Horizontal({
+            Button("Prev", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::invalid, negative_2);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Button("Next", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::invalid, negative_1);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Input(&strings_[0], "Number", input_style) | xflex_grow,
+            Button("Load", [this]{
+                index_t c;
+                try { c = std::stoll(strings_[0]); }
+                catch (std::invalid_argument &)
+                {
+                    *console_.tui().menu().strings()[0] = "Error reading the number";
+                    return;
+                }
+
+                if (not lock_)
+                    lock_.lock();
+
+                console_.change_focus(machine_t::machine_state_t::invalid, c);
+
+                return;
+            }, ButtonOption::Ascii()),
+        });
+
+        Component running_buttons = Container::Horizontal({
+            Button("Prev", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::running, negative_2);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Button("Next", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::running, negative_1);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Input(&strings_[1], "Number", input_style) | xflex_grow,
+            Button("Load", [this]{
+                index_t c;
+                try { c = std::stoll(strings_[1]); }
+                catch (std::invalid_argument &)
+                {
+                    *console_.tui().menu().strings()[0] = "Error reading the number";
+                    return;
+                }
+
+                if (not lock_)
+                    lock_.lock();
+
+                console_.change_focus(machine_t::machine_state_t::running, c);
+
+                return;
+            }, ButtonOption::Ascii()),
+        });
+
+        Component blocked_buttons = Container::Horizontal({
+            Button("Prev", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::blocked, negative_2);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Button("Next", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::blocked, negative_1);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Input(&strings_[2], "Number", input_style) | xflex_grow,
+            Button("Load", [this]{
+                index_t c;
+                try { c = std::stoll(strings_[2]); }
+                catch (std::invalid_argument &)
+                {
+                    *console_.tui().menu().strings()[0] = "Error reading the number";
+                    return;
+                }
+
+                if (not lock_)
+                    lock_.lock();
+
+                console_.change_focus(machine_t::machine_state_t::blocked, c);
+
+                return;
+            }, ButtonOption::Ascii()),
+        });
+
+        Component halted_buttons = Renderer([] { return text(""); });
+
+        Component classes_buttons = Container::Horizontal({
+            Button("Prev", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::halted, negative_2);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Button("Next", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus(machine_t::machine_state_t::halted, negative_1);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Input(&strings_[4], "Number", input_style) | xflex_grow,
+            Button("Load", [this]{
+                index_t c;
+                try { c = std::stoll(strings_[4]); }
+                catch (std::invalid_argument &)
+                {
+                    *console_.tui().menu().strings()[0] = "Error reading the number";
+                    return;
+                }
+
+                if (not lock_)
+                    lock_.lock();
+
+                console_.change_focus(machine_t::machine_state_t::halted, c);
+
+                return;
+            }, ButtonOption::Ascii()),
+        });
+
+        Component class_buttons = Container::Horizontal({
+            Button("Prev", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus_class(negative_2);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Button("Next", [this]{
+                if (not lock_)
+                    lock_.lock();
+                console_.change_focus_class(negative_1);
+
+                return;
+            }, ButtonOption::Ascii()),
+            Input(&strings_[5], "Number", input_style) | xflex_grow,
+            Button("Load", [this]{
+                index_t c;
+                try { c = std::stoll(strings_[5]); }
+                catch (std::invalid_argument &)
+                {
+                    *console_.tui().menu().strings()[0] = "Error reading the number";
+                    return;
+                }
+
+                if (not lock_)
+                    lock_.lock();
+
+                console_.change_focus_class(c);
+
+                return;
+            }, ButtonOption::Ascii()),
+        });
+
+        table.emplace_back(Components{
+            Renderer([] { return text("Focus") | center; }),
+            Renderer([] { return separatorDouble(); }),
+            invalid_buttons,
+            Renderer([] { return separator(); }),
+            running_buttons,
+            Renderer([] { return separator(); }),
+            blocked_buttons,
+            Renderer([] { return separator(); }),
+            halted_buttons
+        });
+
+        table.emplace_back(Components{
+            Renderer([] { return text("Output classes") | center; }),
+            Renderer([] { return separatorDouble(); }),
+            Renderer([] { return text("Classes") | align_right; }),
+            Renderer([] { return separator(); }),
+            Renderer([] { return text("Machines in class") | align_right; })
+        });
+
+        table.emplace_back(Components{
+            Renderer([] { return text("Count") | center; }),
+            Renderer([] { return separatorDouble(); }),
+            Renderer([this]
+                {
+                    std::string s;
+                    if (not lock_)
+                        s = "--";
+                    else
+                        s = std::to_string(std::size(console_.halted_machines_));
+                    return text(s);
                 }),
+            Renderer([] { return separator(); }),
+            Renderer([this]
+                {
+                    std::string s;
+                    if (not lock_ or not *console_.focus() or
+                            (**console_.focus()).state() != machine_t::machine_state_t::halted)
+                        s = "--";
+                    else
+                    {
+                        auto it = console_.halted_machines_.find((**console_.focus()).output());
+                        if (it == std::cend(console_.halted_machines_))
+                            abort("console_t::tui_t::machines_t::machines_t(console_t &)");
+                        s = std::to_string(std::size(it->second));
+                    }
+                return text(s); })
+        });
+
+        table.emplace_back(Components{
+            Renderer([] { return text("Focus") | center; }),
+            Renderer([] { return separatorDouble(); }),
+            classes_buttons,
+            Renderer([] { return separator(); }),
+            class_buttons
+        });
+
+        component_ = Container::Vertical({
+            Renderer([] { return text("Machines") | center; }),
+            Renderer([] { return separatorDouble(); }),
+            Container::Horizontal({
+                Container::Vertical(table[0]) | xflex,
+                Renderer([] { return separator(); }),
+                Container::Vertical(table[1]) | xflex,
+                Renderer([] { return separator(); }),
+                Container::Vertical(table[2]) | xflex
+            }) | yflex_grow,
+            Renderer([] { return separatorDouble(); }),
+            Container::Horizontal({
+                Container::Vertical(table[3]) | xflex,
+                Renderer([] { return separator(); }),
+                Container::Vertical(table[4]) | xflex,
+                Renderer([] { return separator(); }),
+                Container::Vertical(table[5]) | xflex
+            }) | yflex_grow,
         });
         
         component_ |= size(WIDTH, EQUAL, console_.tui().width(3));
@@ -1240,8 +1497,8 @@ namespace Machine
 
         return Renderer(container, [&c = console_, container, &l = lock_]
             {
-                static_cast<void>(l.try_lock());
-                //l.lock();
+                if (not l)
+                    static_cast<void>(l.try_lock());
                 Element ret = container->Render();
 
                 if (l)
@@ -1490,8 +1747,12 @@ namespace Machine
                                 auto last = std::end(running);
                                 --last;
 
-                                for (auto it = std::begin(running); it != last and not p; ++it)
+                                for (auto it = std::begin(running); it != last and not p;)
+                                {
+                                    auto next = std::next(it);
                                     step(running, it, halted, blocked);
+                                    it = next;
+                                }
 
                                 if (not p)
                                     step(running, last, halted, blocked);
@@ -1570,8 +1831,12 @@ namespace Machine
                                     auto last = std::end(running);
                                     --last;
 
-                                    for (auto it = std::begin(running); it != last and not p; ++it)
+                                    for (auto it = std::begin(running); it != last and not p;)
+                                    {
+                                        auto next = std::next(it);
                                         step(running, it, halted, blocked);
+                                        it = next;
+                                    }
 
                                     if (not p)
                                         step(running, last, halted, blocked);
@@ -1866,7 +2131,7 @@ namespace Machine
                 *(tui().devices().input_strings()[i]) = s;
 
             state_ = static_cast<console_state_t>((*focus_)->deterministic() |
-                    console_state_t::program_loaded | console_state_t::initialised);
+                    console_state_t::program_loaded | console_state_t::running);
         }
 
         tui().applicable_instructions().update();
@@ -1923,7 +2188,164 @@ namespace Machine
                 abort("console_t::initialise_individually()");
 
             state_ = static_cast<console_state_t>((*focus_)->deterministic() |
-                    console_state_t::program_loaded | console_state_t::initialised);
+                    console_state_t::program_loaded | console_state_t::running);
+        }
+
+        tui().applicable_instructions().update();
+
+        return;
+    }
+
+    void console_t::change_focus(machine_t::machine_state_t state, index_t c)
+    {
+        using enum machine_t::machine_state_t;
+
+        auto empty = [&s = *tui().menu().strings()[0]]
+            { s = "Empty list"; };
+        auto front = [&s = *tui().menu().strings()[0]]
+            { s = "Focus already at the front of the list"; };
+        auto back = [&s = *tui().menu().strings()[0]]
+            { s = "Focus already at the end of the list"; };
+        auto out = [&s = *tui().menu().strings()[0]]
+            { s = "Argument out of range"; };
+
+        if (state == halted)
+        {
+            if (std::empty(halted_machines_))
+                empty();
+            else if (c != negative_1 and c != negative_2)
+            {
+                if (c >= std::size(halted_machines_))
+                    out;
+                else
+                    focus_ = std::begin(std::next(std::begin(halted_machines_), c)->second);
+            }
+            else
+            {
+                if (not *focus_ or (**focus_).state() != state)
+                    focus_ = std::begin(std::begin(halted_machines_)->second);
+                else if (c == negative_2)
+                {
+                    auto it = halted_machines_.find((**focus_).output());
+                    if (it == std::end(halted_machines_))
+                        abort("console_t::change_focus(machine_t::machine_state_t, index_t)");
+                    if (it == std::begin(halted_machines_))
+                        front();
+                    else
+                        focus_ = std::begin((--it)->second);
+                }
+                else
+                {
+                    auto it = halted_machines_.find((**focus_).output());
+                    if (it == std::end(halted_machines_))
+                        abort("console_t::change_focus(machine_t::machine_state_t, index_t)");
+                    if (it == --std::end(halted_machines_))
+                        back();
+                    else
+                        focus_ = std::begin((++it)->second);
+                }
+            }
+        }
+        else
+        {
+            list_t &l = [state, this] mutable -> list_t &
+            {
+                switch (state)
+                {
+                    case (invalid) :
+                        return invalid_machines_;
+                    case (running) :
+                        return running_machines_;
+                    case (blocked) :
+                        return blocked_machines_;
+                    default :
+                        abort("console_t::change_focus(machine_t::machine_state_t, index_t)");
+                }
+            }();
+
+            if (std::empty(l))
+                empty();
+            else if (c != negative_1 and c != negative_2)
+            {
+                if (c >= std::size(l))
+                    out();
+                else
+                    focus_ = std::next(std::begin(l), c);
+            }
+            else
+            {
+                if (not *focus_ or (**focus_).state() != state)
+                    focus_ = std::begin(l);
+                else if (c == negative_2)
+                {
+                    if (focus_ == std::begin(l))
+                        front();
+                    else
+                        --focus_;
+                }
+                else
+                {
+                    if (focus_ == --std::end(l))
+                        back();
+                    else
+                        ++focus_;
+                }
+            }
+        }
+
+        tui().applicable_instructions().update();
+
+        return;
+    }
+
+    void console_t::change_focus_class(index_t c)
+    {
+        using enum machine_t::machine_state_t;
+
+        auto empty = [&s = *tui().menu().strings()[0]]
+            { s = "The current focus has not halted"; };
+        auto front = [&s = *tui().menu().strings()[0]]
+            { s = "Focus already at the front of the list"; };
+        auto back = [&s = *tui().menu().strings()[0]]
+            { s = "Focus already at the end of the list"; };
+        auto out = [&s = *tui().menu().strings()[0]]
+            { s = "Argument out of range"; };
+
+        if (not *focus_ or (**focus_).state() != halted)
+        {
+            empty();
+            return;
+        }
+
+        auto it = halted_machines_.find((**focus_).output());
+        if (it == std::end(halted_machines_))
+            abort("console_t::change_focus_class(index_t)");
+
+        list_t &l = it->second;
+
+        if (std::empty(l))
+            abort("console_t::change_focus_class(index_t)");
+
+        if (c != negative_1 and c != negative_2)
+        {
+            if (c >= std::size(l))
+                out();
+            else
+                focus_ = std::next(std::begin(l), c);
+        }
+        else if (c == negative_2)
+        {
+            if (focus_ == std::begin(l))
+                front();
+            else
+            --focus_;
+        }
+        else
+        {
+            if (focus_ == --std::end(l))
+                back();
+            else
+                ++focus_;
         }
 
         tui().applicable_instructions().update();

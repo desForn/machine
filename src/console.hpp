@@ -22,9 +22,7 @@ namespace Machine
             empty = 0,
             deterministic = 1,
             program_loaded = 2,
-            initialised = 4,
-            running = 8,
-            stopped = 16,
+            running = 4
         };
 
     private:
@@ -167,10 +165,7 @@ namespace Machine
                 volatile bool update_ = true;
                 ftxui::Component component_;
                 std::unique_lock<std::mutex> &lock_{console_.tui().lock_};
-                float scroll_x_{0};
-                float scroll_y_{0};
-                ftxui::Component slider_x_;
-                ftxui::Component slider_y_;
+                std::array<std::string, 6> strings_;
 
             public:
                 machines_t() = delete;
@@ -320,6 +315,8 @@ namespace Machine
         void load_program();
         void initialise_all();
         void initialise_individually();
+        void change_focus(machine_t::machine_state_t, index_t); // The caller must lock mutex_
+        void change_focus_class(index_t); // Idem
         std::shared_ptr<std::string> program_name();
         std::shared_ptr<std::string> initialiser_string();
         std::shared_ptr<std::string> initialiser_string_vector(index_t);
