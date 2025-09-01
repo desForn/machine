@@ -60,7 +60,8 @@ namespace Machine
         Component table = resizable_table(rows, horizontal_sizes);
 
         table = Renderer(table, [table, &scroll_x, &scroll_y]
-            { return table->Render() | focusPositionRelative(scroll_x, scroll_y) | frame | flex; });
+            { return table->Render() | focusPositionRelative(scroll_x, scroll_y)
+                | frame | flex; });
 
         Component ret =
         Container::Vertical({
@@ -490,11 +491,15 @@ namespace Machine
         {
             std::unique_lock<std::mutex> &l = console_.tui().lock_;
 
+            index_t previous_selected = selected_;
+
             if (update_)
             {
                 Component old_child = child_component_;
 
                 bool_vector_.clear();
+
+                previous_selected = negative_1;
 
                 if (not l or not *console_.focus())
                     child_component_ = Container::Vertical({
@@ -536,7 +541,8 @@ namespace Machine
                     Components header{Renderer([]{ return text(""); })};
 
                     for (auto i = std::begin(devices); i != std::end(devices) - 1; ++i)
-                        header.emplace_back(Renderer([s = (*i)->print_name()] { return text(s); }));
+                        header.emplace_back(Renderer([s = (*i)->print_name()]
+                            { return text(s); }));
 
                     {
                         std::string s = devices.back()->print_name();
@@ -589,8 +595,6 @@ namespace Machine
 
                 replace_child(component_, old_child, child_component_);
             }
-
-            index_t previous_selected = selected_;
 
             for (index_t i = 0; i != std::size(bool_vector_); ++i)
             {
@@ -881,19 +885,81 @@ namespace Machine
 
     ftxui::Component &console_t::tui_t::menu_t::component() { return component_; }
 
+    int &console_t::tui_t::menu_t::tab_selected() { return tab_selected_; }
+
     std::vector<std::shared_ptr<std::string>> &console_t::tui_t::menu_t::strings()
         { return strings_; }
 
-    console_t::tui_t::machines_t::machines_t(console_t &console) : console_{console}
+    console_t::tui_t::machines_t::machines_t(console_t &console) :
+        console_{console},
+        slider_x_{ftxui::Slider<float>(ftxui::SliderOption<float>{
+            .value = &scroll_x_,
+            .min = 0.f,
+            .max = 1.f,
+            .increment = 1e-2f,
+            .direction = ftxui::Direction::Right,
+            .color_active = ftxui::Color::Black,
+            .color_inactive = ftxui::Color::Black
+        }) | bgcolor(ftxui::Color::GrayLight)},
+        slider_y_{ftxui::Slider<float>(ftxui::SliderOption<float>{
+            .value = &scroll_y_,
+            .min = 0.f,
+            .max = 1.f,
+            .increment = 1e-2f,
+            .direction = ftxui::Direction::Down,
+            .color_active = ftxui::Color::Black,
+            .color_inactive = ftxui::Color::Black
+        }) | bgcolor(ftxui::Color::GrayLight)}
     {
         using namespace ftxui;
 
         component_ = Container::Vertical({
-                Renderer([]{ return text("Machines") | center; }),
-                Renderer([]{ return separatorDouble();}),
-                Renderer([]{ return text("Unimplemented") | center; })});
+            Renderer([]{ return text("Machines") | center; }),
+            Renderer([]{ return separatorDouble(); }),
+            Renderer([this]
+                {
+                    std::string s;
+                    if (not lock_)
+                        s = "Unavailable";
+                    else
+                        s = std::to_string(std::size(console_.invalid_machines_));
+                    return text(std::string{"Invalid machines : "} + s);
+                }),
+            Renderer([this]
+                {
+                    std::string s;
+                    if (not lock_)
+                        s = "Unavailable";
+                    else
+                        s = std::to_string(std::size(console_.running_machines_));
+                    return text(std::string{"Running machines : "} + s);
+                }),
+            Renderer([this]
+                {
+                    std::string s;
+                    if (not lock_)
+                        s = "Unavailable";
+                    else
+                        s = std::to_string(std::size(console_.blocked_machines_));
+                    return text(std::string{"Blocked machines : "} + s);
+                }),
+            Renderer([this]
+                {
+                    std::string s;
+                    if (not lock_)
+                        s = "Unavailable";
+                    else
+                    {
+                        index_t i = 0;
+                        for (const auto &j : console_.halted_machines_)
+                            i += std::size(j.second);
+                        s = std::to_string(i);
+                    }
 
-
+                    return text(std::string{"Halted machines : "} + s);
+                }),
+        });
+        
         component_ |= size(WIDTH, EQUAL, console_.tui().width(3));
         component_ |= size(HEIGHT, EQUAL, console_.tui().height(3));
         component_ |= borderHeavy;
@@ -1330,8 +1396,18 @@ namespace Machine
                 {
                     std::lock_guard lock{mutex_};
 
+                    list_t new_halted;
+
                     if (*focus_ and (**focus_).state() == machine_t::machine_state_t::running)
-                        step(running_machines_, focus_, halted_machines_, blocked_machines_);
+                        step(running_machines_, focus_, new_halted, blocked_machines_);
+
+                    for (auto i = std::cbegin(new_halted); i != std::cend(new_halted);)
+                    {
+                        auto j = i;
+                        ++i;
+                        list_t &l = halted_machines_[(*j)->output()];
+                        l.splice(std::cend(l), new_halted, j);
+                    }
                 }
             
                 tui().applicable_instructions().update();
@@ -1352,9 +1428,19 @@ namespace Machine
 
                     pause_ = false;
 
+                    list_t new_halted;
+
                     while (not pause_ and *focus_ and
                            (**focus_).state() == machine_t::machine_state_t::running)
-                        step(running_machines_, focus_, halted_machines_, blocked_machines_);
+                        step(running_machines_, focus_, new_halted, blocked_machines_);
+
+                    for (auto i = std::cbegin(new_halted); i != std::cend(new_halted);)
+                    {
+                        auto j = i;
+                        ++i;
+                        list_t &l = halted_machines_[(*j)->output()];
+                        l.splice(std::cend(l), new_halted, j);
+                    }
                 }
 
                 tui().applicable_instructions().update();
@@ -1419,8 +1505,17 @@ namespace Machine
                         threads[i].join();
 
                         running_machines_.splice(std::cend(running_machines_), lists[3 * i]);
-                        halted_machines_.splice(std::cend(halted_machines_), lists[3 * i + 1]);
                         blocked_machines_.splice(std::cend(blocked_machines_), lists[3 * i + 2]);
+
+                        list_t &a = lists[3 * i + 1];
+
+                        for (auto j = std::cbegin(a); j != std::cend(a);)
+                        {
+                            auto k = j;
+                            ++j;
+                            list_t &l = halted_machines_[(*k)->output()];
+                            l.splice(std::cend(l), a, k);
+                        }
                     }
                 }
 
@@ -1490,8 +1585,18 @@ namespace Machine
                             threads[i].join();
 
                             running_machines_.splice(std::cend(running_machines_), lists[3 * i]);
-                            halted_machines_.splice(std::cend(halted_machines_), lists[3 * i + 1]);
-                            blocked_machines_.splice(std::cend(blocked_machines_), lists[3 * i + 2]);
+                            blocked_machines_.splice(std::cend(blocked_machines_),
+                                lists[3 * i + 2]);
+
+                            list_t &a = lists[3 * i + 1];
+
+                            for (auto j = std::cbegin(a); j != std::cend(a);)
+                            {
+                                auto k = j;
+                                ++j;
+                                list_t &l = halted_machines_[(*k)->output()];
+                                l.splice(std::cend(l), a, k);
+                            }
                         }
                     }
                 }
@@ -1549,17 +1654,25 @@ namespace Machine
         if (state_ == console_state_t::empty)
             abort("console_t::reset()");
 
-        ptr_t temp;
+        ptr_t temp{nullptr};
         if (not std::empty(invalid_machines_))
             temp = std::move(invalid_machines_.front());
         else if (not std::empty(running_machines_))
             temp = std::move(running_machines_.front());
-        else if (not std::empty(halted_machines_))
-            temp = std::move(halted_machines_.front());
         else if (not std::empty(blocked_machines_))
             temp = std::move(blocked_machines_.front());
         else
-            abort("console_t::reset()");
+        {
+            for (auto &i : halted_machines_)
+                if (not std::empty(i.second))
+                {
+                    temp = std::move(i.second.front());
+                    break;
+                }
+
+            if (not temp)
+                abort("console_t::reset()");
+        }
 
         invalid_machines_.clear();
         running_machines_.clear();
@@ -1582,8 +1695,9 @@ namespace Machine
             }
             case (machine_t::machine_state_t::halted):
             {
-                halted_machines_.emplace_back(std::move(temp));
-                focus_ = std::begin(halted_machines_);
+                const std::vector<std::string> &o = temp->output();
+                list_t &l = halted_machines_[o];
+                focus_ = l.insert(std::cend(l), std::move(temp));
                 break;
             }
             case (machine_t::machine_state_t::blocked):
@@ -1700,6 +1814,7 @@ namespace Machine
                 }
 
             *tui().menu().strings()[0] = "Program loaded.";
+            tui().menu().tab_selected() = 0;
         }
 
         tui().update_all();
@@ -1721,8 +1836,10 @@ namespace Machine
             if ((**focus_).state() == machine_t::machine_state_t::running)
             {
                 running_machines_.splice(std::cend(running_machines_), invalid_machines_);
-                running_machines_.splice(std::cend(running_machines_), halted_machines_);
                 running_machines_.splice(std::cend(running_machines_), blocked_machines_);
+
+                for (auto &i : halted_machines_)
+                    running_machines_.splice(std::cend(running_machines_), i.second);
 
                 if (std::size(running_machines_) != 1)
                     abort("console_t::initialise_all()");
@@ -1733,7 +1850,9 @@ namespace Machine
             {
                 blocked_machines_.splice(std::cend(blocked_machines_), invalid_machines_);
                 blocked_machines_.splice(std::cend(blocked_machines_), running_machines_);
-                blocked_machines_.splice(std::cend(blocked_machines_), halted_machines_);
+
+                for (auto &i : halted_machines_)
+                    blocked_machines_.splice(std::cend(running_machines_), i.second);
 
                 if (std::size(blocked_machines_) != 1)
                     abort("console_t::initialise_all()");
@@ -1776,10 +1895,13 @@ namespace Machine
             if ((**focus_).state() == machine_t::machine_state_t::running)
             {
                 running_machines_.splice(std::cend(running_machines_), invalid_machines_);
-                running_machines_.splice(std::cend(running_machines_), halted_machines_);
                 running_machines_.splice(std::cend(running_machines_), blocked_machines_);
 
+                for (auto &i : halted_machines_)
+                    running_machines_.splice(std::cend(running_machines_), i.second);
+
                 if (std::size(running_machines_) != 1)
+
                     abort("console_t::initialise_individually()");
 
                 focus_ = std::begin(running_machines_);
@@ -1788,7 +1910,9 @@ namespace Machine
             {
                 blocked_machines_.splice(std::cend(blocked_machines_), invalid_machines_);
                 blocked_machines_.splice(std::cend(blocked_machines_), running_machines_);
-                blocked_machines_.splice(std::cend(blocked_machines_), halted_machines_);
+
+                for (auto &i : halted_machines_)
+                    blocked_machines_.splice(std::cend(running_machines_), i.second);
 
                 if (std::size(blocked_machines_) != 1)
                     abort("console_t::initialise_individually()");

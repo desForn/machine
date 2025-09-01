@@ -518,7 +518,8 @@ namespace Machine
     static bool is_number(const std::string &arg)
         { return std::ranges::all_of(arg, [](char a){ return a >= '0' and a <= '9'; }); }
 
-    static std::unique_ptr<encoder_t> read_encoder(std::istream &stream, index_t &line, index_t &column)
+    static std::unique_ptr<encoder_t> read_encoder(std::istream &stream, index_t &line,
+            index_t &column)
     {
         static const std::string error{"In Machine::read_encoder(std::istream &):\n"};
 
@@ -2139,7 +2140,7 @@ namespace Machine
             std::vector<std::shared_ptr<operation_t>> instruction_set) :
         devices_{std::move(devices)},
         program_{std::make_shared<program_t>(devices_, std::move(instruction_set))},
-        output_(std::size(devices_)) {}
+        output_(std::size(devices_), "") {}
     
     machine_t::machine_t(std::ifstream &stream) : program_{nullptr}
     {
@@ -2541,7 +2542,8 @@ namespace Machine
             {
                 applicable_instructions_.emplace_back(begin_search);
                 if (next_instruction_ == negative_1)
-                    next_instruction_ = std::distance(std::cbegin(program_->instruction_set()), begin_search);
+                    next_instruction_ = std::distance(std::cbegin(program_->instruction_set()),
+                            begin_search);
             }
 
         if (terminating())

@@ -4,6 +4,7 @@
 #include <list>
 #include <thread>
 #include <mutex>
+#include <map>
 
 #include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"
@@ -156,6 +157,7 @@ namespace Machine
                 void update();
                 ftxui::Component &component();
                 std::vector<std::shared_ptr<std::string>> &strings();
+                int &tab_selected();
             };
 
             class machines_t
@@ -164,6 +166,11 @@ namespace Machine
                 console_t &console_;
                 volatile bool update_ = true;
                 ftxui::Component component_;
+                std::unique_lock<std::mutex> &lock_{console_.tui().lock_};
+                float scroll_x_{0};
+                float scroll_y_{0};
+                ftxui::Component slider_x_;
+                ftxui::Component slider_y_;
 
             public:
                 machines_t() = delete;
@@ -268,7 +275,7 @@ namespace Machine
         std::thread thread_{};
         list_t invalid_machines_{};
         list_t running_machines_{}; 
-        list_t halted_machines_{}; 
+        std::map<std::vector<std::string>, list_t> halted_machines_{}; 
         list_t blocked_machines_{}; 
         it_t focus_{std::begin(null_list_)}; 
         std::mutex mutex_{}; 
