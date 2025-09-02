@@ -1,0 +1,1 @@
+A 2-SM that takes as input x#y and outputs z where dyadic(z^R) = dyadic(x) + dyadic(y)

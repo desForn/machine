@@ -171,7 +171,11 @@ namespace Machine
 
                 if (not focus)
                     child_component_ = Container::Vertical({
-                        Container::Horizontal({top_left_cell, scroll_top_row}),
+                        Container::Horizontal({
+                            top_left_cell,
+                            Renderer([] { return separatorDouble(); }),
+                            scroll_top_row
+                        }),
                         Renderer([] { return separatorDouble(); }),
                         Renderer([] { return text("Uninitialised console") | center; })
                     });
@@ -736,6 +740,9 @@ namespace Machine
                                 [&c = console_] { c.run_all(); }, button_style_);
                     Component pause_button =
                         Button("Pause", [&c = console_] { c.pause(); }, button_style_);
+                    Component pause_halt_button =
+                        Button("Pause when halt", [&c = console_, &p = pause_halt_]
+                            { c.pause_halt() = not c.pause_halt(); }, button_style_);
 
                     Component buttons = Container::Vertical({
                         Container::Horizontal({
@@ -788,7 +795,21 @@ namespace Machine
                                         return ret;
                                 })
                             }),
-                            pause_button
+                        Container::Horizontal({
+                            Renderer(pause_button, [s = pause_button, &t = console_.tui()]
+                                { return s->Render() | size(WIDTH, EQUAL, (t.width(2) - 3) / 2); }),
+                            Renderer(pause_halt_button, [&b = console_.pause_halt(),
+                                s = pause_halt_button, &t = console_.tui()]
+                                {
+                                    Element ret = s->Render();
+                                    ret |= size(WIDTH, EQUAL, (t.width(2) - 3) / 2);
+
+                                    if (not b)
+                                        return ret | inverted;
+                                    else
+                                        return ret;
+                                })
+                            })
                         });
 
                     Components rows;
@@ -1578,26 +1599,13 @@ namespace Machine
         }
     }
 
-    console_t::console_t() :
-        n_threads_{[]
-            {
-                index_t r = std::thread::hardware_concurrency();
-                return std::max(static_cast<index_t>(1), r);
-            }()
-        }
-    {
-        if (console_constructed_.exchange(true))
-            throw std::runtime_error{"In Machine::console_t::console_t:\nOnly a single console_t"
-                "object is allowed to exist at a given point.\n"};
-
-        return;
-    }
+    console_t::console_t() : console_t{default_n_threads()} {}
 
     console_t::console_t(index_t n_threads) : n_threads_{n_threads}
     {
         if (console_constructed_.exchange(true))
-            throw std::runtime_error{"In Machine::console_t::console_t:\nOnly a single console_t"
-                "object is allowed to exist at a given point.\n"};
+            throw std::runtime_error{"In Machine::console_t::console_t(index_t):\n"
+                "Only a single console_t object is allowed to exist at a given point.\n"};
 
         return;
     }
@@ -1606,13 +1614,19 @@ namespace Machine
     {
         pause_ = true;
 
-        if (thread_.joinable())
-            thread_.join();
+        wait();
 
-        std::lock_guard lock{mutex_};
         console_constructed_ = false;
         return;
     }
+
+    index_t console_t::default_n_threads()
+    {
+        index_t r = std::thread::hardware_concurrency();
+        return std::max(static_cast<index_t>(1), r);
+    }
+
+    console_t::console_state_t console_t::state() { return state_; }
 
     console_t &console_t::load_program(std::string arg)
     {
@@ -1633,7 +1647,8 @@ namespace Machine
     console_t &console_t::initialise_individually(const std::vector<std::string> &arg)
     {
         if (std::size(arg) + 2 != std::size(strings_))
-            abort("console_t::initialise_individually(const std::vector<std::string> &)");
+            throw std::runtime_error{"In Machine::console_t::initialise_individually(const"
+                " std::vector<std::string> &):\nInvalid argument.\n"};
 
         for (index_t i = 0; i != std::size(arg); ++i)
             *initialiser_string_vector(i) = arg[i];
@@ -1645,10 +1660,9 @@ namespace Machine
 
     console_t &console_t::step()
     {
-        if (thread_.joinable())
-            thread_.join();
+        wait();
 
-        thread_ = std::thread{[this]
+        future_ = std::async(std::launch::async, [this]
             {
                 {
                     std::lock_guard lock{mutex_};
@@ -1668,17 +1682,16 @@ namespace Machine
                 }
             
                 tui().applicable_instructions().update();
-            }};
+            });
 
         return *this;
     }
 
     console_t &console_t::run()
     {
-        if (thread_.joinable())
-            thread_.join();
+        wait();
 
-        thread_ = std::thread{[this]
+        future_ = std::async(std::launch::async, [this]
             {
                 {
                     std::lock_guard lock{mutex_};
@@ -1701,17 +1714,16 @@ namespace Machine
                 }
 
                 tui().applicable_instructions().update();
-            }};
+            });
 
         return *this;
     }
 
     console_t &console_t::step_all()
     {
-        if (thread_.joinable())
-            thread_.join();
+        wait();
 
-        thread_ = std::thread{[this]
+        future_ = std::async(std::launch::async, [this]
             {
                 {
                     std::lock_guard lock{mutex_};
@@ -1781,26 +1793,24 @@ namespace Machine
                 }
 
                 tui().applicable_instructions().update();
-
-                return;
-            }};
+            });
 
         return *this;
     }
 
     console_t &console_t::run_all()
     {
-        if (thread_.joinable())
-            thread_.join();
+        wait();
 
-        thread_ = std::thread{[this]
+        future_ = std::async(std::launch::async, [this]
             {
                 {
                     std::lock_guard lock{mutex_};
 
                     pause_ = false;
 
-                    while (not pause_ and not std::empty(running_machines_))
+                    while (not pause_ and not std::empty(running_machines_) and
+                           not (pause_halt_ and not std::empty(halted_machines_)))
                     {
                         std::vector<std::thread> threads;
                         
@@ -1869,7 +1879,7 @@ namespace Machine
                 tui().applicable_instructions().update();
 
                 return;
-            }};
+            });
 
         return *this;
     }
@@ -1892,11 +1902,36 @@ namespace Machine
         return *this;
     }
 
+    bool console_t::find_output(const std::string &arg) const
+    {
+        for (const auto &i : halted_machines_)
+            if (std::ranges::find(i.first, arg) != std::cend(i.first))
+                return true;
+
+        return false;
+    }
+
+    bool console_t::find_output(const std::vector<std::string> &arg) const
+    {
+        if (std::size(halted_machines_) != 1)
+            return false;
+        
+        return std::cbegin(halted_machines_)->first == arg;
+    }
+
+    void console_t::wait()
+    {
+        if (future_.valid())
+            future_.wait();
+        return;
+    }
+
+    std::atomic<bool> &console_t::pause_halt() { return pause_halt_;}
+
     void console_t::clear() noexcept
     {
         pause_ = true;
-        if (thread_.joinable())
-            thread_.join();
+        wait();
         invalid_machines_.clear();
         running_machines_.clear();
         halted_machines_.clear();

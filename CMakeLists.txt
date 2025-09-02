@@ -47,14 +47,14 @@ target_link_libraries(console
     PRIVATE ftxui::component
 )
 
-add_executable(tui src/tui.cpp)
+add_executable(run src/run.cpp)
 
-target_link_libraries(tui
+target_link_libraries(run
     PRIVATE ftxui::screen
     PRIVATE ftxui::dom
     PRIVATE ftxui::component
     PUBLIC machine
 )
 
-target_link_libraries(tui PUBLIC console)
+target_link_libraries(run PUBLIC console)
 

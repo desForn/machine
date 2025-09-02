@@ -194,6 +194,14 @@ namespace Machine
         return ret;
     }
 
+    string_t string_t::reverse() const
+    {
+        string_t ret{alphabet_};
+        for (auto it = std::crbegin(*this); it != std::crend(*this); ++it)
+            ret.push(*it);
+        return ret;
+    }
+
     std::strong_ordering string_t::operator<=>(const string_t &arg) const
     {
         if (alphabet_ != arg.alphabet_)

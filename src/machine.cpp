@@ -1024,7 +1024,7 @@ namespace Machine
                 last_string = &i.first;
 
                 if (new_string)
-                    t += ": " + device.encoder()(*last_string) + ", ";
+                    t += ": " + device.encoder()(*last_string) + " ";
                 else
                     t += ", ";
                 t += std::to_string(i.second);

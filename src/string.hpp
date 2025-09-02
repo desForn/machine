@@ -201,6 +201,8 @@ namespace Machine
         std::string print_state(const encoder_t &) const;
         std::string print_state_reverse(const encoder_t &) const;
 
+        string_t reverse() const;
+
         std::strong_ordering operator<=>(const string_t &) const;
         bool operator==(const string_t &) const;
         bool operator!=(const string_t &) const;

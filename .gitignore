@@ -1,7 +1,8 @@
-*
-!src*
-!test*
-!the_language_of_machines*
+/*
+!.gitignore
+!src/
+#!test/
+!the_language_of_machines/
 !CMakeLists.txt
 *~
 

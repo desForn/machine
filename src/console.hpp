@@ -4,6 +4,7 @@
 #include <list>
 #include <thread>
 #include <mutex>
+#include <future>
 #include <map>
 
 #include "ftxui/component/captured_mouse.hpp"
@@ -128,6 +129,7 @@ namespace Machine
 
                 console_t &console_;
                 volatile bool update_ = true;
+                volatile bool pause_halt_ = false;
                 ftxui::Component component_;
                 ftxui::Component child_component_{ftxui::Renderer([]{ return ftxui::text(""); })};
                 std::vector<std::shared_ptr<std::string>> strings_;
@@ -267,7 +269,7 @@ namespace Machine
         static inline std::atomic<bool> console_constructed_{false};
 
         const index_t n_threads_;
-        std::thread thread_{};
+        std::future<void> future_{};
         list_t invalid_machines_{};
         list_t running_machines_{}; 
         std::map<std::vector<std::string>, list_t> halted_machines_{}; 
@@ -275,6 +277,7 @@ namespace Machine
         it_t focus_{std::begin(null_list_)}; 
         std::mutex mutex_{}; 
         std::atomic<bool> pause_ = false;
+        std::atomic<bool> pause_halt_ = true;
         std::atomic<console_state_t> state_{console_state_t::empty};
         std::atomic<index_t> instruction_counter_{0};
         std::vector<std::shared_ptr<std::string>> strings_{std::make_shared<std::string>(),
@@ -294,6 +297,9 @@ namespace Machine
         console_t(index_t);
 
     public:
+        static index_t default_n_threads();
+
+        console_state_t state();
         console_t &load_program(std::string);
         console_t &initialise(std::string);
         console_t &initialise_all(std::string);
@@ -305,6 +311,19 @@ namespace Machine
         console_t &pause();
         console_t &launch_tui();
         console_t &close_tui();
+        bool find_output(const std::string &) const;
+        bool find_output(const std::vector<std::string> &) const;
+        void wait();
+
+        template<class Rep, class Period>
+        bool wait_for(const std::chrono::duration<Rep, Period> &time)
+        {
+            if (not future_.valid())
+                return true;
+            return future_.wait_for(time) == std::future_status::ready;
+        }
+
+        std::atomic<bool> &pause_halt();
 
     private:
         void clear() noexcept; // The caller must have locked mutex_

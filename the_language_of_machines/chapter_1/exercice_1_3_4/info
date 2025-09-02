@@ -1,1 +1,1 @@
-A UCM program that accepts { a^(2n)b^(3n) | n, m ≥ 0 }
+A UCM program that accepts { a^(2n)b^(3n) | n ≥ 0 }

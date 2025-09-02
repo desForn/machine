@@ -22,7 +22,7 @@ namespace Machine
     void tape_initialiser_string_t::initialise(device_t &device, const std::string &string) const
     {
         string_t &tape_string = dynamic_cast<tape_t &>(device).string();
-        tape_string = device.encoder()(string);
+        tape_string = device.encoder()(string).reverse();
         tape_string.pos() = 0;
 
         return;
@@ -60,7 +60,7 @@ namespace Machine
         while (not std::empty(string) and string.see(tape.default_character()))
             string.pop();
 
-        return tape.encoder()(string);
+        return string.print_state(tape.encoder());
     }
 
     tape_t::tape_t(const tape_t &arg) :

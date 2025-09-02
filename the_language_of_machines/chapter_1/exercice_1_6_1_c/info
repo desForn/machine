@@ -1,0 +1,3 @@
+A 3-UCM program that accepts { w#w | w ∈ {a,b}* }
+NOTE: The exercice asks a 2-UCM program. It will be provided once the simulation routines are
+implemented
