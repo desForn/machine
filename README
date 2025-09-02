@@ -2,7 +2,13 @@ This projects implements machines as in
     The Language of Machines: Introduction to Computability and Formal Languages (Floyd and Beigel) 
 At the long term I expect to also implement techniques from
     Compilers: Principles, Techniques, and Tools
-The project is at a very initial stage.
 
-For an example, build and run ./tui. It contains a 3 unsigned counter machine that accepts w#w,
-where w ∈ {a, b}*
+Build it using
+    cmake .
+    make
+
+To test it check
+    cd the_language_of_machines
+    bash run_all.sh
+
+In the_language_of_machines/* there are examples and exercices with some programs for the machines
