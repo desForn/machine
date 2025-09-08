@@ -1,0 +1,2 @@
+A RAM program that computes a^b. The program is initialised with a at register 0 and b at register 1
+and the result is stored at register 0.

@@ -1,0 +1,71 @@
+control 0 : Accept 45;
+ram string string;
+
+// The program is similar to the example_1_14
+// It uses that program to compute the multiplications in an inner loop and it has an outer loop
+// that preserves the variable V = (r0 ^ r1) * r2
+
+0 to 1;     one 2;
+1 to 2;     gr 1 3;
+1 to 41;    eq 1 3;
+2 to 3;     odd 1;
+2 to 18;    even 1;
+
+// r2 = r2 * r0; For this we first store r0 and r1, and copy r2 to r1
+3 to 4;     st 1 3;
+4 to 5;     one 3;
+5 to 6;     st 2 3;
+6 to 7;     ld 1 3;
+7 to 8;     st 0 3;
+8 to 9;     zero 2;
+9 to 10;    zero 3;
+
+// Multiplication loop
+10 to 11;   gr 1 3;
+10 to 15;   eq 1 3;
+11 to 12;   odd 1;
+11 to 13;   even 1;
+12 to 13;   add 2 2 0;
+13 to 14;   halve 1 1;
+14 to 10;   add 0 0 0;
+
+// The result is at r2; restore r0 and r1
+15 to 16;   ld 1 3;
+16 to 17;   one 3;
+17 to 18;   ld 0 3;
+
+// Now the outer loop is coninued
+18 to 19;   halve 1 1;
+
+// r0 = r0 * r0; Again, first store r1 and r2, and copy r0 to r1
+19 to 20;   zero 3;
+20 to 21;   st 1 3;
+21 to 22;   one 3;
+22 to 23;   st 0 3;
+23 to 24;   ld 1 3;
+24 to 25;   st 2 3;
+25 to 26;   zero 2;
+26 to 30;   zero 3;
+
+//Multiplication loop
+30 to 31;   gr 1 3;
+30 to 35;   eq 1 3;
+31 to 32;   odd 1;
+31 to 33;   even 1;
+32 to 33;   add 2 2 0;
+33 to 34;   halve 1 1;
+34 to 30;   add 0 0 0;
+
+// The result is at r2; move it to r0 and restore r1 and r2
+35 to 36;   ld 1 3;
+36 to 37;   st 2 3;
+37 to 38;   ld 0 3;
+38 to 39;   one 3;
+39 to 40;   ld 2 3;
+40 to 1;    zero 3;
+
+// End of the loop. The result is at r2;
+41 to 42;   st 2 3;
+42 to 43;   ld 0 3;
+43 to 44;   zero 1;
+44 to 45;   zero 2;

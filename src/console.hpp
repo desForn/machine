@@ -300,7 +300,7 @@ namespace Machine
         static index_t default_n_threads();
 
         console_state_t state();
-        console_t &load_program(std::string);
+        std::string load_program(std::string);
         console_t &initialise(std::string);
         console_t &initialise_all(std::string);
         console_t &initialise_individually(const std::vector<std::string> &);
@@ -331,7 +331,7 @@ namespace Machine
         void step(list_t &, it_t, list_t &, list_t &); // The caller must have locked mutex_ and
                                                        // each list must be modifiable without race
                                                        // conditions
-        void load_program();
+        std::string load_program();
         void initialise_all();
         void initialise_individually();
         void change_focus(machine_t::machine_state_t, index_t); // The caller must lock mutex_

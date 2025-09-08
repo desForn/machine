@@ -1628,11 +1628,10 @@ namespace Machine
 
     console_t::console_state_t console_t::state() { return state_; }
 
-    console_t &console_t::load_program(std::string arg)
+    std::string console_t::load_program(std::string arg)
     {
         *program_name() = std::move(arg);
-        load_program();
-        return *this;
+        return load_program();
     }
 
     console_t &console_t::initialise(std::string arg) { return initialise_all(std::move(arg)); }
@@ -1979,6 +1978,7 @@ namespace Machine
         halted_machines_.clear();
         blocked_machines_.clear();
 
+        temp->initialise("");
         switch(temp->state())
         {
             case (machine_t::machine_state_t::invalid):
@@ -2066,8 +2066,9 @@ namespace Machine
         return;
     }
 
-    void console_t::load_program()
+    std::string console_t::load_program()
     {
+        std::string ret;
         std::lock_guard lock{mutex_};
 
         {
@@ -2092,8 +2093,9 @@ namespace Machine
                     (*focus_)->deterministic());
             }
 
-            catch (std::runtime_error &)
+            catch (std::runtime_error &e)
             {
+                ret = e.what();
                 *tui().menu().strings()[0] = "Error loading the program.";
 
                 if (not error_in_loading)
@@ -2102,7 +2104,7 @@ namespace Machine
                     tui().update_all();
                 }
 
-                return;
+                return ret;
             }
 
             if (*focus_)
@@ -2119,7 +2121,7 @@ namespace Machine
 
         tui().update_all();
 
-        return;
+        return ret;
     }
 
     void console_t::initialise_all()

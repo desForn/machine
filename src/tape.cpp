@@ -21,8 +21,11 @@ namespace Machine
 
     void tape_initialiser_string_t::initialise(device_t &device, const std::string &string) const
     {
-        string_t &tape_string = dynamic_cast<tape_t &>(device).string();
+        tape_t &tape = dynamic_cast<tape_t &>(device);
+        string_t &tape_string = tape.string();
         tape_string = device.encoder()(string).reverse();
+        if (std::empty(tape_string))
+            tape_string.push(tape.default_character());
         tape_string.pos() = 0;
 
         return;

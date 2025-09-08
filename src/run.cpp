@@ -53,6 +53,14 @@ int main(int argc, const char **argv)
     bool deterministic;
     index_t time = negative_1;
     index_t n_threads = negative_1;
+    bool verbose = false;
+
+    auto error = [&verbose] (int ret, const std::string &msg) -> int
+    {
+        if (verbose)
+            std::cerr << msg << std::endl;
+        return ret;
+    };
 
     for (int argi = 1; argi < argc;)
     {
@@ -73,6 +81,7 @@ int main(int argc, const char **argv)
                 "\n\t-d\t\t[Yes or No] assert that the program is or not deterministic"
                 "\n\t-t\t\tSpecify the waiting time for the run (in seconds)"
                 "\n\t-nt\t\tSpecify the number of threads used in the simulation"
+                "\n\t-v\t\tVerbose: print error messages"
                 "\n\nNote:"
                 "\n\tWhen specifying the input and output, an empty string is represented by '\\'."
                 "\n\tTo specify any string starting with '-', or '\\' enter the string"
@@ -94,16 +103,17 @@ int main(int argc, const char **argv)
         else if (s == "-p")
         {
             if (++argi >= argc)
-                return 1;
+                return error(1, "Expected the program path after -p");
             program_name = argv[argi++];
         }
         else if (s == "-i")
         {
             if (++argi >= argc)
-                return 1;
+                return error(1, "Expected the input after -i");
             input = argv[argi++];
             if (std::empty(input) or input.front() == '-')
-                return 1;
+                return error(1, "The input must be a string not starting with '-'. "
+                        "Escape it with '\\' if necessary");
             if (input.front() == '\\')
                 input = std::string{++std::cbegin(input), std::cend(input)};
             empty_input = false;
@@ -114,7 +124,7 @@ int main(int argc, const char **argv)
             {
                 std::string s{argv[argi]};
                 if (std::empty(s))
-                    return 1;
+                    return error(1, "Expected the list of inputs after -I");
                 if (s.front() == '-')
                     break;
                 if (s.front() == '\\')
@@ -123,15 +133,16 @@ int main(int argc, const char **argv)
             }
 
             if (std::empty(inputs))
-                return 1;
+                return error(1, "Expected the list of inputs after -I");
         }
         else if (s == "-o")
         {
             if (++argi >= argc)
-                return 1;
+                return error(1, "Expected the output after -o");
             output = argv[argi++];
             if (std::empty(output) or output.front() == '-')
-                return 1;
+                return error(1, "The output must be a string not starting with '-'. "
+                        "Escape it with '\\' if necessary");
             if (output.front() == '\\')
                 output = std::string{++std::cbegin(output), std::cend(output)};
             empty_output = false;
@@ -142,7 +153,7 @@ int main(int argc, const char **argv)
             {
                 std::string s{argv[argi]};
                 if (std::empty(s))
-                    return 1;
+                    return error(1, "Expected the list of outputs after -O");
                 if (s.front() == '-')
                     break;
                 if (s.front() == '\\')
@@ -151,7 +162,7 @@ int main(int argc, const char **argv)
             }
 
             if (std::empty(outputs))
-                return 1;
+                return error(1, "Expected the list of outputs after -O");
         }
         else if (s == "-nph")
         {
@@ -167,7 +178,7 @@ int main(int argc, const char **argv)
         {
             check_deterministic = true;
             if (++argi >= argc)
-                return 1;
+                return error(1, "Expected \"yes\" or \"no\" after -d");
             std::string s{argv[argi++]};
             std::transform(std::cbegin(s), std::cend(s), std::begin(s),
                 [](unsigned char c){ return std::tolower(c); });
@@ -177,26 +188,31 @@ int main(int argc, const char **argv)
             else if (s == "no")
                 deterministic = false;
             else
-                return 1;
+                return error(1, "Expected \"yes\" or \"no\" after -d");
         }
         else if (s == "-t")
         {
             if (++argi >= argc)
-                return 1;
+                return error(1, "Expected a number after -t");
             time = std::atoll(argv[argi++]);
             if (time == 0)
-                return 1;
+                return error(1, "Expected a number after -t");
         }
         else if (s == "-nt")
         {
             if (++argi >= argc)
-                return 1;
+                return error(1, "Expected a number after -nt");
             n_threads = std::atoll(argv[argi++]);
             if (n_threads == 0)
-                return 1;
+                return error(1, "Expected a number after -nt");
+        }
+        else if (s == "-v")
+        {
+            verbose = true;
+            ++argi;
         }
         else
-            return 1;
+            return error(1, std::string{"Unrecognised option "} + s);
     }
 
     if (n_threads == negative_1)
@@ -205,36 +221,36 @@ int main(int argc, const char **argv)
     console_t console{n_threads};
 
     if (std::empty(program_name) and not tui)
-        return 1;
+        return error(1, "If not in interactive mode the program must be specified");
 
     if (not std::empty(program_name))
     {
-        try { console.load_program(program_name); }
-        catch (std::runtime_error &) { return 2; }
+        std::string error_string = console.load_program(program_name);
         if (console.state() == console_t::console_state_t::empty)
-            return 2;
+            return error(2, error_string);
     }
 
     if (std::empty(program_name) and not (empty_input and std::empty(inputs)))
-        return 1;
+        return error(1, "Cannot specify the input without specifying the program");
 
     if ((empty_input and std::empty(inputs) and not tui) or
         (not empty_input and not std::empty(inputs)))
-        return 1;
+        return error(1, "If not in interactive mode the input must be specified");
 
     if (not empty_input)
         console.initialise(input);
     else if (not std::empty(inputs))
     {
         try { console.initialise_individually(inputs); }
-        catch (std::runtime_error &) { return 3; }
+        catch (std::runtime_error &)
+            { return error(3, "The number of inputs does not match the number of devices"); }
     }
 
     console.pause_halt() = pause_halt;
 
     if (check_deterministic and deterministic !=
             (console.state() & console_t::console_state_t::deterministic))
-        return 6;
+        return error(6, "Failed deterministic check");
     
     if (not tui)
     {
@@ -242,23 +258,24 @@ int main(int argc, const char **argv)
         if (time == negative_1)
             console.wait();
         else if (not console.wait_for(std::chrono::seconds{time}))
-            return 7;
+            return error(7, "The simulation has not finished in the prescribed time");
     }
 
     else
         console.launch_tui();
 
     if (not empty_output and not console.find_output(output))
-        return 5;
+        return error(5, "Prescribed output not found");
 
     if (not std::empty(outputs))
     {
         try
         {
             if (not console.find_output(outputs))
-                return 5;
+                return error(5, "Prescribed output not found");
         }
-        catch (std::runtime_error &) { return 4; }
+        catch (std::runtime_error &)
+            { return error(4, "The number of ouptuts does not match the number of devices."); }
     }
 
     return 0;

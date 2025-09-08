@@ -1,0 +1,2 @@
+A RAM program that multiplies two numbers. The program is initialised with both arguments on
+registers 0 and 1 and the result is stored at register 0.

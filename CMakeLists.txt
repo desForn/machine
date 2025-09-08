@@ -37,6 +37,7 @@ add_library(machine STATIC
     src/unsigned_counter.cpp
     src/counter.cpp
     src/tape.cpp
+    src/ram.cpp
 )
 
 add_library(console OBJECT src/console.cpp)

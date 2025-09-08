@@ -1,7 +1,7 @@
 control 0 : Accept 33;
 input;
-ucounter zero zero;
-ucounter zero zero;
+ucounter b_adic 2 zero zero;
+ucounter b_adic 2 zero zero;
 ucounter zero zero;
 
 //This program is obtained by simulating ../exercice_1_6_2/program_a.m with 3 unsigned counters.

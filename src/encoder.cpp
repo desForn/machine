@@ -378,5 +378,63 @@ namespace Machine
 
         return 'a' + c - 9;
     }
+
+    encoder_separator_t::encoder_separator_t(const encoder_separator_t &arg) :
+        encoder_t{arg.alphabet().max_character()},
+        encoder_{std::unique_ptr<encoder_t>{arg.encoder_->clone()}},
+        separator_{arg.separator_} {}
+
+    encoder_separator_t &encoder_separator_t::operator=(const encoder_separator_t &arg)
+        { return *this = encoder_separator_t{*this}; }
+
+    encoder_separator_t::encoder_separator_t(std::unique_ptr<encoder_t> encoder, char separator) :
+        encoder_t{encoder ? static_cast<character_t>(encoder->alphabet().max_character() + 1) :
+            static_cast<character_t>(0)},
+        encoder_{std::move(encoder)},
+        separator_{separator}
+    {
+        std::string error_prefix = "In Machine::encoder_separator_t::encoder_separator_t(std::"
+            "unique_ptr<encoder_t>, char):\n";
+
+        if (encoder_->alphabet().max_character() == std::numeric_limits<character_t>::max())
+            throw std::runtime_error{error_prefix + "The alphabet is too large for the "
+                "Machine::character_t type.\n"};
+
+        if (not encoder_)
+            throw std::runtime_error{error_prefix + "Null parent encoder.\n"};
+
+        try
+        {
+            static_cast<void>((*encoder_)(separator_));
+
+            throw std::runtime_error{error_prefix + "Invalid separator; already present in the"
+                "parent encoder.\n"};
+        }
+
+        catch (std::runtime_error &) {}
+
+        return;
+    }
+
+    encoder_separator_t *encoder_separator_t::clone() const
+        { return new encoder_separator_t{*this}; }
+
+    character_t encoder_separator_t::operator()(char c) const
+    {
+        if (c == separator_)
+            return alphabet().max_character();
+
+        return (*encoder_)(c);
+    }
+
+    char encoder_separator_t::operator()(character_t c) const
+    {
+        if (c == alphabet().max_character())
+            return separator_;
+
+        return (*encoder_)(c);
+    }
+
+    char encoder_separator_t::separator() const { return separator_; }
 }
 

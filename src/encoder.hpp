@@ -16,6 +16,7 @@ namespace Machine
     class encoder_b_adic_t;
     class encoder_signed_b_ary_t;
     class encoder_signed_b_adic_t;
+    class encoder_separator_t;
     using encoder_numeric_t = encoder_signed_b_ary_t;
 
     class encoder_t
@@ -133,6 +134,35 @@ namespace Machine
         char operator()(character_t) const override;
         using encoder_t::operator();
         using encoder_t::alphabet;
+    };
+
+    class encoder_separator_t final : public encoder_t
+    {
+    private:
+        std::unique_ptr<encoder_t> encoder_;
+        char separator_;
+
+    public:
+        encoder_separator_t() = delete;
+        ~encoder_separator_t() = default;
+
+        encoder_separator_t(const encoder_separator_t &);
+        encoder_separator_t &operator=(const encoder_separator_t &);
+
+        encoder_separator_t(encoder_separator_t &&) noexcept = default;
+        encoder_separator_t &operator=(encoder_separator_t &&) noexcept = default;
+
+        encoder_separator_t(std::unique_ptr<encoder_t>, char);
+        encoder_separator_t *clone() const override;
+
+    public:
+        character_t operator()(char) const override;
+        char operator()(character_t) const override;
+        using encoder_t::operator();
+        using encoder_t::alphabet;
+
+        decltype(auto) parent_encoder(this auto &&self) { return (*(self.encoder_)); }
+        char separator() const;
     };
 }
 

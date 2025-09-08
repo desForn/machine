@@ -8,6 +8,7 @@
 #include "unsigned_counter.hpp"
 #include "counter.hpp"
 #include "tape.hpp"
+#include "ram.hpp"
 
 #include <algorithm>
 #include <array>
@@ -45,10 +46,10 @@ namespace Machine
         character_t operation_id, character_t operation_argument)
     {
         static const std::runtime_error error_0{
-            "In Machine::operation(const std::array<character_t, 2> &):\n"
+            "In Machine::operation(character_t, character_t):\n"
                 "Operation_argument must be 0.\n"};
         static const std::runtime_error error_i{
-            "In Machine::operation(const std::array<character_t, 2> &):\n"
+            "In Machine::operation(character_t, character_t):\n"
                 "Insertion to std::unordered_map failed.\n"};
         static std::unordered_map<std::array<character_t, 2>, std::shared_ptr<operation_t>> map;
 
@@ -418,6 +419,165 @@ namespace Machine
         return a.first->second;
     }
 
+    static std::shared_ptr<operation_t> ram_operation(const std::array<index_t, 4> &arg)
+    {
+        static const std::runtime_error error_0{
+            "In Machine::operation(const std::array<character_t, 4> &):\n"
+                "Operation argument must be 0.\n"};
+        static const std::runtime_error error_i{
+            "In Machine::operation(const std::array<character_t, 4> &):\n"
+                "Insertion to std::unordered_map failed.\n"};
+        static std::unordered_map<std::array<index_t, 4>, std::shared_ptr<operation_t>> map;
+
+        auto it = map.find(arg);
+
+        if (it != std::end(map))
+            return it->second;
+
+        switch (arg[0])
+        {
+            case 48:
+            {
+                if (arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_load_t>(arg[1], arg[2])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 49:
+            {
+                if (arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_store_t>(arg[1], arg[2])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 50:
+            {
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_add_t>(arg[1], arg[2], arg[3])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 51:
+            {
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_sub_t>(arg[1], arg[2], arg[3])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 52:
+            {
+                if (arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_halve_t>(arg[1], arg[2])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 53:
+            {
+                if (arg[2] != 0 and arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_set_0_t>(arg[1])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 54:
+            {
+                if (arg[2] != 0 and arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_set_1_t>(arg[1])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 55:
+            {
+                if (arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_test_gr_t>(arg[1], arg[2])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 56:
+            {
+                if (arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_test_eq_t>(arg[1], arg[2])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 57:
+            {
+                if (arg[2] != 0 and arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_test_odd_t>(arg[1])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            case 58:
+            {
+                if (arg[2] != 0 and arg[3] != 0)
+                    throw error_0;
+
+                auto a = map.insert(std::pair<std::array<index_t, 4>,
+                    std::shared_ptr<operation_t>>{arg,
+                    std::make_shared<ram_operation_test_even_t>(arg[1])});
+                if (not a.second)
+                    throw error_i;
+                return a.first->second;
+            }
+
+            default:
+               throw error_i; 
+        }
+    }
+
     static void get_char(char &c, std::istream &stream, index_t &line, index_t &column)
     {
         stream.get(c);
@@ -453,7 +613,7 @@ namespace Machine
         index_t initial_line = line, initial_column = column;
         get_char(a, stream, line, column);
 
-        while(a and not std::ispunct(a) and not std::isspace(a))
+        while(a and (not std::ispunct(a) or a == '_') and not std::isspace(a))
         {
             ret += a;
             initial_line = line;
@@ -472,7 +632,7 @@ namespace Machine
             const encoder_t &encoder)
     {
         auto initial_pos = stream.tellg();
-        index_t initial_line = line, initial_column = column;
+        const index_t initial_line = line, initial_column = column;
 
         std::string token;
         try
@@ -525,6 +685,7 @@ namespace Machine
 
         std::unique_ptr<encoder_t> ret;
         index_t initial_line = line, initial_column = column;
+        const index_t entry_line = line, entry_column = column;
         auto initial_pos = stream.tellg();
         std::string token = read_token(stream, line, column);
 
@@ -572,7 +733,7 @@ namespace Machine
             token = read_token(stream, line, column);
             if (not is_number(token))
                 throw std::runtime_error{error +
-                    "Reading input at line" + std::to_string(initial_line) + ":" +
+                    "Reading input at line " + std::to_string(initial_line) + ":" +
                         std::to_string(initial_column) + "\nExpected a number.\n"};
             character_t c = static_cast<character_t>(std::stoll(token));
 
@@ -586,7 +747,7 @@ namespace Machine
             token = read_token(stream, line, column);
             if (not is_number(token))
                 throw std::runtime_error{error +
-                    "Reading input at line" + std::to_string(initial_line) + ":" +
+                    "Reading input at line " + std::to_string(initial_line) + ":" +
                         std::to_string(initial_column) + "\nExpected a number.\n"};
             character_t c = static_cast<character_t>(std::stoll(token));
 
@@ -600,7 +761,7 @@ namespace Machine
             token = read_token(stream, line, column);
             if (not is_number(token))
                 throw std::runtime_error{error +
-                    "Reading input at line" + std::to_string(initial_line) + ":" +
+                    "Reading input at line " + std::to_string(initial_line) + ":" +
                         std::to_string(initial_column) + "\nExpected a number.\n"};
             character_t c = static_cast<character_t>(std::stoll(token));
 
@@ -614,18 +775,46 @@ namespace Machine
             token = read_token(stream, line, column);
             if (not is_number(token))
                 throw std::runtime_error{error +
-                    "Reading input at line" + std::to_string(initial_line) + ":" +
+                    "Reading input at line " + std::to_string(initial_line) + ":" +
                         std::to_string(initial_column) + "\nExpected a number.\n"};
             character_t c = static_cast<character_t>(std::stoll(token));
 
             ret = std::make_unique<encoder_b_adic_t>(c);
         }
 
+        else if (token == "separator")
+        {
+            initial_line = line;
+            initial_column = column;
+            std::string error_string;
+
+            std::unique_ptr<encoder_t> parent_encoder;
+            try { parent_encoder = read_encoder(stream, line, column); }
+            catch (std::runtime_error &e) { error_string = e.what(); }
+
+            if (not parent_encoder)
+                throw std::runtime_error{error +
+                    "Reading input at line " + std::to_string(initial_line) + ":" +
+                    std::to_string(initial_column) + "\nExpected the parent encoder."
+                    "Obtained the following error:\n" + error_string};
+
+            initial_line = line;
+            initial_column = column;
+            token = read_token(stream, line, column);
+            if (std::size(token) != 1)
+                throw std::runtime_error{error +
+                    "Reading input at line " + std::to_string(initial_line) + ":" +
+                    std::to_string(initial_column) + "\nExpected a single character: " +
+                    "the separator.\n"};
+
+            ret = std::make_unique<encoder_separator_t>(std::move(parent_encoder), token.front());
+        }
+
         else
         {
             stream.seekg(initial_pos);
-            line = initial_line;
-            column = initial_column;
+            line = entry_line;
+            column = entry_column;
         }
 
        return ret; 
@@ -659,7 +848,7 @@ namespace Machine
         else if (typeid(encoder) == typeid(encoder_signed_b_ary_t))
         {
             ret = "signed_b_ary ";
-            ret += std::to_string(encoder.alphabet().max_character() + 1);
+            ret += std::to_string(encoder.alphabet().max_character() - 1);
         }
 
         else if (typeid(encoder) == typeid(encoder_signed_b_adic_t))
@@ -677,7 +866,17 @@ namespace Machine
         else if (typeid(encoder) == typeid(encoder_b_adic_t))
         {
             ret = "b_adic ";
-            ret += std::to_string(encoder.alphabet().max_character() - 1);
+            ret += std::to_string(encoder.alphabet().max_character() + 1);
+        }
+
+        else if (typeid(encoder) == typeid(encoder_separator_t))
+        {
+            const encoder_separator_t &e = dynamic_cast<const encoder_separator_t &>(encoder);
+
+            ret = "separator ";
+            ret += print_encoder(e.parent_encoder());
+            ret += ' ';
+            ret += e.separator();
         }
 
         else
@@ -702,6 +901,7 @@ namespace Machine
             keywords["counter"] = 5;
             keywords["tape"] = 6;
             keywords["queue"] = 7;
+            keywords["ram"] = 8;
             
             initialised = true;
         }
@@ -709,8 +909,10 @@ namespace Machine
         static const std::string error{
             "In read_device(std::istream &, const encoder_t &):\nInvalid input.\n"};
 
-        const auto initial_pos = stream.tellg();
+        const auto entry_pos = stream.tellg();
         std::string token;
+        const index_t entry_line = line;
+        const index_t entry_column = column;
         index_t initial_line, initial_column;
 
         auto get_token = [&]() -> void
@@ -730,7 +932,9 @@ namespace Machine
 
         auto throw_error = [&](const std::string &arg) -> void
         {
-            stream.seekg(initial_pos);
+            line = entry_line;
+            column = entry_column;
+            stream.seekg(entry_pos);
             throw std::runtime_error{"In Machine::read_device(std::istream &, index_t &, index_t &,"
                 " const encoder_t &):\nReading input at line " + std::to_string(initial_line) + ":"
                 + std::to_string(initial_column) + ".\n" + arg + "\n"};
@@ -743,7 +947,9 @@ namespace Machine
         const auto it = keywords.find(token);
         if (it == std::end(keywords))
         {
-            stream.seekg(initial_pos);
+            line = entry_line;
+            column = entry_column;
+            stream.seekg(entry_pos);
             return {nullptr};
         }
 
@@ -985,6 +1191,38 @@ namespace Machine
                 return std::make_unique<queue_t>(std::move(encoder),
                         std::move(initialiser), std::move(terminator));
             }
+
+            case 8:
+            {
+                if (not encoder)
+                    encoder = std::make_unique<encoder_separator_t>(
+                        std::make_unique<encoder_b_ary_t>(10), ':');
+
+                std::unique_ptr<ram_initialiser_t> initialiser;
+                get_token();
+                if (token == "empty")
+                    initialiser = std::make_unique<ram_initialiser_empty_t>();
+                else if (token == "string")
+                    initialiser = std::make_unique<ram_initialiser_string_t>();
+                else
+                    throw_error("Expected the initialiser : 'empty' or 'string'.");
+
+                std::unique_ptr<ram_terminator_t> terminator;
+                get_token();
+                if (token == "empty")
+                    terminator = std::make_unique<ram_terminator_empty_t>();
+                else if (token == "string")
+                    terminator = std::make_unique<ram_terminator_string_t>();
+                else
+                    throw_error("Expected the terminator : 'empty' or 'string'.");
+                
+                get_token();
+                if (token != ";")
+                    throw_error("Expected ';'.");
+
+                return std::make_unique<ram_t>(std::move(encoder), std::move(initialiser),
+                        std::move(terminator));
+            }
         }
         
         std::unreachable();
@@ -1165,6 +1403,30 @@ namespace Machine
                 throw_error("Unknown queue terminator class.");
         }
 
+        else if (typeid(device) == typeid(ram_t))
+        {
+            const ram_t &ram = dynamic_cast<const ram_t &>(device);
+            const ram_initialiser_t &initialiser = ram.initialiser();
+            const ram_terminator_t &terminator = ram.terminator();
+
+            d = "ram";
+            e = print_encoder(device.encoder());
+
+            if (typeid(initialiser) == typeid(ram_initialiser_empty_t))
+                i = "empty";
+            else if (typeid(initialiser) == typeid(ram_initialiser_string_t))
+                i = "string";
+            else
+                throw_error("Unknown ram initialiser class.");
+
+            if (typeid(terminator) == typeid(ram_terminator_empty_t))
+                t = "empty";
+            else if (typeid(terminator) == typeid(ram_terminator_string_t))
+                t = "string";
+            else
+                throw_error("Unknown ram terminator class.");
+        }
+
         else
             throw_error("Unknown device class.");
 
@@ -1219,6 +1481,16 @@ namespace Machine
             keywords["asp"] = 46;
             keywords["aspml"] = 40;
             keywords["aspmr"] = 47;
+            keywords["ld"] = 48;
+            keywords["st"] = 49;
+            keywords["add"] = 50;
+            keywords["sub"] = 51;
+            keywords["halve"] = 52;
+            keywords["one"] = 54;
+            keywords["gr"] = 55;
+            keywords["eq"] = 56;
+            keywords["odd"] = 57;
+            keywords["even"] = 58;
 
             initialised = true;
         }
@@ -1226,7 +1498,8 @@ namespace Machine
         static const std::string error{"In read_operation"
             "(std::istream &, const device_t &, const encoder_t &):\nInvalid input.\n"};
 
-        const auto initial_pos = stream.tellg();
+        const auto entry_pos = stream.tellg();
+        const index_t entry_line = line, entry_column = column;
         std::string token;
         index_t initial_line, initial_column;
 
@@ -1240,7 +1513,9 @@ namespace Machine
 
         auto throw_error = [&](const std::string &arg) -> void
         {
-            stream.seekg(initial_pos);
+            line = entry_line;
+            column = entry_column;
+            stream.seekg(entry_pos);
             throw std::runtime_error{"In Machine::read_operation(std::istream &, index_t &,"
                 " index_t &, const device_t &):\nReading input at line " +
                 std::to_string(initial_line) + ":" + std::to_string(initial_column) + ".\n" + arg +
@@ -1447,16 +1722,35 @@ namespace Machine
                 case 22:
                 {
                     get_token();
-                    if (token != ";")
-                        throw_error("Expected ';'.");
 
                     if (typeid(device) == typeid(counter_t))
+                    {
+                        if (token != ";")
+                            throw_error("Expected ';'.");
                         return operation(22, 0);
+                    }
 
                     if (typeid(device) == typeid(unsigned_counter_t))
+                    {    
+                        if (token != ";")
+                            throw_error("Expected ';'.");
                         return operation(18, 0);
+                    }
 
-                    throw_error("Incorrect device. Expected counter or ucounter.");
+                    if (typeid(device) == typeid(ram_t))
+                    {
+                        if (not is_number(token))
+                            throw_error("Expected the register number.");
+                        index_t reg = std::stoll(token);
+
+                        get_token();
+                        if (token != ";")
+                            throw_error("Expected ';'.");
+
+                        return ram_operation(std::array<index_t, 4>{53, reg, 0, 0});
+                    }
+
+                    throw_error("Incorrect device. Expected counter, ucounter or ram.");
                     return {nullptr};
                 }
 
@@ -1782,6 +2076,221 @@ namespace Machine
                     return compound_tape_operation(23, c, d);
                 }
 
+                case 48:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg1 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{48, reg0, reg1, 0});
+                }
+
+                case 49:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg1 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{49, reg1, reg0, 0});
+                }
+
+                case 50:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg1 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg2 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{50, reg0, reg1, reg2});
+                }
+
+                case 51:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg1 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg2 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{51, reg0, reg1, reg2});
+                }
+
+                case 52:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg1 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{52, reg0, reg1, 0});
+                }
+
+                case 54:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{54, reg0, 0, 0});
+                }
+
+                case 55:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg1 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{55, reg0, reg1, 0});
+                }
+
+                case 56:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg1 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{56, reg0, reg1, 0});
+                }
+
+                case 57:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{57, reg0, 0, 0});
+                }
+
+                case 58:
+                {
+                    if (typeid(device) != typeid(ram_t))
+                        throw_error("Incorrect device. Expected ram.");
+
+                    get_token();
+                    if (not is_number(token))
+                        throw_error("Expected the register number.");
+                    index_t reg0 = std::stoll(token);
+
+                    get_token();
+                    if (token != ";")
+                        throw_error("Expected ';'.");
+
+                    return ram_operation(std::array<index_t, 4>{58, reg0, 0, 0});
+                }
+
                 default:
                 {
                     throw_error("Unknown instruction.");
@@ -1981,6 +2490,123 @@ namespace Machine
                 ret += dynamic_cast<const tape_operation_print_t &>(
                         *op.operations()[2]).character();
             }
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_load_t))
+        {
+            const ram_operation_load_t &op =
+                dynamic_cast<const ram_operation_load_t &>(operation);
+
+            ret += "ld ";
+            ret += std::to_string(op.reg_destination());
+            ret += ' ';
+            ret += std::to_string(op.reg_source());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_store_t))
+        {
+            const ram_operation_store_t &op =
+                dynamic_cast<const ram_operation_store_t &>(operation);
+
+            ret += "st ";
+            ret += std::to_string(op.reg_source());
+            ret += ' ';
+            ret += std::to_string(op.reg_destination());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_add_t))
+        {
+            const ram_operation_add_t &op =
+                dynamic_cast<const ram_operation_add_t &>(operation);
+
+            ret += "add ";
+            ret += std::to_string(op.reg_destination());
+            ret += ' ';
+            ret += std::to_string(op.reg_source_0());
+            ret += ' ';
+            ret += std::to_string(op.reg_source_1());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_sub_t))
+        {
+            const ram_operation_sub_t &op =
+                dynamic_cast<const ram_operation_sub_t &>(operation);
+
+            ret += "sub ";
+            ret += std::to_string(op.reg_destination());
+            ret += ' ';
+            ret += std::to_string(op.reg_source_0());
+            ret += ' ';
+            ret += std::to_string(op.reg_source_1());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_halve_t))
+        {
+            const ram_operation_halve_t &op =
+                dynamic_cast<const ram_operation_halve_t &>(operation);
+
+            ret += "halve ";
+            ret += std::to_string(op.reg_destination());
+            ret += ' ';
+            ret += std::to_string(op.reg_source());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_set_0_t))
+        {
+            const ram_operation_set_0_t &op =
+                dynamic_cast<const ram_operation_set_0_t &>(operation);
+
+            ret += "zero ";
+            ret += std::to_string(op.reg_destination());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_set_1_t))
+        {
+            const ram_operation_set_1_t &op =
+                dynamic_cast<const ram_operation_set_1_t &>(operation);
+
+            ret += "one ";
+            ret += std::to_string(op.reg_destination());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_test_gr_t))
+        {
+            const ram_operation_test_gr_t &op =
+                dynamic_cast<const ram_operation_test_gr_t &>(operation);
+
+            ret += "gr ";
+            ret += std::to_string(op.reg_source_0());
+            ret += ' ';
+            ret += std::to_string(op.reg_source_1());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_test_eq_t))
+        {
+            const ram_operation_test_eq_t &op =
+                dynamic_cast<const ram_operation_test_eq_t &>(operation);
+
+            ret += "eq ";
+            ret += std::to_string(op.reg_source_0());
+            ret += ' ';
+            ret += std::to_string(op.reg_source_1());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_test_odd_t))
+        {
+            const ram_operation_test_odd_t &op =
+                dynamic_cast<const ram_operation_test_odd_t &>(operation);
+
+            ret += "odd ";
+            ret += std::to_string(op.reg_source());
+        }
+
+        else if (typeid(operation) == typeid(ram_operation_test_even_t))
+        {
+            const ram_operation_test_even_t &op =
+                dynamic_cast<const ram_operation_test_even_t &>(operation);
+
+            ret += "even ";
+            ret += std::to_string(op.reg_source());
         }
 
         else

@@ -28,7 +28,7 @@ namespace Machine
     public:
         stack_initialiser_empty_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const std::string &) const override;
+        void initialise(device_t &, const std::string &) const override;
     };
 
     class stack_initialiser_string_t final : public stack_initialiser_t
@@ -36,7 +36,7 @@ namespace Machine
     public:
         stack_initialiser_string_t *clone() const override;
     public:
-        virtual void initialise(device_t &, const std::string &) const override;
+        void initialise(device_t &, const std::string &) const override;
     };
 
     class stack_terminator_t : public terminator_t

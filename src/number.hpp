@@ -1,6 +1,7 @@
 #pragma once
 #include "string.hpp"
 #include "encoder.hpp"
+#include "hash.hpp"
 
 #include <vector>
 #include <stdexcept>
@@ -184,4 +185,20 @@ namespace Machine
 
     void swap(signed_number_t &, signed_number_t &) noexcept;
 }
+
+template<>
+class std::hash<Machine::unsigned_number_t>
+{
+public:
+    std::size_t operator()(const Machine::unsigned_number_t &arg) const
+        { return std::hash<std::vector<Machine::index_t>>{}(arg.digits()); }
+};
+
+template<>
+class std::hash<Machine::signed_number_t>
+{
+public:
+    std::size_t operator()(const Machine::signed_number_t &arg) const
+        { return std::hash<std::vector<Machine::index_t>>{}(arg.abs().digits()); }
+};
 
