@@ -1,0 +1,17 @@
+control 0 : Accept 6 : Reject 7;
+input alphabetic 3;
+counter;
+
+0 to 1;     scan a;     inc;
+0 to 2;     scan b;     dec;
+0 to 0;     scan c;     noop;
+0 to 6;     eof;        zero;
+0 to 7;     eof;        pos;
+0 to 7;     eof;        neg;
+
+1 to 0;     noop;       inc;
+
+2 to 3;     noop;       dec;
+3 to 4;     noop;       dec;
+4 to 5;     noop;       dec;
+5 to 0;     noop;       dec;

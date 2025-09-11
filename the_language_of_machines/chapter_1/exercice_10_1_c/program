@@ -1,0 +1,39 @@
+control 0 : Accept 3 : Reject 0 1 2 4 5 6 7 8 9 10 11;
+input alphabetic 2;
+
+0 to 1;     scan a;
+0 to 3;     scan b;
+
+1 to 2;     scan a;
+1 to 4;     scan b;
+
+2 to 0;     scan a;
+2 to 5;     scan b;
+
+3 to 4;     scan a;
+3 to 6;     scan b;
+
+4 to 5;     scan a;
+4 to 7;     scan b;
+
+5 to 3;     scan a;
+5 to 8;     scan b;
+
+6 to 7;     scan a;
+6 to 9;     scan b;
+
+7 to 8;     scan a;
+7 to 10;    scan b;
+
+8 to 6;     scan a;
+8 to 11;    scan b;
+
+9 to 10;    scan a;
+9 to 0;     scan b;
+
+10 to 11;   scan a;
+10 to 1;    scan b;
+
+11 to 9;    scan a;
+11 to 2;    scan b;
+

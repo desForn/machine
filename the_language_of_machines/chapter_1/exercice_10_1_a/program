@@ -1,0 +1,8 @@
+control 0 : Accept 1 : Reject 0;
+input alphabetic 2;
+
+0 to 1;     scan a;
+0 to 0;     scan b;
+
+1 to 0;     scan a;
+1 to 1;     scan b;

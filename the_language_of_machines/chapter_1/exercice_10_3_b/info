@@ -1,0 +1,1 @@
+SCM that rejects { w ∈ {a,b,c}* | #(a)(w) = 2.5#(b)(w) }

@@ -1,0 +1,1 @@
+SCM that rejects { w ∈ {a,b,c}* | 3#(a)(w) = 4#(b)(w) }

@@ -1,0 +1,1 @@
+DFM that recognizes { w ∈ {a,b}* | #(a)(w) = 0 (mod 5) }

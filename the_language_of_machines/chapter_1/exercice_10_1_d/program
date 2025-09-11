@@ -1,0 +1,129 @@
+control 0 : Accept 19 : Reject 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41;
+input alphabetic 2;
+
+0 to 1;		scan a;
+0 to 6;		scan b;
+
+1 to 2;		scan a;
+1 to 7;		scan b;
+
+2 to 3;		scan a;
+2 to 8;		scan b;
+
+3 to 4;		scan a;
+3 to 9;		scan b;
+
+4 to 5;		scan a;
+4 to 10;		scan b;
+
+5 to 0;		scan a;
+5 to 11;		scan b;
+
+6 to 7;		scan a;
+6 to 12;		scan b;
+
+7 to 8;		scan a;
+7 to 13;		scan b;
+
+8 to 9;		scan a;
+8 to 14;		scan b;
+
+9 to 10;		scan a;
+9 to 15;		scan b;
+
+10 to 11;		scan a;
+10 to 16;		scan b;
+
+11 to 6;		scan a;
+11 to 17;		scan b;
+
+12 to 13;		scan a;
+12 to 18;		scan b;
+
+13 to 14;		scan a;
+13 to 19;		scan b;
+
+14 to 15;		scan a;
+14 to 20;		scan b;
+
+15 to 16;		scan a;
+15 to 21;		scan b;
+
+16 to 17;		scan a;
+16 to 22;		scan b;
+
+17 to 12;		scan a;
+17 to 23;		scan b;
+
+18 to 19;		scan a;
+18 to 24;		scan b;
+
+19 to 20;		scan a;
+19 to 25;		scan b;
+
+20 to 21;		scan a;
+20 to 26;		scan b;
+
+21 to 22;		scan a;
+21 to 27;		scan b;
+
+22 to 23;		scan a;
+22 to 28;		scan b;
+
+23 to 18;		scan a;
+23 to 29;		scan b;
+
+24 to 25;		scan a;
+24 to 30;		scan b;
+
+25 to 26;		scan a;
+25 to 31;		scan b;
+
+26 to 27;		scan a;
+26 to 32;		scan b;
+
+27 to 28;		scan a;
+27 to 33;		scan b;
+
+28 to 29;		scan a;
+28 to 34;		scan b;
+
+29 to 24;		scan a;
+29 to 35;		scan b;
+
+30 to 31;		scan a;
+30 to 36;		scan b;
+
+31 to 32;		scan a;
+31 to 37;		scan b;
+
+32 to 33;		scan a;
+32 to 38;		scan b;
+
+33 to 34;		scan a;
+33 to 39;		scan b;
+
+34 to 35;		scan a;
+34 to 40;		scan b;
+
+35 to 30;		scan a;
+35 to 41;		scan b;
+
+36 to 37;		scan a;
+36 to 0;		scan b;
+
+37 to 38;		scan a;
+37 to 1;		scan b;
+
+38 to 39;		scan a;
+38 to 2;		scan b;
+
+39 to 40;		scan a;
+39 to 3;		scan b;
+
+40 to 41;		scan a;
+40 to 4;		scan b;
+
+41 to 36;		scan a;
+41 to 5;		scan b;
+

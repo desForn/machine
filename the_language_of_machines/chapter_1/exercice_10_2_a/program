@@ -1,0 +1,12 @@
+control 0 : Accept 0 4;
+input alphabetic 2;
+ucounter zero zero;
+
+0 to 5;		scan b;		noop;
+0 to 1;		scan a;		noop;
+1 to 2;		scan a;		noop;
+2 to 3;		scan a;		noop;
+3 to 0;		scan a;		inc;
+4 to 5;		scan b;		noop;
+5 to 6;		scan b;		noop;
+6 to 4;		scan b;		dec;

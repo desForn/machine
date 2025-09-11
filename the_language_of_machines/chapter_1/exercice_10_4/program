@@ -1,0 +1,53 @@
+control 0 : Accept 10;
+tape list a b * $ : * string always;
+
+// At entry, if empty accept, otherwise replace the first character by $ and go to state 1 if it was
+// a or 2 if it was b
+0 to 10;    see *;
+0 to 1;     spmr a $;
+0 to 2;     spmr b $;
+
+// Scan the input and at every 'a' chose if to skip it or to match it with the first 'a' with a '$'
+1 to 1;     smr a;
+1 to 3;     spmr a $;
+1 to 1;     smr b;
+
+// Idem with 'b' instead of 'a'
+2 to 2;     smr a;
+2 to 2;     smr b;
+2 to 3;     spmr b $;
+
+// Scan the rest of the input to ensure no '$' was present in the original string
+3 to 3;     smr a;
+3 to 3;     smr b;
+3 to 4;     smr *;
+
+// Return to the beggining
+4 to 4;     movel;
+4 to 5;     athome;
+
+// Search for the first non '$', replace it with '$' and branch according to the previous value.
+// If the first is a blank '*', it means that the entire string has been scanned and must accept
+5 to 5;     smr $;
+5 to 6;     spmr a $;
+5 to 7;     spmr b $;
+5 to 10;    see *;
+
+// Search the beginning of the separator of the second part of the string.
+6 to 6;     smr a;
+6 to 6;     smr b;
+6 to 8;     smr $;
+
+// Idem
+7 to 7;     smr a;
+7 to 7;     smr b;
+7 to 9;     smr $;
+
+// Match the first non '$' character with an 'a', replace it by '$' and go to state 4 
+8 to 8;     smr $;
+8 to 4;     spml a $;
+
+// Idem with 'b'
+9 to 9;     smr $;
+9 to 4;     spml b $;
+

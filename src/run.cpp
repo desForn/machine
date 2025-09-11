@@ -275,11 +275,11 @@ int main(int argc, const char **argv)
 
     if (verbose_output)
     {
-        std::cout << std::to_string(std::size(output_strings)) << " output classes.";
+        std::cout << std::to_string(std::size(output_strings)) << " output classes.\n";
 
         for (const auto &i : output_strings)
         {
-            std::cout << "\n\t";
+            std::cout << "\t";
             for (const auto &j : i)
                 std::cout << ' ' << j;
             std::cout << std::endl;

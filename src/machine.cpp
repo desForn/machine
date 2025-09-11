@@ -909,7 +909,10 @@ namespace Machine
         static const std::string error{
             "In read_device(std::istream &, const encoder_t &):\nInvalid input.\n"};
 
-        const auto entry_pos = stream.tellg();
+        std::istream::pos_type entry_pos;
+        try { entry_pos = stream.tellg(); }
+        catch (std::ios_base::failure &) { return {nullptr}; }
+
         std::string token;
         const index_t entry_line = line;
         const index_t entry_column = column;
@@ -1508,7 +1511,10 @@ namespace Machine
         static const std::string error{"In read_operation"
             "(std::istream &, const device_t &, const encoder_t &):\nInvalid input.\n"};
 
-        const auto entry_pos = stream.tellg();
+        std::istream::pos_type entry_pos;
+        try { entry_pos = stream.tellg(); }
+        catch (std::ios_base::failure &) { return {nullptr}; }
+
         const index_t entry_line = line, entry_column = column;
         std::string token;
         index_t initial_line, initial_column;
@@ -2490,15 +2496,15 @@ namespace Machine
             if (op.operations()[1])
             {
                 ret += ' ';
-                ret += dynamic_cast<const tape_operation_see_t &>(
-                        *op.operations()[1]).character();
+                ret += encoder(dynamic_cast<const tape_operation_see_t &>(
+                        *op.operations()[1]).character());
             }
 
             if (op.operations()[2])
             {
                 ret += ' ';
-                ret += dynamic_cast<const tape_operation_print_t &>(
-                        *op.operations()[2]).character();
+                ret += encoder(dynamic_cast<const tape_operation_print_t &>(
+                        *op.operations()[2]).character());
             }
         }
 
