@@ -1,0 +1,1 @@
+A NSM that accepts the set of palindromes over {0,1,2,3}*. The stack uses {0,1}* as alphabet

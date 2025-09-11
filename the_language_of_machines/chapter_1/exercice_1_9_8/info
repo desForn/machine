@@ -1,0 +1,1 @@
+NSCM that accepts { w ∈ {a,b,c}* | ¬(∃n ∈ N, w = a^nb^nc^n) }

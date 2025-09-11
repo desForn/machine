@@ -102,8 +102,13 @@ namespace Machine
     const std::unordered_map<char, character_t> &encoder_list_t::inverse_map() const
         { return inverse_map_; }
 
-    encoder_alphabetic_t::encoder_alphabetic_t(character_t n) : encoder_t{alphabet_t{n}}
+    encoder_alphabetic_t::encoder_alphabetic_t(character_t n) :
+        encoder_t{alphabet_t{n ? static_cast<character_t>(n - 1) : static_cast<character_t>(0)}}
     {
+        if (n == 0)
+            throw std::runtime_error{"In Machine::encoder_alphabetic_t::encoder_alphabetic_t"
+                "(character_t):\nThe argument must be non-zero.\n"};
+
         if (n > 25)
             throw std::runtime_error{"In Machine::encoder_alphabetic_t::encoder_alphabetic_t"
                 "(character_t):\nMaximum number of characters in the alphabet is 26.\n"};

@@ -314,6 +314,7 @@ namespace Machine
         bool find_output(const std::string &) const;
         bool find_output(const std::vector<std::string> &) const;
         void wait();
+        std::vector<std::vector<std::string>> output() const;
 
         template<class Rep, class Period>
         bool wait_for(const std::chrono::duration<Rep, Period> &time)

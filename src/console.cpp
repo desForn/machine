@@ -1378,7 +1378,7 @@ namespace Machine
                         }
 
                         {
-                            std::string s = focus->print_terminator(n - 1);
+                            std::string s = focus->print_initialiser(n - 1);
                             padding_ = std::max(padding_, std::size(s));
                             rows.back().emplace_back(Renderer(
                                 [s = std::move(s), &p = padding_] mutable
@@ -1923,6 +1923,17 @@ namespace Machine
         if (future_.valid())
             future_.wait();
         return;
+    }
+
+    std::vector<std::vector<std::string>> console_t::output() const
+    {
+        std::vector<std::vector<std::string>> ret;
+        ret.reserve(std::size(halted_machines_));
+
+        for (const auto &i : halted_machines_)
+            ret.emplace_back(i.first);
+
+        return ret;
     }
 
     std::atomic<bool> &console_t::pause_halt() { return pause_halt_;}

@@ -1,0 +1,13 @@
+Proof of correctness:
+    Each state represents the last 5 characters read in binary. Once the input is exhausted the
+machine accepts iff the 5-th character is a 1, i.e. state > 15.
+    Because x is accepted iff 00000x is, the machine is initialised at state 0, i.e. as if 00000 was
+already read.
+
+Proof that the number of states is minimal:
+    Consider two strings given as input such that they share a common suffix α, i.e. x = βα and y =
+γα. If after scanning β and γ the machine enters the same state, then because of determinism the
+rest of the computation will be identical, i.e. it will accept both or reject both.
+    Consider a pair of any of the 5-character suffixes. If they differ in a character, say at
+position i from the right (0 ≤ i < 5), then after reading 4 - i characters followed by the eof, one
+string will be accepted and the other rejected. This means that at least 32 states are necessary.

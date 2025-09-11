@@ -1,0 +1,1 @@
+NUCM that accepts { x#y | x, y ∈ {a,b}* ∧ ∃c < min(|x|, |y|), x[c] = y[c] }

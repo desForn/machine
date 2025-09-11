@@ -1,5 +1,5 @@
 control 0 : Accept 6;
-ucounter;
+ucounter string string;
 
 0 to 1;         dec;
 1 to 2;         dec;

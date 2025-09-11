@@ -1,0 +1,41 @@
+control 0 : Accept 7;
+input alphabetic 3;
+counter;
+
+0 to 1;     scan a;     inc;
+0 to 7;     scan b;     noop;
+0 to 7;     scan c;     noop;
+
+1 to 1;     scan a;     inc;
+1 to 2;     scan b;     dec;
+1 to 4;     scan b;     noop;
+1 to 7;     scan c;     noop;
+1 to 7;     eof;        noop;
+
+2 to 7;     scan a;     noop;
+2 to 2;     scan b;     dec;
+2 to 3;     scan c;     noop;
+2 to 7;     eof;        noop;
+
+3 to 7;     scan a;     noop;
+3 to 7;     scan b;     noop;
+3 to 3;     scan c;     noop;
+3 to 6;     eof;        noop;
+
+4 to 7;     scan a;     noop;
+4 to 4;     scan b;     noop;
+4 to 5;     scan c;     dec;
+4 to 7;     eof;        noop;
+
+5 to 7;     scan a;     noop;
+5 to 7;     scan b;     noop;
+5 to 5;     scan c;     dec;
+5 to 6;     eof;        noop;
+
+6 to 7;     noop;       pos;
+6 to 7;     noop;       neg;
+
+7 to 7;     scan a;     noop;
+7 to 7;     scan b;     noop;
+7 to 7;     scan c;     noop;
+

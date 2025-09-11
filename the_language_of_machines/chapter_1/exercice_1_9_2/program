@@ -1,0 +1,26 @@
+control 0 : Accept 3;
+input numeric 4;
+stack numeric 2 empty empty;
+
+0 to 1;     scan 0;     push 0;
+0 to 2;     scan 1;     push 0;
+0 to 1;     scan 2;     push 1;
+0 to 2;     scan 3;     push 1;
+0 to 3;     scan 0;     noop;
+0 to 3;     scan 1;     noop;
+0 to 3;     scan 2;     noop;
+0 to 3;     scan 3;     noop;
+0 to 3;     noop;       noop;
+
+1 to 0;     noop;       push 0;
+
+2 to 0;     noop;       push 1;
+
+3 to 4;     scan 0;     pop 0;
+3 to 4;     scan 1;     pop 1;
+3 to 5;     scan 2;     pop 0;
+3 to 5;     scan 3;     pop 1;
+
+4 to 3;     noop;       pop 0;
+
+5 to 3;     noop;       pop 1;

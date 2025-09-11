@@ -1,0 +1,21 @@
+control 0 : Accept 3;
+input b_ary 2;
+counter zero zero;
+
+0 to 0;     scan 0;     inc;
+0 to 0;     scan 1;     inc;
+0 to 1;     scan 0;     noop;
+0 to 2;     scan 1;     noop;
+
+1 to 1;     scan 0;     dec;
+1 to 1;     scan 1;     dec;
+1 to 3;     scan 1;     noop;
+
+2 to 2;     scan 0;     dec;
+2 to 2;     scan 1;     dec;
+2 to 3;     scan 0;     noop;
+
+3 to 3;     scan 0;     inc;
+3 to 3;     scan 1;     inc;
+
+

@@ -1,0 +1,19 @@
+control 1 : Accept 6;
+input alphabetic 2;
+ucounter;
+
+1 to 2;     noop;       noop;
+1 to 4;     noop;       noop;
+
+2 to 3;     scan a;     inc;
+2 to 5;     scan b;     dec;
+2 to 6;     eof;        zero;
+
+3 to 2;     noop;       inc;
+
+4 to 4;     scan a;     inc;
+4 to 5;     scan b;     dec;
+4 to 6;     eof;        zero;
+
+5 to 5;     scan b;     dec;
+5 to 6;     eof;        zero;

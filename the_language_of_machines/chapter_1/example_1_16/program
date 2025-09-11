@@ -1,0 +1,11 @@
+control 0 : Accept 2;
+input;
+stack alphabetic 2;
+
+0 to 0;     scan a;     push a;
+0 to 0;     scan b;     push b;
+0 to 1;     noop;       noop;
+
+1 to 1;     scan a;     pop a;
+1 to 1;     scan b;     pop b;
+1 to 2;     eof;        empty;

@@ -1,0 +1,2 @@
+NFM that accepts { w ∈ {0,1}* | w = α1β, β = 4 }. That is, strings such that have a 1 four characers
+before the end

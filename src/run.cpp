@@ -54,6 +54,7 @@ int main(int argc, const char **argv)
     index_t time = negative_1;
     index_t n_threads = negative_1;
     bool verbose = false;
+    bool verbose_output = false;
 
     auto error = [&verbose] (int ret, const std::string &msg) -> int
     {
@@ -82,6 +83,7 @@ int main(int argc, const char **argv)
                 "\n\t-t\t\tSpecify the waiting time for the run (in seconds)"
                 "\n\t-nt\t\tSpecify the number of threads used in the simulation"
                 "\n\t-v\t\tVerbose: print error messages"
+                "\n\t-vo\t\tPrint the output"
                 "\n\nNote:"
                 "\n\tWhen specifying the input and output, an empty string is represented by '\\'."
                 "\n\tTo specify any string starting with '-', or '\\' enter the string"
@@ -211,6 +213,11 @@ int main(int argc, const char **argv)
             verbose = true;
             ++argi;
         }
+        else if (s == "-vo")
+        {
+            verbose_output = true;
+            ++argi;
+        }
         else
             return error(1, std::string{"Unrecognised option "} + s);
     }
@@ -263,6 +270,21 @@ int main(int argc, const char **argv)
 
     else
         console.launch_tui();
+
+    std::vector<std::vector<std::string>> output_strings = console.output();
+
+    if (verbose_output)
+    {
+        std::cout << std::to_string(std::size(output_strings)) << " output classes.";
+
+        for (const auto &i : output_strings)
+        {
+            std::cout << "\n\t";
+            for (const auto &j : i)
+                std::cout << ' ' << j;
+            std::cout << std::endl;
+        }
+    }
 
     if (not empty_output and not console.find_output(output))
         return error(5, "Prescribed output not found");

@@ -1,0 +1,8 @@
+A nondeterministic program computing a relation ρ may be defined as a program such that given x, the
+program halts with output y only if xρy and for each y such that xρy there exists a valid
+computation with output y.
+
+A nondeterministic program computing a partial function may be defined using the previous
+definition. That is, if x ∈ Dom(ρ), there exists y = xρ and a valid computation such that its output
+is y. Furthermore, no valid computation exists with a different output. If ¬(x ∈ Dom(ρ)), then all
+computations are blocking.

@@ -1,0 +1,23 @@
+control 0 : Accept 6;
+input alphabetic 3;
+counter;
+
+0 to 0;     scan a;     inc;
+0 to 1;     noop;       noop;
+0 to 3;     noop;       noop;
+
+1 to 1;     scan b;     dec;
+1 to 2;     noop;       noop;
+
+2 to 2;     scan c;     noop;
+2 to 5;     eof;        noop;
+ 
+3 to 3;     scan b;     noop;
+3 to 4;     noop;       noop;
+
+4 to 4;     scan c;     dec;
+4 to 5;     eof;        noop;
+
+5 to 6;     noop;       pos;
+5 to 6;     noop;       neg;
+

@@ -1,0 +1,28 @@
+control 0 : Accept 6;
+input separator alphabetic 2 #;
+ucounter;
+
+0 to 0;     scan a;     inc;
+0 to 0;     scan b;     inc;
+0 to 1;     scan a;     noop;
+0 to 3;     scan b;     noop;
+
+1 to 1;     scan a;     noop;
+1 to 1;     scan b;     noop;
+1 to 2;     scan #;     noop;
+
+2 to 2;     scan a;     dec;
+2 to 2;     scan b;     dec;
+2 to 5;     scan a;     zero;
+
+3 to 3;     scan a;     noop;
+3 to 3;     scan b;     noop;
+3 to 4;     scan #;     noop;
+
+4 to 4;     scan a;     dec;
+4 to 4;     scan b;     dec;
+4 to 5;     scan b;     zero;
+
+5 to 5;     scan a;     noop;
+5 to 5;     scan b;     noop;
+5 to 6;     eof;        noop;

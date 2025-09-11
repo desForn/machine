@@ -7,7 +7,7 @@ do
     then
         result=1
         echo "Test ${i} failed:"
-        printf "${o}"
+        printf "${o}\n"
     fi 
 done
 

@@ -1031,7 +1031,7 @@ namespace Machine
                 get_token();
                 if (token == ";")
                     return std::make_unique<stack_t>(std::move(encoder),
-                            std::make_unique<stack_initialiser_string_t>(),
+                            std::make_unique<stack_initialiser_empty_t>(),
                             std::make_unique<stack_terminator_string_t>());
 
                 std::unique_ptr<stack_initialiser_t> initialiser;
@@ -1067,7 +1067,7 @@ namespace Machine
                 get_token();
                 if (token == ";")
                     return std::make_unique<unsigned_counter_t>(std::move(encoder),
-                        std::make_unique<unsigned_counter_initialiser_string_t>(),
+                        std::make_unique<unsigned_counter_initialiser_zero_t>(),
                         std::make_unique<unsigned_counter_terminator_string_t>());
 
                 std::unique_ptr<unsigned_counter_initialiser_t> initialiser;
@@ -1102,6 +1102,11 @@ namespace Machine
 
                 std::unique_ptr<counter_initialiser_t> initialiser;
                 get_token();
+                if (token == ";")
+                    return std::make_unique<counter_t>(std::move(encoder),
+                        std::make_unique<counter_initialiser_zero_t>(),
+                        std::make_unique<counter_terminator_string_t>());
+
                 if (token == "zero")
                     initialiser = std::make_unique<counter_initialiser_zero_t>();
                 else if (token == "string")
@@ -1137,6 +1142,11 @@ namespace Machine
 
                 std::unique_ptr<tape_initialiser_t> initialiser;
                 get_token();
+                if (token == ";")
+                    return std::make_unique<tape_t>(std::move(encoder), c,
+                        std::make_unique<tape_initialiser_empty_t>(),
+                        std::make_unique<tape_terminator_always_t>());
+
                 if (token == "empty")
                     initialiser = std::make_unique<tape_initialiser_empty_t>();
                 else if (token == "string")
@@ -1291,7 +1301,7 @@ namespace Machine
             e = print_encoder(device.encoder());
 
             if (typeid(initialiser) == typeid(stack_initialiser_empty_t))
-                i  = "empty";
+                i = "empty";
             else if (typeid(initialiser) == typeid(stack_initialiser_string_t))
                 i = "string";
             else
