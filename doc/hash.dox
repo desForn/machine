@@ -1,0 +1,17 @@
+/// \file hash.hpp
+/// Definition of a hash algorithm for ranges of intergral type
+///
+/// \class std::hash<range_type>
+/// \tparam range_type Range of integral type
+/// \brief Specialisation for ranges of integral type
+///
+/// \fn static constexpr std::size_t std::hash<range_type>::compute_n()
+/// \brief Returns \f$m / \varphi\f$
+///
+/// Returns the smallest odd integer lager than \f$m / \varphi\f$,
+/// where \f$m\f$ is the maximum representable number by `std::size_t` and
+/// \f$\varphi = \frac{1 + \sqrt{5}}{2}\f$
+///
+/// \fn std::size_t std::hash<range_type>::operator()(const range_type &range) const
+/// \param range The argument whose hash is computed
+/// \todo Research hash algorithms

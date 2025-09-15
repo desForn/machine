@@ -1,0 +1,9 @@
+/// \file abort.cpp
+
+
+/// \fn [[noreturn]] void Machine::abort(const std::string &s)
+/// @brief Terminates the program with an error message.
+///
+/// Writes the message at std::cerr and calls std::abort.
+///
+/// @param s the identifyier where the error occured without the Machine:: prefix

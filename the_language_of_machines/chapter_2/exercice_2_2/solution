@@ -1,0 +1,10 @@
+Consider a queue over the alphabet Γ.
+a) Its realm is Γ*
+b) Its repertory is:
+    enqueue c: α → αc
+    dequeue c: cα → α
+    empty: Λ → Λ
+c) Formally the repertory is:
+    For each c ∈ Γ, enqueue c = { (α, β) ∈ Γ* Χ Γ* | β = αc }
+    For each c ∈ Γ, dequeue c = { (α, β) ∈ Γ* Χ Γ* | α = cβ }
+    empty = { (Λ, Λ) }

@@ -1,0 +1,3 @@
+The 4 to 4 operation in a control is the relation { (4,4) }, whareas noop is the identity relation,
+i.e. { (i, i) | i ∈ Q }. The first can only be applied if the control is at state 4; the latter can
+always be applied.

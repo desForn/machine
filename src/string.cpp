@@ -31,6 +31,10 @@ namespace Machine
             throw std::runtime_error{"In Machine::string_t::string_character_proxy_t::"
                 "operator=(character_t):\nOut of bounds.\n"};
 
+        if (c > ptr_->alphabet().max_character())
+            throw std::runtime_error{"In Machine::string_t::string_character_proxy_t::"
+                "operator=(character_t):\nInvalid character\n"};
+
         ptr_->string_[pos_] = c;
 
         return *this;

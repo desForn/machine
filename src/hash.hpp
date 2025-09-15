@@ -1,19 +1,18 @@
 #pragma once
 
-#include <ranges>
+#include <cstddef>
 #include <type_traits>
+#include <ranges>
+#include <limits>
 
 template<std::ranges::range range_type>
 requires(std::integral<std::remove_cvref_t<decltype(*std::begin(std::declval<range_type>()))>>)
 class std::hash<range_type>
 {
 private:
-    template<std::integral type>
     static constexpr std::size_t compute_n()
     {
-        using unsigned_type = std::make_unsigned_t<type>;
-        std::size_t ret = std::numeric_limits<unsigned_type>::max() /
-            std::numbers::phi_v<long double>;
+        std::size_t ret = std::numeric_limits<std::size_t>::max() / std::numbers::phi_v<long double>;
         if (ret % 2 == 0)
             ++ret;
         return ret;
@@ -22,7 +21,7 @@ private:
 public:
     std::size_t operator()(const range_type &range) const
     {
-        static constexpr std::size_t n = compute_n<std::size_t>();
+        static constexpr std::size_t n = compute_n();
 
         std::size_t ret = std::size(range);
 

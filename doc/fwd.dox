@@ -1,0 +1,20 @@
+/// \file fwd.hpp
+/// Basic aliases and functions declarations
+
+/// \typedef Machine::index_t
+/// @brief Default type for unsigned numbers
+///
+/// It is an alias of `std::size_t`. Do not modify it.
+
+/// \typedef Machine::integer_t
+/// @brief Default type for signed numbers
+///
+/// It is the correspondent signed type of Machine::index_t. Do not modify it.
+
+/// \typedef Machine::character_t
+/// @brief Type to represent the characters of strings
+///
+/// All alphabets are represented as finite sets of natural numbers of the form `{0, ..., n}`.\n
+/// character_t is the type used to represent such numbers.
+/// Can be modified to other types if required. Must be unsigned.
+/// \sa Machine::alphabet_t Machine::string_t Machine::encoder_t

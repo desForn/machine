@@ -37,6 +37,7 @@ namespace Machine
     };
 
     class encoder_t;
+
     class string_t
     {
         template<index_t stride, bool is_const>

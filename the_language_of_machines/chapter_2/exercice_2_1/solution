@@ -1,0 +1,2 @@
+A control with states q_1 and q_2 has realm {q_1, q_2} and repertory
+    {q_1 to q_1, q_1 to q_2, q_2 to q_1, q_2 to q_2}

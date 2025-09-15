@@ -1,0 +1,168 @@
+/// \file string.hpp
+/// \file string.cpp
+///
+/// \class Machine::Apparatus::string_iterator_template_t
+/// \tparam stride 1 for forward iterators and -1 for reverse iterators
+/// \tparam is_const true for const iterators false otherwise
+/// \brief Internal class
+/// Internal class for the implementation of string_t mutable iterators. Do not use directly
+/// \sa string_iterator_t string_reverse_iterator_t
+///
+/// \typedef Machine::string_iterator_t
+/// \brief Forward iterator of string_t
+/// \brief Random access forward iterator for mutable string_t elements
+/// \sa Machine::Apparatus::string_iterator_template_t
+///
+/// \typedef Machine::string_const_iterator_t
+/// \brief Forward const iterator of string_t
+/// \brief Random access forward iterator for const string_t elements
+/// \sa Machine::Apparatus::string_iterator_template_t
+///
+/// \typedef Machine::string_reverse_iterator_t
+/// \brief Reverse iterator of string_t
+/// \brief Random access reverse iterator for mutable string_t elements
+/// \sa Machine::Apparatus::string_iterator_template_t
+///
+/// \typedef Machine::string_const_reverse_iterator_t
+/// \brief Reverse const iterator of string_t
+/// \brief Random access reverse iterator for const string_t elements
+/// \sa Machine::Apparatus::string_iterator_template_t
+///
+/// \class Machine::alphabet_t
+/// \brief Represents an alphabet set
+/// 
+/// Alphabets are represented by a set of natural numbers of the form \f$\{0,...,n\}\f$.
+/// This class stores
+/// the value of `n` as a \ref character_t.
+/// \sa character_t string_t encoder_t
+///
+/// \fn Machine::alphabet_t::alphabet_t() noexcept
+/// \brief Initialises n = 0
+///
+/// \fn Machine::alphabet_t::alphabet_t(character_t max_character) noexcept
+/// \param max_character
+/// \brief Initialises n = \p max_character
+///
+/// \fn character_t Machine::alphabet_t::max_character() const noexcept
+/// \brief Returns \f$n\f$
+///
+/// \fn bool Machine::alphabet_t::operator==(const alphabet_t &) const noexcept
+/// \brief Compares the value of `n` of two \ref alphabet_t objects
+///
+/// \fn bool Machine::alphabet_t::operator!=(const alphabet_t &) const noexcept
+/// \sa alphabet_t::operator==
+///
+/// \fn void Machine::alphabet_t::swap(alphabet_t &arg) noexcept
+/// \brief swaps
+///
+/// \class Machine::string_t
+/// \brief Implements string functionalities
+///
+/// \class Machine::string_t::string_character_proxy_t
+/// \brief Internal class
+/// Internal class for the implementation of string_t iterators. Do not use it directly.
+/// \sa string_t string_iterator_t string_const_iterator_t string_reverse_iterator_t
+/// string_const_reverse_iterator_t
+///
+/// \var Machine::string_t::string_character_proxy_t::ptr_
+/// \brief Pointer to string_t
+///
+/// \var Machine::string_t::string_character_proxy_t::pos_
+/// \brief Position of pointed character
+///
+/// \fn Machine::string_t::string_character_proxy_t::string_character_proxy_t()
+/// \brief Default constructor
+/// Constructs and invalid iterator
+///
+/// \fn Machine::string_t::string_character_proxy_t::string_character_proxy_t(const 
+/// string_character_proxy_t &) noexcept
+/// \brief Default copy constructor
+///
+/// \fn Machine::string_t::string_character_proxy_t &Machine::string_t::string_character_proxy_t::\
+/// operator=(const string_character_proxy_t &) noexcept
+/// \brief Default copy assignment operator
+///
+/// \fn Machine::string_t::string_character_proxy_t::string_character_proxy_t(
+/// string_character_proxy_t &&) noexcept
+/// \brief Default move constructor
+///
+/// \fn Machine::string_t::string_character_proxy_t &Machine::string_t::string_character_proxy_t::\
+/// operator=(string_character_proxy_t &&) noexcept
+/// \brief Default move assignment operator
+///
+/// \fn Machine::string_t::string_character_proxy_t::string_character_proxy_t(string_t *ptr,
+/// index_t pos)
+/// \param ptr A pointer to the iterated string
+/// \param pos Position of the referred character in the string
+/// \brief Constructor
+///
+/// Constructs the proxy to the string pointed by \p ptr referring to position \p pos
+///
+/// \fn Machine::string_t::string_character_proxy_t::operator character_t() const
+/// \brief Dereferences the pointed character
+/// \throws std::runtime_error if out of bounds
+///
+/// \fn const Machine::string_t::string_character_proxy_t & \
+/// Machine::string_t::string_character_proxy_t::operator=(character_t c) const
+/// \param c New value of pointed character
+/// \brief Assigns a new value to the pointed character
+/// \throws std::runtime_error if out of bounds or \p is larger than the maximum allowed by the
+/// \ref alphabet_t object
+///
+/// \fn Machine::string_t::string_character_proxy_t &Machine::string_t::string_character_proxy_t::\
+/// increment(integer_t arg)
+/// \param arg Number of steps to increment
+/// \arg Increment the iterator by \p arg steps
+///
+/// It does not perform bounds checking. \p arg can be negative
+///
+/// \class Machine::string_t::string_character_const_proxy_t
+/// \brief Internal class
+/// Internal class for the implementation of const string_t iterators. Do not use it directly.
+/// \sa string_const_iterator_t string_reverse_iterator_t string_const_reverse_iterator_t
+///
+/// \var Machine::string_t::string_character_const_proxy_t::ptr_
+/// \brief Pointer to const string_t
+///
+/// \var Machine::string_t::string_character_const_proxy_t::pos_
+/// \brief Position of pointed character
+///
+/// \fn Machine::string_t::string_character_const_proxy_t::string_character_const_proxy_t()
+/// \brief Default constructor
+/// Constructs and invalid iterator
+///
+/// \fn Machine::string_t::string_character_const_proxy_t::string_character_const_proxy_t(const 
+/// string_character_const_proxy_t &) noexcept
+/// \brief Default copy constructor
+///
+/// \fn Machine::string_t::string_character_const_proxy_t &Machine::string_t::\
+/// string_character_const_proxy_t::operator=(const string_character_const_proxy_t &) noexcept
+/// \brief Default copy assignment operator
+///
+/// \fn Machine::string_t::string_character_const_proxy_t::string_character_const_proxy_t(
+/// string_character_const_proxy_t &&) noexcept
+/// \brief Default move constructor
+///
+/// \fn Machine::string_t::string_character_const_proxy_t &Machine::string_t::\
+/// string_character_const_proxy_t::operator=(string_character_const_proxy_t &&) noexcept
+/// \brief Default move assignment operator
+///
+/// \fn Machine::string_t::string_character_const_proxy_t::string_character_const_proxy_t\
+/// (const string_t *ptr,index_t pos)
+/// \param ptr A pointer to the iterated string
+/// \param pos Position of the referred character in the string
+/// \brief Constructor
+///
+/// Constructs the proxy to the string pointed by \p ptr referring to position \p pos
+///
+/// \fn Machine::string_t::string_character_const_proxy_t::operator character_t() const
+/// \brief Dereferences the pointed character
+/// \throws std::runtime_error if out of bounds
+///
+/// \fn Machine::string_t::string_character_const_proxy_t &Machine::string_t::\
+/// string_character_const_proxy_t::increment(integer_t arg)
+/// \param arg Number of steps to increment
+/// \arg Increment the iterator by \p arg steps
+///
+/// It does not perform bounds checking. \p arg can be negative
+///

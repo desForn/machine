@@ -1,6 +1,10 @@
 /*
 !.gitignore
 !src/
+!doc/
+doc/doc
+doc/html
+doc/latex
 #!test/
 !the_language_of_machines/
 !CMakeLists.txt

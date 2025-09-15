@@ -1,0 +1,5 @@
+/// \class Machine::unsigned_number_t
+/// @brief Arbitrary precision natural number
+/// 
+/// unsigned_number_t can represent any arbitrarily large natural number. It uses a digit
+/// representation using \ref index_t as each digit

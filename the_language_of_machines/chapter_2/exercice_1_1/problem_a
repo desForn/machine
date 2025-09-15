@@ -1,0 +1,17 @@
+Theorem:
+    The length of the b-ary representation of a number n is 1 if n = 0 and floor(log_b(n) + 1)
+    otherwise
+
+Proof:
+    Denote the length of n by l(n).
+    l is an increasing function.
+
+    Consider the minimum number m of the same length than n.
+    That is, a 1 followed by l(n) - 1 zeros.
+    
+        m = b^(l(m) - 1)
+
+        l(m) = log_b(m) + 1
+
+    As log_b is an increasing function and m ≤ n < b * m the result follows.
+

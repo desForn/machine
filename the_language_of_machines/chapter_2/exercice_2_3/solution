@@ -1,0 +1,14 @@
+Consider a dequeue over the alphabet Γ.
+a) Its realm is Γ*
+b) Its repertory is:
+    left-insert c: α → cα
+    right-insert c: α → αc
+    left-delete c: cα → α
+    right-delete c: αc → α
+    empty: Λ → Λ
+c) Formally the repertory is:
+    For each c ∈ Γ, left-insert c = { (α, β) ∈ Γ* Χ Γ* | β = cα }
+    For each c ∈ Γ, right-insert c = { (α, β) ∈ Γ* Χ Γ* | β = αc }
+    For each c ∈ Γ, left-delete c = { (α, β) ∈ Γ* Χ Γ* | α = cβ }
+    For each c ∈ Γ, right-delete c = { (α, β) ∈ Γ* Χ Γ* | α = βc }
+    empty = { (Λ, Λ) }

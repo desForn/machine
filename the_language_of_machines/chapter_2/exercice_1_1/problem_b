@@ -1,0 +1,16 @@
+Theorem:
+    The length of the b-adic representation of a number n is floor(log_b((b - 1)n + 1))
+
+Proof:
+    Denote the length of n by l(n).
+    l is an increasing function.
+
+    Consider the minimum number m of the same length than n.
+    That is, a sequence of l(n) 1s.
+    
+        m = ∑_{i = 0}^{l(n) - 1}b^i = (b^(l(m)) - 1) / (b - 1)
+
+        l(m) = log_b((b - 1)m + 1)
+
+    As log_b is an increasing function and m ≤ n < b * m the result follows.
+
