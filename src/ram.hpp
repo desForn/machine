@@ -178,6 +178,7 @@ namespace Machine
     public:
         bool applicable(const device_t &) const override;
         bool intersecting_domain(const operation_t &) const override;
+        using ram_operation_t::intersecting_domain;
     };
 
     class ram_operation_test_t : public ram_operation_t
@@ -321,6 +322,7 @@ namespace Machine
     public:
         bool applicable(const device_t &) const override;
         bool intersecting_domain(const operation_t &) const override;
+        using ram_operation_t::intersecting_domain;
 
         index_t reg_source_0() const;
         index_t reg_source_1() const;
@@ -339,6 +341,7 @@ namespace Machine
     public:
         bool applicable(const device_t &) const override;
         bool intersecting_domain(const operation_t &) const override;
+        using ram_operation_t::intersecting_domain;
 
         index_t reg_source_0() const;
         index_t reg_source_1() const;
@@ -356,6 +359,7 @@ namespace Machine
     public:
         bool applicable(const device_t &) const override;
         bool intersecting_domain(const operation_t &) const override;
+        using ram_operation_t::intersecting_domain;
 
         index_t reg_source() const;
     };
@@ -372,6 +376,7 @@ namespace Machine
     public:
         bool applicable(const device_t &) const override;
         bool intersecting_domain(const operation_t &) const override;
+        using ram_operation_t::intersecting_domain;
 
         index_t reg_source() const;
     };

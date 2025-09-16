@@ -1,0 +1,309 @@
+/// \file encoder.hpp
+/// \file encoder.cpp
+///
+/// \typedef Machine::encoder_numeric_t
+/// \brief Signed b_ary encoding
+///
+/// \class Machine::encoder_t
+/// \brief Encoder class representing mappings between `char` and \ref character_t
+///
+/// All alphabets are represented by \ref alphabet_t objects as sets of natural numbers of the form
+/// \f$\{0, \dots, n\}\f$ for
+/// some \f$n\f$. If other alphabets want to be used, e.g. containing letters, an encoder is used.\n
+/// An encoder represents a function from some set of `char` values to an \ref alphabet_t object.\n
+/// It is an abstract class that is used as base class for each particular encoding function.
+/// Concrete realisations need to override the virtual functions
+/// \ref "encoder_t::operator()(char) const"
+/// and \ref "encoder_t::operator()(character_t) const".\n
+/// Each encoder type realisation is parsed when constructing a device according some rules. See the
+/// corresponding type documentation for the parsing rules.
+///
+/// \sa alphabet_t character_t string_t encoder_ascii_t encoder_list_t encoder_alphabetic_t
+/// encoder_b_ary_t encoder_b_adic_t encoder_signed_b_ary_t encoder_signed_b_adic_t
+/// encoder_separator_t encoder_numeric_t
+///
+/// \var encoder_t::alphabet_
+/// \brief The alphabet where \ref character_t objects pertain
+///
+/// \fn encoder_t::encoder_t(const alphabet_t &alphabet) noexcept
+/// \param alphabet
+/// \brief Initialise the alphabet of the encoder
+///
+/// \fn encoder_t::clone() const
+/// \brief Clones the encoder using a `new` expression with the derived type
+///
+/// \fn encoder_t::alphabet() const
+/// \brief Access to \ref encoder_t.alphabet_
+///
+/// \fn virtual character_t encoder_t::operator()(char c) const = 0
+/// \param c
+/// \brief Encoding function
+/// \throws std::runtime_error if \p c is not a valid argument.
+///
+/// This function represents the mapping between `char` and \ref character_t.
+/// Must be the inverse function of \ref "encoder_t::operator()(character_t) const".
+///
+/// \fn virtual character_t encoder_t::operator()(character_t c) const = 0
+/// \param c
+/// \brief Decoding function
+/// \throws std::runtime_error if \p c is not a valid argument.
+///
+/// This function represents the inverse mapping between `char` and \ref character_t.
+/// Must be the inverse function of \ref "encoder_t::operator()(char) const".
+///
+/// \fn encoder_t::operator()(const std::string &arg) const
+/// \param arg
+/// \brief Encodes a string
+/// \throws std::runtime_error if \p arg contains an invalid `char` value for the encoder function.
+///
+/// Returns a \ref string_t of the same size than \p arg with each `char` replaced by a
+/// \ref character_t according to \ref "encoder_t::operator()(char) const". It preserves the order.
+///
+/// \fn encoder_t::operator()(const string_t &arg) const
+/// \param arg
+/// \brief Encodes a string
+/// \throws std::runtime_error if \p arg contains an invalid \ref character_t value for the 
+/// decoder function.
+///
+/// Returns a `std::string` of the same size than \p arg with each \ref character_t replaced by a
+/// `char` according to \ref "encoder_t::operator()(character_t) const". It preserves the order.
+///
+/// \class Machine::encoder_ascii_t
+/// \brief Encoder for the ASCII character set
+///
+/// This encoder represents the identity function between the 256 possible values of `char`.\n
+/// It is parsed as `ascii`.
+///
+/// \fn encoder_ascii_t::encoder_ascii_t() noexcept
+/// \brief Default and only constructor
+///
+/// \fn encoder_ascii_t::clone() const override
+/// \sa encoder_t::clone()
+///
+/// \fn Machine::encoder_ascii_t::operator()(char) const override
+/// \sa encoder_t::operator()(char)
+///
+/// \fn Machine::encoder_ascii_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t)
+///
+/// \class Machine::encoder_list_t
+/// \brief Encoder for an arbitrary character set
+///
+/// This encoder represents a mapping between an arbitrary set of `char` values and
+/// \ref "character_t".\n
+/// It is parsed as `list c0 c1 ...`, where c0 c1 ... is a list of single characters. Each ci `char`
+/// is mapped to i as a \ref character_t value.
+///
+/// \var encoder_list_t::map_
+///
+/// `std::vector` satisfying `map[i] == (*this)(static_cast<character_t>(i))`.
+///
+/// \var encoder_list_t::inverse_map_
+///
+/// `std::unordered_map` satisfying `inverse_map[map[i]] == i`.
+///
+/// \fn encoder_list_t::encoder_list_t(std::vector<char> map)
+/// \param map Vector containing the c0 c1 ... characters in that order
+/// \brief Constructor
+/// \throws std::runtime_error if \p map is empty or if it contains more symbols than
+/// \ref character_t can represent.
+///
+/// \p map is moved to \ref encoder_list_t.map_.
+///
+/// \fn encoder_list_t::clone() const override
+/// \sa encoder_t::clone()
+///
+/// \fn Machine::encoder_list_t::operator()(char) const override
+/// \sa encoder_t::operator()(char)
+///
+/// \fn Machine::encoder_list_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t)
+///
+/// \fn Machine::encoder_list_t::list() const
+/// \brief Acess to \ref map_
+///
+/// \fn Machine::encoder_list_t::inverse_map() const
+/// \brief Access to \ref inverse_map_
+///
+/// \class Machine::encoder_alphabetic_t
+/// \brief Encoder for the set \f$\{a, b, \dots \}\f$
+///
+/// This encoder represents the mapping of the first `n`
+/// ascii latin letters with their zero based position in
+/// the alphabet.\n
+/// It is parsed as `alphabetic n`. Where `n` is an integer between 1 and 25 (both included).
+///
+/// \fn encoder_alphabetic_t::encoder_alphabetic_t(character_t n)
+/// \param n
+/// \brief Constructor
+/// \throws std::runtime_error if n == 0 or n > 25.
+///
+/// Constructs the encoder with the first `n` letters of the alphabet as domain.
+///
+/// \fn encoder_alphabetic_t::clone() const override
+/// \sa encoder_t::clone()
+///
+/// \fn Machine::encoder_alphabetic_t::operator()(char) const override
+/// \sa encoder_t::operator()(char)
+///
+/// \fn Machine::encoder_alphabetic_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t)
+///
+/// \class Machine::encoder_b_ary_t
+/// \brief Encoder for string representation of natural numbers
+///
+/// This encoder is used to represent base `b` numbers in b-ary notation. The digits are represented
+/// by `char` values in '0' to '9' and 'a' to 'z'.\n
+/// It is parsed as `b_ary b`. Where `b` is the base used and is between 2 and 36 (both included).
+/// \n The mapping satisfies (*this)(static_cast<char>(v)) == static_cast<character_t>(i - 1),
+/// where v == '0' + i if i < 10 and v == 'a' + i - 10 otherwise.
+/// 
+/// \sa unsigned_number_t signed_number_t
+///
+/// \fn encoder_b_ary_t::encoder_b_ary_t(character_t b)
+/// \param b The base
+/// \brief Constructor
+/// \throws std::runtime_error if b < 2 or b > 36.
+///
+/// \fn encoder_b_ary_t::clone() const override
+/// \sa encoder_t::clone()
+///
+/// \fn Machine::encoder_b_ary_t::operator()(char) const override
+/// \sa encoder_t::operator()(char)
+///
+/// \fn Machine::encoder_b_ary_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t)
+///
+/// \class Machine::encoder_b_adic_t
+/// \brief Encoder for string representation of natural numbers
+///
+/// This encoder is used to represent base `b` numbers in b-adic notation.
+/// The digits are represented
+/// by `char` values in '0' to '9' and 'a' to 'z'.\n
+/// It is parsed as `b_adic b`. Where `b` is the base used and is between 1 and 35 (both included).
+/// \n The mapping satisfies (*this)(static_cast<char>(v)) == static_cast<character_t>(i - 1),
+/// where v == '1' + i if i < 9 and v == 'a' + i - 9 otherwise.
+/// 
+/// \sa unsigned_number_t signed_number_t
+///
+/// \fn encoder_b_adic_t::encoder_b_adic_t(character_t b)
+/// \param b The base
+/// \brief Constructor
+/// \throws std::runtime_error if b < 1 or b > 35.
+///
+/// \fn encoder_b_adic_t::clone() const override
+/// \sa encoder_t::clone()
+///
+/// \fn Machine::encoder_b_adic_t::operator()(char) const override
+/// \sa encoder_t::operator()(char)
+///
+/// \fn Machine::encoder_b_adic_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t)
+///
+/// \class Machine::encoder_signed_b_ary_t
+/// \brief Encoder for string representation of integers
+///
+/// This encoder is used to represent base `b` numbers in b-ary notation. The digits are represented
+/// by `char` values in '0' to '9' and 'a' to 'z'.\n
+/// It is parsed as `signed_b_ary b` or `numeric b`.
+/// Where `b` is the base used and is between 2 and 36 (both included).
+/// \n The mapping satisfies (*this)(static_cast<char>(v)) == static_cast<character_t>(i - 1),
+/// where v == '0' + i if i < 10 and v == 'a' + i - 10 otherwise.\n
+/// The sign characters '+' and '-' have the largest two values.
+/// 
+/// \sa unsigned_number_t signed_number_t
+///
+/// \fn encoder_signed_b_ary_t::encoder_signed_b_ary_t(character_t b)
+/// \param b The base
+/// \brief Constructor
+/// \throws std::runtime_error if b < 2 or b > 36.
+///
+/// \fn encoder_signed_b_ary_t::clone() const override
+/// \sa encoder_t::clone()
+///
+/// \fn Machine::encoder_signed_b_ary_t::operator()(char) const override
+/// \sa encoder_t::operator()(char)
+///
+/// \fn Machine::encoder_signed_b_ary_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t)
+///
+/// \class Machine::encoder_signed_b_adic_t
+/// \brief Encoder for string representation of natural numbers
+///
+/// This encoder is used to represent base `b` numbers in b-adic notation.
+/// The digits are represented
+/// by `char` values in '0' to '9' and 'a' to 'z'.\n
+/// It is parsed as `signed_b_adic b`.
+/// Where `b` is the base used and is between 1 and 35 (both included).
+/// \n The mapping satisfies (*this)(static_cast<char>(v)) == static_cast<character_t>(i - 1),
+/// where v == '1' + i if i < 9 and v == 'a' + i - 9 otherwise.\n
+/// The sign characters '+' and '-' have the largest two values.
+/// 
+/// \sa unsigned_number_t signed_number_t
+///
+/// \fn encoder_signed_b_adic_t::encoder_signed_b_adic_t(character_t b)
+/// \param b The base
+/// \brief Constructor
+/// \throws std::runtime_error if b < 1 or b > 35.
+///
+/// \fn encoder_signed_b_adic_t::clone() const override
+/// \sa encoder_t::clone()
+///
+/// \fn Machine::encoder_signed_b_adic_t::operator()(char) const override
+/// \sa encoder_t::operator()(char)
+///
+/// \fn Machine::encoder_signed_b_adic_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t)
+///
+/// \class Machine::encoder_separator_t
+/// \brief Adds a separator character to an existing \ref encoder_t
+///
+/// This encoder extends an existing encoding function with an special \ref separator_ character.
+/// The separator \ref character_t code has the largest value.\n
+/// It is parsed as `separator [encoder]`, where `[encoder]` is the syntax of any encoder type
+/// (including another \ref encoder_separator_t).
+///
+/// \var Machine::encoder_separator_t::extended_encoder_
+///
+/// `std::unique_ptr` to the extended separator.
+///
+/// \var Machine::encoder_separator_t::separator_
+///
+/// The `char` separator.
+///
+/// \fn Machine::encoder_separator_t::encoder_separator_t(const encoder_separator_t &)
+/// \brief Default copy constructor
+///
+/// \fn Machine::encoder_separator_t &Machine::encoder_separator_t::operator=\
+/// (const encoder_separator_t &)
+/// \brief Default copy assignment operator
+///
+/// \fn Machine::encoder_separator_t::encoder_separator_t(encoder_separator_t &&)
+/// \brief Default move constructor
+///
+/// \fn Machine::encoder_separator_t &Machine::encoder_separator_t::operator=\
+/// (encoder_separator_t &&)
+/// \brief Default move assignment operator
+///
+/// \fn Machine::encoder_separator_t::encoder_separator_t(std::unique_ptr<encoder_t> encoder, \
+/// char separator)
+/// \param encoder A `std::unique_ptr` to the encoder mapping to extend
+/// \param separator The separator character
+/// \throws std::runtime_error if \p separator is already in the domain of \p encoder or if the
+/// resulting alphabet is to large to be represented by \ref character_t.
+/// \brief Constructor
+///
+/// \fn Machine::encoder_separator_t::clone() const override
+/// \sa encoder_t::clone
+///
+/// \fn Machine::encoder_separator_t::operator()(char) const override
+/// \sa encoder_t::operator()(char) const
+///
+/// \fn Machine::encoder_separator_t::operator()(character_t) const override
+/// \sa encoder_t::operator()(character_t) const
+///
+/// \fn Machine::encoder_separator_t::extended_encoder(this auto &&self)
+/// \brief Access to \ref extended_encoder_
+///
+/// \fn Machine::encoder_separator_t::separator() const
+/// \brief Access to \ref separator_

@@ -1,7 +1,6 @@
 #pragma once
 #include "fwd.hpp"
 
-#include <string>
 #include <vector>
 #include <stdexcept>
 #include <compare>
@@ -59,7 +58,7 @@ namespace Machine
             index_t pos_{0};
 
         private:
-            string_character_proxy_t() = default;
+            string_character_proxy_t() noexcept = default;
         public:
             ~string_character_proxy_t() = default;
 
@@ -70,7 +69,7 @@ namespace Machine
             string_character_proxy_t(string_character_proxy_t &&) noexcept = default;
             string_character_proxy_t &operator=(string_character_proxy_t &&) noexcept = default;
 
-            string_character_proxy_t(string_t *, index_t);
+            string_character_proxy_t(string_t *, index_t) noexcept;
 
         public:
             operator character_t() const;
@@ -90,7 +89,7 @@ namespace Machine
             index_t pos_{0};
 
         private:
-            string_character_const_proxy_t() = default;
+            string_character_const_proxy_t() noexcept = default;
         public:
             ~string_character_const_proxy_t() = default;
 
@@ -103,14 +102,12 @@ namespace Machine
             string_character_const_proxy_t &operator=(
                     string_character_const_proxy_t &&) noexcept = default;
 
-            string_character_const_proxy_t(const string_t *, index_t);
+            string_character_const_proxy_t(const string_t *, index_t) noexcept;
 
         public:
             operator character_t() const;
             string_character_const_proxy_t &increment(integer_t);
         };
-
-        class string_pos_const_proxy_t;
 
         class string_pos_proxy_t
         {
@@ -120,7 +117,7 @@ namespace Machine
             string_t *ptr_{nullptr};
 
         private:
-            string_pos_proxy_t() = default;
+            string_pos_proxy_t() noexcept = default;
         public:
             ~string_pos_proxy_t() = default;
 
@@ -136,31 +133,6 @@ namespace Machine
         public:
             operator index_t() const;
             string_pos_proxy_t &operator=(index_t);
-        };
-
-        class string_pos_const_proxy_t
-        {
-            friend class string_t;
-
-        private:
-            const string_t *ptr_{nullptr};
-
-        private:
-            string_pos_const_proxy_t() = default;
-        public:
-            ~string_pos_const_proxy_t() = default;
-
-            string_pos_const_proxy_t(const string_pos_const_proxy_t &) noexcept = default;
-            string_pos_const_proxy_t &operator=(
-                    const string_pos_const_proxy_t &) noexcept = default;
-
-            string_pos_const_proxy_t(string_pos_const_proxy_t &&) noexcept = default;
-            string_pos_const_proxy_t &operator=(string_pos_const_proxy_t &&) noexcept = default;
-
-            string_pos_const_proxy_t(const string_t *) noexcept;
-
-        public:
-            operator index_t() const;
         };
 
     public:
@@ -181,14 +153,14 @@ namespace Machine
     public:
         bool empty() const noexcept;
         std::size_t size() const noexcept;
-        void resize(index_t);
+        void resize(index_t, character_t = 0);
         character_t see() const;
         bool see(character_t) const noexcept;
         character_t pop();
         void push(character_t);
 
         string_pos_proxy_t pos() noexcept;
-        string_pos_const_proxy_t pos() const noexcept;
+        index_t pos() const noexcept;
         bool athome() const noexcept;
         bool top() const noexcept;
         void move_l();
@@ -212,7 +184,7 @@ namespace Machine
 
     public:
         string_character_proxy_t operator[](index_t);
-        string_character_const_proxy_t operator[](index_t) const;
+        character_t operator[](index_t) const;
 
         string_iterator_t begin() noexcept;
         string_iterator_t end() noexcept;
@@ -241,6 +213,8 @@ namespace Machine
         template<integer_t stride, bool is_const>
         class string_iterator_template_t
         {
+            static_assert(stride != 0);
+
             template<integer_t, bool>
             friend class string_iterator_template_t;
 
@@ -254,7 +228,7 @@ namespace Machine
             proxy_t proxy_{};
 
         public:
-            string_iterator_template_t() = default;
+            string_iterator_template_t() noexcept = default;
             ~string_iterator_template_t() = default;
 
             string_iterator_template_t(const string_iterator_template_t &) noexcept = default;
@@ -270,16 +244,16 @@ namespace Machine
             string_iterator_template_t(container_t *, index_t);
 
         public:
-            proxy_t &operator*();
-            const proxy_t &operator*() const;
-            string_iterator_template_t operator+(integer_t);
-            string_iterator_template_t operator-(integer_t);
-            string_iterator_template_t &operator+=(integer_t);
-            string_iterator_template_t &operator-=(integer_t);
-            string_iterator_template_t &operator++();
-            string_iterator_template_t &operator--();
-            string_iterator_template_t operator++(int);
-            string_iterator_template_t operator--(int);
+            proxy_t &operator*() noexcept;
+            const proxy_t &operator*() const noexcept;
+            string_iterator_template_t operator+(integer_t) noexcept;
+            string_iterator_template_t operator-(integer_t) noexcept;
+            string_iterator_template_t &operator+=(integer_t) noexcept;
+            string_iterator_template_t &operator-=(integer_t) noexcept;
+            string_iterator_template_t &operator++() noexcept;
+            string_iterator_template_t &operator--() noexcept;
+            string_iterator_template_t operator++(int) noexcept;
+            string_iterator_template_t operator--(int) noexcept;
 
             std::strong_ordering operator<=>(const string_iterator_template_t &) const;
             bool operator==(const string_iterator_template_t &) const;
@@ -298,15 +272,16 @@ namespace Machine
                 container_t *ptr, index_t pos) : proxy_{ptr, pos} {}
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator*() -> proxy_t &
+        auto string_iterator_template_t<stride, is_const>::operator*() noexcept -> proxy_t &
             { return proxy_; }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator*() const -> const proxy_t &
+        auto string_iterator_template_t<stride, is_const>::operator*() const noexcept
+            -> const proxy_t &
             { return proxy_; }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator+(integer_t arg) ->
+        auto string_iterator_template_t<stride, is_const>::operator+(integer_t arg) noexcept ->
             string_iterator_template_t
         {
             string_iterator_template_t ret{*this};
@@ -315,7 +290,7 @@ namespace Machine
         }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator-(integer_t arg) ->
+        auto string_iterator_template_t<stride, is_const>::operator-(integer_t arg) noexcept ->
             string_iterator_template_t
         {
             string_iterator_template_t ret{*this};
@@ -324,7 +299,7 @@ namespace Machine
         }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator+=(integer_t arg) ->
+        auto string_iterator_template_t<stride, is_const>::operator+=(integer_t arg) noexcept ->
             string_iterator_template_t &
         {
             proxy_.pos_ += arg * stride;
@@ -332,7 +307,7 @@ namespace Machine
         }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator-=(integer_t arg) ->
+        auto string_iterator_template_t<stride, is_const>::operator-=(integer_t arg) noexcept ->
             string_iterator_template_t &
         {
             proxy_.pos_ -= arg * stride;
@@ -340,17 +315,17 @@ namespace Machine
         }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator++() ->
+        auto string_iterator_template_t<stride, is_const>::operator++() noexcept ->
             string_iterator_template_t &
             { return *this += 1; }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator--() ->
+        auto string_iterator_template_t<stride, is_const>::operator--() noexcept ->
             string_iterator_template_t &
             { return *this -= 1; }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator++(int) ->
+        auto string_iterator_template_t<stride, is_const>::operator++(int) noexcept ->
             string_iterator_template_t
         {
             string_iterator_template_t ret{*this};
@@ -359,7 +334,7 @@ namespace Machine
         }
 
         template<integer_t stride, bool is_const>
-        auto string_iterator_template_t<stride, is_const>::operator--(int) ->
+        auto string_iterator_template_t<stride, is_const>::operator--(int) noexcept ->
             string_iterator_template_t
         {
             string_iterator_template_t ret{*this};
@@ -375,7 +350,11 @@ namespace Machine
                 throw std::runtime_error{"In Machine::Apparatus::string_iterator_template_t<stride"
                     ", is_cost>::operator<=>(const string_iterator_template_t &) const:\n"
                     "Comparison between iterators pointing to different strings.\n"};
-            return proxy_.pos_ <=> arg.proxy_.pos_;
+
+            if constexpr (stride > 0)
+                return proxy_.pos_ <=> arg.proxy_.pos_;
+            else
+                return arg.proxy_.pos_ <=> proxy_.pos_;
         }
 
         template<integer_t stride, bool is_const>

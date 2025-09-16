@@ -11,7 +11,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "-flto=auto")
+    set(CMAKE_CXX_FLAGS "-flto=auto -Wall -Wextra -pedantic")
+else()
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic")
 endif()
 
 include(FetchContent)

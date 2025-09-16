@@ -7,6 +7,8 @@
 
 namespace Machine
 {
+    static void nothing() { return; }
+
     static ftxui::Component resizable_row(ftxui::Components &arg, std::span<int> dimensions)
     {
         using namespace ftxui;
@@ -111,7 +113,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Right,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | bgcolor(ftxui::Color::GrayLight)},
         slider_y_{ftxui::Slider<float>(ftxui::SliderOption<float>{
             .value = &scroll_y_,
@@ -120,7 +123,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Down,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | bgcolor(ftxui::Color::GrayLight)}
     {
         using namespace ftxui;
@@ -473,7 +477,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Right,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | ftxui::bgcolor(ftxui::Color::GrayLight)},
         slider_y_{ftxui::Slider<float>(ftxui::SliderOption<float>{
             .value = &scroll_y_,
@@ -482,7 +487,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Down,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | ftxui::bgcolor(ftxui::Color::GrayLight)}
     {
         using namespace ftxui;
@@ -648,7 +654,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Right,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | ftxui::bgcolor(ftxui::Color::GrayLight)},
         slider_y_{ftxui::Slider<float>(ftxui::SliderOption<float>{
             .value = &scroll_y_,
@@ -657,7 +664,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Down,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | ftxui::bgcolor(ftxui::Color::GrayLight)}
     {
         using namespace ftxui;
@@ -1258,7 +1266,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Right,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | bgcolor(ftxui::Color::GrayLight)},
         slider_y_{ftxui::Slider<float>(ftxui::SliderOption<float>{
             .value = &scroll_y_,
@@ -1267,7 +1276,8 @@ namespace Machine
             .increment = 1e-2f,
             .direction = ftxui::Direction::Down,
             .color_active = ftxui::Color::Black,
-            .color_inactive = ftxui::Color::Black
+            .color_inactive = ftxui::Color::Black,
+            .on_change = nothing
         }) | bgcolor(ftxui::Color::GrayLight)}
     {
         using namespace ftxui;
@@ -2036,6 +2046,9 @@ namespace Machine
         machine_t &m = **it;
         machine_t::machine_state_t s = m.state();
         
+        if (s != machine_t::machine_state_t::running)
+            return;
+
         index_t n = m.n_applicable_instructions();
 
         if (n != 0)
@@ -2068,10 +2081,12 @@ namespace Machine
             ++instruction_counter();
         }
 
-        if (m.state() == machine_t::machine_state_t::halted)
+        s = m.state();
+
+        if (s == machine_t::machine_state_t::halted)
             halted.splice(std::cend(halted), list, it);
 
-        else if (m.state() == machine_t::machine_state_t::blocked)
+        else if (s == machine_t::machine_state_t::blocked)
             blocked.splice(std::cend(blocked), list, it);
 
         return;
@@ -2264,7 +2279,7 @@ namespace Machine
             else if (c != negative_1 and c != negative_2)
             {
                 if (c >= std::size(halted_machines_))
-                    out;
+                    out();
                 else
                     focus_ = std::begin(std::next(std::begin(halted_machines_), c)->second);
             }

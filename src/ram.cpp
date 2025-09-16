@@ -16,7 +16,7 @@ namespace Machine
         ram_t &ram = dynamic_cast<ram_t &>(device);
         const encoder_separator_t &encoder =
             dynamic_cast<const encoder_separator_t &>(ram.encoder());
-        const encoder_t &parent_encoder = encoder.parent_encoder();
+        const encoder_t &extended_encoder = encoder.extended_encoder();
         char separator = encoder.separator();
 
         ram.clear();
@@ -32,7 +32,7 @@ namespace Machine
             while (j != std::cend(string) and *j != separator)
                 ++j;
 
-            ram[c] = unsigned_number_t{std::string_view{i, j}, parent_encoder};
+            ram[c] = unsigned_number_t{std::string_view{i, j}, extended_encoder};
 
             i = j;
         }
@@ -57,7 +57,7 @@ namespace Machine
         const ram_t &ram = dynamic_cast<const ram_t &>(device);
         const encoder_separator_t &encoder =
             dynamic_cast<const encoder_separator_t &>(ram.encoder());
-        const encoder_t &parent_encoder = encoder.parent_encoder();
+        const encoder_t &extended_encoder = encoder.extended_encoder();
         char separator = encoder.separator();
 
         const index_t n = ram.n_registers();
@@ -66,7 +66,7 @@ namespace Machine
 
         for (index_t i = 0; i != n; ++i)
         {
-            ret += static_cast<const unsigned_number_t &>(ram[i]).print(parent_encoder);
+            ret += static_cast<const unsigned_number_t &>(ram[i]).print(extended_encoder);
 
             if (i != n - 1)
                 ret += separator;
@@ -129,7 +129,7 @@ namespace Machine
 
         const encoder_separator_t &encoder =
             dynamic_cast<const encoder_separator_t &>(this->encoder());
-        const encoder_t &parent_encoder = encoder.parent_encoder();
+        const encoder_t &extended_encoder = encoder.extended_encoder();
         const char separator = encoder.separator();
 
         const index_t n = n_registers();
@@ -141,16 +141,16 @@ namespace Machine
             ret += 'r';
             ret += std::to_string(i);
             ret += separator;
-            ret += registers_[i].print(parent_encoder);
+            ret += registers_[i].print(extended_encoder);
             ret += separator;
         }
 
         for (const auto &i : memory_)
         {
             ret += 'm';
-            ret += i.first.print(parent_encoder);
+            ret += i.first.print(extended_encoder);
             ret += separator;
-            ret += i.second.print(parent_encoder);
+            ret += i.second.print(extended_encoder);
             ret += separator;
         }
 

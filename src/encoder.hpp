@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+
 #include <memory>
 #include <variant>
 #include <unordered_map>
@@ -32,8 +32,8 @@ namespace Machine
     public:
         const alphabet_t &alphabet() const noexcept;
 
-        virtual character_t operator()(char) const = 0;
-        virtual char operator()(character_t) const = 0;
+        virtual character_t operator()(char c) const = 0;
+        virtual char operator()(character_t c) const = 0;
         string_t operator()(const std::string &) const;
         std::string operator()(const string_t &) const;
     };
@@ -139,7 +139,7 @@ namespace Machine
     class encoder_separator_t final : public encoder_t
     {
     private:
-        std::unique_ptr<encoder_t> encoder_;
+        std::unique_ptr<encoder_t> extended_encoder_;
         char separator_;
 
     public:
@@ -161,7 +161,7 @@ namespace Machine
         using encoder_t::operator();
         using encoder_t::alphabet;
 
-        decltype(auto) parent_encoder(this auto &&self) { return (*(self.encoder_)); }
+        decltype(auto) extended_encoder(this auto &&self) { return (*(self.extended_encoder_)); }
         char separator() const;
     };
 }

@@ -788,11 +788,11 @@ namespace Machine
             initial_column = column;
             std::string error_string;
 
-            std::unique_ptr<encoder_t> parent_encoder;
-            try { parent_encoder = read_encoder(stream, line, column); }
+            std::unique_ptr<encoder_t> extended_encoder;
+            try { extended_encoder = read_encoder(stream, line, column); }
             catch (std::runtime_error &e) { error_string = e.what(); }
 
-            if (not parent_encoder)
+            if (not extended_encoder)
                 throw std::runtime_error{error +
                     "Reading input at line " + std::to_string(initial_line) + ":" +
                     std::to_string(initial_column) + "\nExpected the parent encoder."
@@ -807,7 +807,7 @@ namespace Machine
                     std::to_string(initial_column) + "\nExpected a single character: " +
                     "the separator.\n"};
 
-            ret = std::make_unique<encoder_separator_t>(std::move(parent_encoder), token.front());
+            ret = std::make_unique<encoder_separator_t>(std::move(extended_encoder), token.front());
         }
 
         else
@@ -874,7 +874,7 @@ namespace Machine
             const encoder_separator_t &e = dynamic_cast<const encoder_separator_t &>(encoder);
 
             ret = "separator ";
-            ret += print_encoder(e.parent_encoder());
+            ret += print_encoder(e.extended_encoder());
             ret += ' ';
             ret += e.separator();
         }
@@ -3030,8 +3030,6 @@ namespace Machine
 
     std::vector<std::string> machine_t::print_applicable_instructions() const
     {
-        static constexpr index_t alignment_size = 16;
-
         std::vector<std::string> ret;
         
         std::vector<std::string> instructions;
@@ -3096,7 +3094,8 @@ namespace Machine
         index_t ret = 0;
         for (auto i : applicable_instructions_)
         {
-            if (std::distance(std::cbegin(program_->instruction_set()), i) == next_instruction_)
+            if (std::distance(std::cbegin(program_->instruction_set()), i) ==
+                    static_cast<integer_t>(next_instruction_))
                 return ret;
 
             ++ret;

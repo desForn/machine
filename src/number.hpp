@@ -1,5 +1,4 @@
 #pragma once
-#include "string.hpp"
 #include "encoder.hpp"
 #include "hash.hpp"
 

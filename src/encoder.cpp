@@ -139,12 +139,12 @@ namespace Machine
         return static_cast<char>('a' + arg);
     }
 
-    encoder_b_ary_t::encoder_b_ary_t(character_t n) :
-        encoder_t{static_cast<character_t>(n - 1)}
+    encoder_b_ary_t::encoder_b_ary_t(character_t b) :
+        encoder_t{static_cast<character_t>(b - 1)}
     {
-        if (n > 36)
+        if (b < 2 or b > 36)
             throw std::runtime_error{"In Machine::encoder_b_ary_t::encoder_b_ary_t(character_t)"
-                ":\nMaximum number of characters in the alphabet is 36.\n"};
+                ":\nBase must be between 2 and 36.\n"};
         return;
     }
 
@@ -191,12 +191,12 @@ namespace Machine
         return 'a' + c - 10;
     }
 
-    encoder_b_adic_t::encoder_b_adic_t(character_t n) :
-        encoder_t{static_cast<character_t>(n - 1)}
+    encoder_b_adic_t::encoder_b_adic_t(character_t b) :
+        encoder_t{static_cast<character_t>(b - 1)}
     {
-        if (n > 35)
+        if (b == 0 or b > 35)
             throw std::runtime_error{"In Machine::encoder_b_adic_t::encoder_b_adic_t(character_t)"
-                ":\nMaximum number of characters in the alphabet is 35.\n"};
+                ":\nBase must be between 1 and 35.\n"};
         return;
     }
 
@@ -243,13 +243,13 @@ namespace Machine
         return 'a' + c - 9;
     }
 
-    encoder_signed_b_ary_t::encoder_signed_b_ary_t(character_t n) :
-        encoder_t{static_cast<character_t>(n + 1)}
+    encoder_signed_b_ary_t::encoder_signed_b_ary_t(character_t b) :
+        encoder_t{static_cast<character_t>(b + 1)}
     {
-        if (n > 36)
+        if (b < 2 or b > 36)
             throw std::runtime_error{"In Machine::encoder_signed_b_ary_t::"
                 "encoder_signed_b_ary_t(character_t)"
-                ":\nMaximum number of characters in the alphabet is 36.\n"};
+                ":\nBase must be between 2 and 36.\n"};
         return;
     }
 
@@ -313,13 +313,13 @@ namespace Machine
         return 'a' + c - 10;
     }
 
-    encoder_signed_b_adic_t::encoder_signed_b_adic_t(character_t n) :
-        encoder_t{static_cast<character_t>(n + 1)}
+    encoder_signed_b_adic_t::encoder_signed_b_adic_t(character_t b) :
+        encoder_t{static_cast<character_t>(b + 1)}
     {
-        if (n > 35)
+        if (b == 0 or b > 35)
             throw std::runtime_error{"In Machine::encoder_signed_b_adic_t::"
                 "encoder_signed_b_adic_t(character_t):\n"
-                "Maximum number of characters in the alphabet is 35.\n"};
+                "Base must be between 1 and 35.\n"};
         return;
     }
 
@@ -386,31 +386,32 @@ namespace Machine
 
     encoder_separator_t::encoder_separator_t(const encoder_separator_t &arg) :
         encoder_t{arg.alphabet().max_character()},
-        encoder_{std::unique_ptr<encoder_t>{arg.encoder_->clone()}},
+        extended_encoder_{std::unique_ptr<encoder_t>{arg.extended_encoder_->clone()}},
         separator_{arg.separator_} {}
 
-    encoder_separator_t &encoder_separator_t::operator=(const encoder_separator_t &arg)
+    encoder_separator_t &encoder_separator_t::operator=(const encoder_separator_t &)
         { return *this = encoder_separator_t{*this}; }
 
     encoder_separator_t::encoder_separator_t(std::unique_ptr<encoder_t> encoder, char separator) :
         encoder_t{encoder ? static_cast<character_t>(encoder->alphabet().max_character() + 1) :
             static_cast<character_t>(0)},
-        encoder_{std::move(encoder)},
+        extended_encoder_{std::move(encoder)},
         separator_{separator}
     {
         std::string error_prefix = "In Machine::encoder_separator_t::encoder_separator_t(std::"
             "unique_ptr<encoder_t>, char):\n";
 
-        if (encoder_->alphabet().max_character() == std::numeric_limits<character_t>::max())
+        if (not extended_encoder_)
+            throw std::runtime_error{error_prefix + "Null parent encoder.\n"};
+
+        if (extended_encoder_->alphabet().max_character() ==
+                std::numeric_limits<character_t>::max())
             throw std::runtime_error{error_prefix + "The alphabet is too large for the "
                 "Machine::character_t type.\n"};
 
-        if (not encoder_)
-            throw std::runtime_error{error_prefix + "Null parent encoder.\n"};
-
         try
         {
-            static_cast<void>((*encoder_)(separator_));
+            static_cast<void>((*extended_encoder_)(separator_));
 
             throw std::runtime_error{error_prefix + "Invalid separator; already present in the"
                 "parent encoder.\n"};
@@ -429,7 +430,7 @@ namespace Machine
         if (c == separator_)
             return alphabet().max_character();
 
-        return (*encoder_)(c);
+        return (*extended_encoder_)(c);
     }
 
     char encoder_separator_t::operator()(character_t c) const
@@ -437,7 +438,7 @@ namespace Machine
         if (c == alphabet().max_character())
             return separator_;
 
-        return (*encoder_)(c);
+        return (*extended_encoder_)(c);
     }
 
     char encoder_separator_t::separator() const { return separator_; }

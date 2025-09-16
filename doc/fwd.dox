@@ -1,16 +1,31 @@
 /// \file fwd.hpp
 /// Basic aliases and functions declarations
-
+///
+/// \namespace Machine
+/// \brief Main namespace
+///
+/// Contains all constructs of the project.
+///
+/// \namespace Machine::Apparatus
+/// \brief Implementation namespace
+///
+/// Contains many implementation constructs that must not be used directly.
+///
+/// \namespace std
+/// \brief The standard library namespace
+///
+/// Some template specializations are user provided.
+///
 /// \typedef Machine::index_t
 /// @brief Default type for unsigned numbers
 ///
 /// It is an alias of `std::size_t`. Do not modify it.
-
+///
 /// \typedef Machine::integer_t
 /// @brief Default type for signed numbers
 ///
 /// It is the correspondent signed type of Machine::index_t. Do not modify it.
-
+///
 /// \typedef Machine::character_t
 /// @brief Type to represent the characters of strings
 ///
@@ -18,3 +33,10 @@
 /// character_t is the type used to represent such numbers.
 /// Can be modified to other types if required. Must be unsigned.
 /// \sa Machine::alphabet_t Machine::string_t Machine::encoder_t
+///
+/// \var constexpr index_t Machine::negative_1
+/// \brief Used for special values and errors
+///
+/// \var constexpr index_t Machine::negative_2
+/// \brief Used for special values and errors
+///

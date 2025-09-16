@@ -12,8 +12,8 @@ namespace Machine
     void alphabet_t::swap(alphabet_t &arg) noexcept
         { std::swap(max_character_, arg.max_character_); }
 
-    string_t::string_character_proxy_t::string_character_proxy_t(string_t *ptr, index_t pos) :
-        ptr_{ptr}, pos_{pos} {}
+    string_t::string_character_proxy_t::string_character_proxy_t(string_t *ptr, index_t pos)
+        noexcept : ptr_{ptr}, pos_{pos} {}
 
     string_t::string_character_proxy_t::operator character_t() const
     {
@@ -44,7 +44,7 @@ namespace Machine
         { pos_ += arg; return *this; }
 
     string_t::string_character_const_proxy_t::string_character_const_proxy_t(
-            const string_t *ptr, index_t pos) : ptr_{ptr}, pos_{pos} {}
+            const string_t *ptr, index_t pos) noexcept : ptr_{ptr}, pos_{pos} {}
 
     string_t::string_character_const_proxy_t::operator character_t() const
     {
@@ -73,11 +73,6 @@ namespace Machine
         return *this;
     }
 
-    string_t::string_pos_const_proxy_t::string_pos_const_proxy_t(const string_t *ptr) noexcept :
-        ptr_{ptr} {}
-
-    string_t::string_pos_const_proxy_t::operator index_t() const { return ptr_->pos_; }
-
     string_t::string_t() noexcept(noexcept(std::vector<character_t>())) {}
 
     string_t::string_t(const alphabet_t &alphabet) noexcept(noexcept(std::vector<character_t>())) :
@@ -87,11 +82,11 @@ namespace Machine
 
     std::size_t string_t::size() const noexcept { return std::size(string_); }
 
-    void string_t::resize(index_t arg)
+    void string_t::resize(index_t new_size, character_t c)
     {
-        string_.resize(arg);
-        if (pos_ >= size())
-            pos_ = size() - 1;
+        string_.resize(new_size, c);
+        if (pos_ >= new_size)
+            pos_ = new_size - 1;
         return;
     }
 
@@ -138,7 +133,7 @@ namespace Machine
 
     string_t::string_pos_proxy_t string_t::pos() noexcept { return {this}; }
 
-    string_t::string_pos_const_proxy_t string_t::pos() const noexcept { return {this}; }
+    index_t string_t::pos() const noexcept { return pos_; }
 
     bool string_t::athome() const noexcept { return pos_ == 0; }
 
@@ -166,12 +161,20 @@ namespace Machine
         return;
     }
 
-    void string_t::print(character_t character)
+    void string_t::print(character_t c)
     {
+        if (c > alphabet_.max_character())
+            throw std::runtime_error{"In Machine::string_t::print(character_t):\n"
+                "Argument '" + std::to_string(c) + "' is larger than the maximum allowed by the " +
+                "alphabet '" + std::to_string(alphabet().max_character()) + "'\n."};
+
         if (pos_ == negative_1)
             throw std::runtime_error{"In Machine::string_t::print(character_t) const:\n"
                 "Print past end of file.\n"};
-        string_[pos_] = character;
+
+        string_[pos_] = c;
+
+        return;
     }
 
     string_t &string_t::clear() noexcept { string_.clear(); pos_ = negative_1; return *this; }
@@ -201,8 +204,13 @@ namespace Machine
     string_t string_t::reverse() const
     {
         string_t ret{alphabet_};
+
         for (auto it = std::crbegin(*this); it != std::crend(*this); ++it)
             ret.push(*it);
+
+        if (pos_ != negative_1)
+            ret.pos_ = std::size(string_) - 1 - pos_;
+
         return ret;
     }
 
@@ -249,8 +257,14 @@ namespace Machine
 
     string_t::string_character_proxy_t string_t::operator[](index_t arg) { return {this, arg}; }
 
-    string_t::string_character_const_proxy_t string_t::operator[](index_t arg) const
-        { return {this, arg}; }
+    character_t string_t::operator[](index_t arg) const
+    {
+        if (arg >= std::size(string_))
+            throw std::runtime_error{"In Machine::string_t::operator[](index_t) const:\n"
+                "Accessing an empty string.\n"};
+
+        return string_[arg];
+    }
 
     string_iterator_t string_t::begin() noexcept
         { return {this, 0}; }
