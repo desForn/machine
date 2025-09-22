@@ -29,16 +29,18 @@
 /// \param alphabet
 /// \brief Initialise the alphabet of the encoder
 ///
-/// \fn encoder_t::clone() const
+/// \fn virtual encoder_t *encoder_t::clone() const
 /// \brief Clones the encoder using a `new` expression with the derived type
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn encoder_t::alphabet() const
-/// \brief Access to \ref encoder_t.alphabet_
+/// \fn const alphabet_t &encoder_t::alphabet() const
+/// \returns \ref encoder_t.alphabet_
 ///
 /// \fn virtual character_t encoder_t::operator()(char c) const = 0
 /// \param c
 /// \brief Encoding function
 /// \throws std::runtime_error if \p c is not a valid argument.
+/// \returns The encoded value of \p c.
 ///
 /// This function represents the mapping between `char` and \ref character_t.
 /// Must be the inverse function of \ref "encoder_t::operator()(character_t) const".
@@ -47,25 +49,24 @@
 /// \param c
 /// \brief Decoding function
 /// \throws std::runtime_error if \p c is not a valid argument.
+/// \returns The decoded value of \p c.
 ///
 /// This function represents the inverse mapping between `char` and \ref character_t.
 /// Must be the inverse function of \ref "encoder_t::operator()(char) const".
 ///
-/// \fn encoder_t::operator()(const std::string &arg) const
+/// \fn string_t encoder_t::operator()(const std::string &arg) const
 /// \param arg
 /// \brief Encodes a string
 /// \throws std::runtime_error if \p arg contains an invalid `char` value for the encoder function.
-///
-/// Returns a \ref string_t of the same size than \p arg with each `char` replaced by a
+/// \returns A \ref string_t of the same size than \p arg with each `char` replaced by a
 /// \ref character_t according to \ref "encoder_t::operator()(char) const". It preserves the order.
 ///
-/// \fn encoder_t::operator()(const string_t &arg) const
+/// \fn std::string encoder_t::operator()(const string_t &arg) const
 /// \param arg
 /// \brief Encodes a string
 /// \throws std::runtime_error if \p arg contains an invalid \ref character_t value for the 
 /// decoder function.
-///
-/// Returns a `std::string` of the same size than \p arg with each \ref character_t replaced by a
+/// \returns A `std::string` of the same size than \p arg with each \ref character_t replaced by a
 /// `char` according to \ref "encoder_t::operator()(character_t) const". It preserves the order.
 ///
 /// \class Machine::encoder_ascii_t
@@ -77,14 +78,19 @@
 /// \fn encoder_ascii_t::encoder_ascii_t() noexcept
 /// \brief Default and only constructor
 ///
-/// \fn encoder_ascii_t::clone() const override
+/// \fn encoder_ascii_t *encoder_ascii_t::clone() const override
 /// \sa encoder_t::clone()
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_ascii_t::operator()(char) const override
+/// \fn character_t Machine::encoder_ascii_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char)
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_ascii_t::operator()(character_t) const override
+/// \fn char Machine::encoder_ascii_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t)
+/// \returns The decoded value of \p c.
 ///
 /// \class Machine::encoder_list_t
 /// \brief Encoder for an arbitrary character set
@@ -110,20 +116,25 @@
 ///
 /// \p map is moved to \ref encoder_list_t.map_.
 ///
-/// \fn encoder_list_t::clone() const override
+/// \fn encoder_list_t *encoder_list_t::clone() const override
 /// \sa encoder_t::clone()
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_list_t::operator()(char) const override
+/// \fn character_t Machine::encoder_list_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char)
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_list_t::operator()(character_t) const override
+/// \fn char Machine::encoder_list_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t)
+/// \returns The decoded value of \p c.
 ///
-/// \fn Machine::encoder_list_t::list() const
-/// \brief Acess to \ref map_
+/// \fn const std::vector<char> &Machine::encoder_list_t::list() const
+/// \returns \ref map_
 ///
-/// \fn Machine::encoder_list_t::inverse_map() const
-/// \brief Access to \ref inverse_map_
+/// \fn const std::unordered_map<char, character_t> &Machine::encoder_list_t::inverse_map() const
+/// \returns \ref inverse_map_
 ///
 /// \class Machine::encoder_alphabetic_t
 /// \brief Encoder for the set \f$\{a, b, \dots \}\f$
@@ -140,14 +151,19 @@
 ///
 /// Constructs the encoder with the first `n` letters of the alphabet as domain.
 ///
-/// \fn encoder_alphabetic_t::clone() const override
+/// \fn encoder_alphabetic_t *encoder_alphabetic_t::clone() const override
 /// \sa encoder_t::clone()
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_alphabetic_t::operator()(char) const override
+/// \fn character_t Machine::encoder_alphabetic_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char)
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_alphabetic_t::operator()(character_t) const override
+/// \fn char Machine::encoder_alphabetic_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t)
+/// \returns The decoded value of \p c.
 ///
 /// \class Machine::encoder_b_ary_t
 /// \brief Encoder for string representation of natural numbers
@@ -165,14 +181,19 @@
 /// \brief Constructor
 /// \throws std::runtime_error if b < 2 or b > 36.
 ///
-/// \fn encoder_b_ary_t::clone() const override
+/// \fn encoder_b_ary_t *encoder_b_ary_t::clone() const override
 /// \sa encoder_t::clone()
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_b_ary_t::operator()(char) const override
+/// \fn character_t Machine::encoder_b_ary_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char)
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_b_ary_t::operator()(character_t) const override
+/// \fn char Machine::encoder_b_ary_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t)
+/// \returns The decoded value of \p c.
 ///
 /// \class Machine::encoder_b_adic_t
 /// \brief Encoder for string representation of natural numbers
@@ -191,14 +212,19 @@
 /// \brief Constructor
 /// \throws std::runtime_error if b < 1 or b > 35.
 ///
-/// \fn encoder_b_adic_t::clone() const override
+/// \fn encoder_b_adic_t *encoder_b_adic_t::clone() const override
 /// \sa encoder_t::clone()
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_b_adic_t::operator()(char) const override
+/// \fn character_t Machine::encoder_b_adic_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char)
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_b_adic_t::operator()(character_t) const override
+/// \fn char Machine::encoder_b_adic_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t)
+/// \returns The decoded value of \p c.
 ///
 /// \class Machine::encoder_signed_b_ary_t
 /// \brief Encoder for string representation of integers
@@ -218,14 +244,19 @@
 /// \brief Constructor
 /// \throws std::runtime_error if b < 2 or b > 36.
 ///
-/// \fn encoder_signed_b_ary_t::clone() const override
+/// \fn encoder_signed_b_ary_t *encoder_signed_b_ary_t::clone() const override
 /// \sa encoder_t::clone()
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_signed_b_ary_t::operator()(char) const override
+/// \fn character_t Machine::encoder_signed_b_ary_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char)
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_signed_b_ary_t::operator()(character_t) const override
+/// \fn char Machine::encoder_signed_b_ary_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t)
+/// \returns The decoded value of \p c.
 ///
 /// \class Machine::encoder_signed_b_adic_t
 /// \brief Encoder for string representation of natural numbers
@@ -246,14 +277,19 @@
 /// \brief Constructor
 /// \throws std::runtime_error if b < 1 or b > 35.
 ///
-/// \fn encoder_signed_b_adic_t::clone() const override
+/// \fn encoder_signed_b_adic_t *encoder_signed_b_adic_t::clone() const override
 /// \sa encoder_t::clone()
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_signed_b_adic_t::operator()(char) const override
+/// \fn character_t Machine::encoder_signed_b_adic_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char)
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_signed_b_adic_t::operator()(character_t) const override
+/// \fn char Machine::encoder_signed_b_adic_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t)
+/// \returns The decoded value of \p c.
 ///
 /// \class Machine::encoder_separator_t
 /// \brief Adds a separator character to an existing \ref encoder_t
@@ -271,12 +307,15 @@
 ///
 /// The `char` separator.
 ///
-/// \fn Machine::encoder_separator_t::encoder_separator_t(const encoder_separator_t &)
-/// \brief Default copy constructor
+/// \fn Machine::encoder_separator_t::encoder_separator_t(const encoder_separator_t &arg)
+/// \param arg
+/// \brief copy constructor
 ///
 /// \fn Machine::encoder_separator_t &Machine::encoder_separator_t::operator=\
-/// (const encoder_separator_t &)
+/// (const encoder_separator_t &arg)
+/// \param arg
 /// \brief Default copy assignment operator
+/// \returns `*this`
 ///
 /// \fn Machine::encoder_separator_t::encoder_separator_t(encoder_separator_t &&)
 /// \brief Default move constructor
@@ -284,6 +323,7 @@
 /// \fn Machine::encoder_separator_t &Machine::encoder_separator_t::operator=\
 /// (encoder_separator_t &&)
 /// \brief Default move assignment operator
+/// \returns `*this`
 ///
 /// \fn Machine::encoder_separator_t::encoder_separator_t(std::unique_ptr<encoder_t> encoder, \
 /// char separator)
@@ -293,17 +333,23 @@
 /// resulting alphabet is to large to be represented by \ref character_t.
 /// \brief Constructor
 ///
-/// \fn Machine::encoder_separator_t::clone() const override
+/// \fn encoder_separator_t *Machine::encoder_separator_t::clone() const override
 /// \sa encoder_t::clone
+/// \returns A pointer to the new valued constructed object.
 ///
-/// \fn Machine::encoder_separator_t::operator()(char) const override
+/// \fn character_t Machine::encoder_separator_t::operator()(char c) const override
+/// \param c
 /// \sa encoder_t::operator()(char) const
+/// \returns The encoded value of \p c.
 ///
-/// \fn Machine::encoder_separator_t::operator()(character_t) const override
+/// \fn char Machine::encoder_separator_t::operator()(character_t c) const override
+/// \param c
 /// \sa encoder_t::operator()(character_t) const
+/// \returns The decoded value of \p c.
 ///
-/// \fn Machine::encoder_separator_t::extended_encoder(this auto &&self)
-/// \brief Access to \ref extended_encoder_
+/// \fn decltype(auto) Machine::encoder_separator_t::extended_encoder(this auto &&self)
+/// \param self
+/// \returns \ref extended_encoder_
 ///
-/// \fn Machine::encoder_separator_t::separator() const
-/// \brief Access to \ref separator_
+/// \fn char Machine::encoder_separator_t::separator() const
+/// \returns \ref separator_

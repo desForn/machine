@@ -1,7 +1,6 @@
 #pragma once
 #include "machine.hpp"
 
-#include <unordered_map>
 #include <ranges>
 
 namespace Machine

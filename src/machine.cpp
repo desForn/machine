@@ -1,5 +1,4 @@
 #include "machine.hpp"
-#include "hash.hpp"
 #include "control.hpp"
 #include "input.hpp"
 #include "output.hpp"

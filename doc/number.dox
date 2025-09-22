@@ -1,5 +1,682 @@
+/// \file number.hpp
+/// \file number.cpp
+///
 /// \class Machine::unsigned_number_t
-/// @brief Arbitrary precision natural number
+/// \brief Arbitrary precision natural number
 /// 
-/// unsigned_number_t can represent any arbitrarily large natural number. It uses a digit
-/// representation using \ref index_t as each digit
+/// This class can represent any arbitrarily large natural number. It uses a digit
+/// representation using \ref index_t as digits. That is, it uses a b-ary representation with base
+/// \f$b = 2^d\f$ where \f$d\f$ is the number of bits of \ref index_t, (cf. \ref n_digits).\n
+/// See \cite TAOCP2 for the main algorithms.
+///
+/// \var unsigned_number_t::n_digits
+/// \brief Number of digits, i.e. bits, of \ref index_t
+///
+/// It is statically asserted that it is even.
+///
+/// \var unsigned_number_t::n_digits_half
+/// \brief \ref n_digits divided by 2
+///
+/// \var unsigned_number_t::max
+/// \brief Maximum representable number with \ref index_t
+///
+/// \var unsigned_number_t::mask
+/// \brief Mask to obtain the lower and upper halfs of \ref index_t
+///
+/// The first element has all lower half bits equal to 1 and the others equal to 0.
+/// The second element has all lower half bits equal to 0 and the others equal to 1.
+///
+/// \var unsigned_number_t::max_half
+/// \brief Maximum representable number with \ref n_digits_half bits
+///
+/// \var unsigned_number_t::digits_
+/// \brief `std::vector` storing the digits using little endian order
+///
+/// It is ensured that no trailing zeros are present, i.e. `digits_.back() != 0`. The number 0 is
+/// represented by an empty vector.
+///
+/// \fn Machine::unsigned_number_t::unsigned_number_t()\
+/// noexcept(noexcept(std::vector<index_t>()))
+/// \brief Initialises to 0
+///
+/// \fn Machine::unsigned_number_t::unsigned_number_t(const unsigned_number_t &)
+/// \brief Default copy constructor
+///
+/// \fn Machine::unsigned_number_t &Machine::unsigned_number_t\
+/// ::operator=(const unsigned_number_t &)
+/// \brief Default copy assignment operator
+/// \returns `*this`
+///
+/// \fn Machine::unsigned_number_t::unsigned_number_t(unsigned_number_t &&)
+/// \brief Default move constructor
+///
+/// \fn Machine::unsigned_number_t &Machine::unsigned_number_t\
+/// ::operator=(unsigned_number_t &&)
+/// \brief Default move assignment operator
+/// \returns `*this`
+///
+/// \fn Machine::unsigned_number_t::unsigned_number_t(index_t num)
+/// \param num
+/// \brief Constructor from \ref index_t
+///
+/// If `num != 0`, initialises \ref digits_ as a single digit number with digit \p num.
+/// If `num == 0`, initialises \ref digits_ as the empty vector.
+///
+/// \fn Machine::unsigned_number_t &Machine::unsigned_number_t::operator=(index_t num)
+/// \param num
+/// \brief Assignment operator from \ref index_t
+/// \returns `*this`
+///
+/// \fn Machine::unsigned_number_t::unsigned_number_t\
+/// (Apparatus::string_iterator_template_t<stride, is_const> begin, \
+/// Apparatus::string_iterator_template_t<stride, is_const> end, const encoder_t &encoder);
+/// \param begin
+/// \param end
+/// \param encoder
+/// \brief Initialisation from \ref string_t iterators
+/// \throws std::runtime_error if the derived type of encoder is not valid or if the string does not
+/// represent a valid unsigned number.
+///
+/// The derived type of \p encoder must be of one of the following:
+/// \ref encoder_b_ary_t, \ref encoder_b_adic_t,
+/// \ref encoder_signed_b_ary_t, \ref encoder_signed_b_adic_t, \ref encoder_numeric_t .\n
+/// If the encoder is signed, it is permitted that the string begins with a single character
+/// representing the '+' sign character. All other characters must represent digits in some base
+/// `b`.
+/// In the case of b_ary representations, the digits are in the range [0, b-1].
+/// In the case of b_adic representations, the range is [1, b].\n
+/// The value of the number is \f$\sum_{i = 0}^{l - 1}d_i b^i\f$, where \f$l\f$ is the length of the
+/// string excluding the possible '+' character and \f$d_i\f$ is the numerical value of the i-th
+/// character starting from the right.
+///
+/// \sa encoder_b_ary_t encoder_b_adic_t encoder_signed_b_ary_t encoder_signed_b_adic_t
+/// encoder_numeric_t
+///
+/// \fn Machine::unsigned_number_t::unsigned_number_t(std::string_view string,
+/// const encoder_t &encoder)
+/// \param string
+/// \param encoder
+/// \brief initialisation from `std::string_view`
+/// \throws std::runtime_error if the derived type of encoder is not valid or if the string does not
+/// represent a valid unsigned number.
+///
+/// \sa unsigned_number_t(Apparatus::string_iterator_template_t<stride, is_const>,
+/// Apparatus::string_iterator_template_t<stride, is_const>, const encoder_t &)
+///
+/// \fn void Machine::unsigned_number_t::swap(unsigned_numter_t &arg) noexcept
+/// \param arg
+///
+/// Swaps `*this` with \p arg.
+/// \sa Machine::swap(unsigned_number_t &, unsigned_number_t &)
+///
+/// \fn const std::vector<index_t> &Machine::unsigned_number_t::digits() const noexcept
+/// \returns \ref digits_.
+///
+/// \fn bool Machine::unsigned_number_t::zero()
+/// \returns `true` if the number is zero and `false` otherwise.
+///
+/// Equivalently, tests if \ref digits_ is empty.
+///
+/// \fn string_t Machine::unsigned_number_t::b_ary(character_t radix) const
+/// \param radix The base
+/// \returns \ref string_t with the number in b-ary form with base \p radix.
+///
+/// \fn string_t Machine::unsigned_number_t::b_adic(character_t radix) const
+/// \param radix The base
+/// \returns \ref string_t with the number in b-adic form with base \p radix.
+///
+/// \fn std::string Machine::unsigned_number_t::print_b_ary(character_t radix) const
+/// \param radix The base
+/// \throws if `radix < 2` or `radix > 36`.
+/// \returns `std::string` with the number in b-ary form with base \p radix.
+///
+/// \fn std::string Machine::unsigned_number_t::print_b_adic(character_t radix) const
+/// \param radix The base
+/// \throws if `radix < 1` or `radix > 35`
+/// \returns `std::string` with the number in b-adic form with base \p radix.
+///
+/// \fn sts::string Machine::unsigned_number_t::print(const encoder_t &encoder) const
+/// \param encoder
+/// \throws std::runtime_error if the derived type of encoder is not valid
+/// \returns `std::string` encoded according to \p encoder.
+///
+/// The derived type of \p encoder must be of one of the following:
+/// \ref encoder_b_ary_t, \ref encoder_b_adic_t,
+/// \ref encoder_signed_b_ary_t, \ref encoder_signed_b_adic_t, \ref encoder_numeric_t .\n
+///
+/// \fn index_t Machine::unsigned_number_t::load_half_word(index_t) const
+/// \param index Smaller than `2 * std::size(`\ref digits_ `)` (not checked)
+/// \brief Acess to a half word from \ref digits_
+/// \returns The value of the half-word at position \p index.
+///
+/// Interpreting the vector \ref digits_ of `n` elements, interpret it as a vector of `2n`
+/// half words
+/// of numbers with \ref n_digits_half bits. The function returns the half word at position
+/// \p index.\n
+/// It is undefined behaviour to call it with \p index `>= 2 * std::size(`\ref digits_ `)`.
+///
+/// \sa unsigned_number_t::store_half_word(index_t, index_t)
+///
+/// \fn void Machine::unsigned_number_t::store_half_word(index_t index, index_t arg)
+/// \param index Smaller than `2 * std::size(`\ref digits_ `)` (not checked)
+/// \param arg Must not be larger than max_half (not checked)
+/// \brief Stores \p arg to half word at position \p index
+///
+/// It is undefined behaviour to call it with \p index `>= 2 * std::size(`\ref digits_ `)` or
+/// \p arg `> `\ref max_half.
+///
+/// \sa unsigned_number_t::load_half_word(index_t) const
+///
+/// \fn void Machine::unsigned_number_t::normalise()
+/// \brief Removes trailing zeros
+///
+/// \fn bool Machine::unsigned_number_t::operator==(const unsigned_number_t &) const
+/// \brief Default comparison
+/// \returns `true` if both numbers are equal and `false` otherwise.
+///
+/// \fn bool Machine::unsigned_number_t::operator!=(const unsigned_number_t &) const
+/// \brief Default comparison
+/// \returns `not` operator==(const unsigned_number_t &).
+///
+/// \fn std::strong_ordering \
+/// Machine::unsigned_number_t::operator<=>(const unsigned_number_t &arg) const
+/// \param arg
+/// \brief Canonical comparison
+/// \returns The result of the comparison.
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator++()
+/// \brief Pre-increment
+/// \returns `*this`
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator--()
+/// \brief Pre-decrement
+/// \throws std::runtime_error if argument is 0.
+/// \returns `*this`
+///
+/// \fn unsigned_number_t Machine::unsigned_number_t::operator++(int)
+/// \brief Post-increment
+/// \returns The previous value of `*this`.
+///
+/// \fn unsigned_number_t Machine::unsigned_number_t::operator--(int)
+/// \brief Post-decrement
+/// \throws std::runtime_error if argument is 0.
+/// \returns The previous value of `*this`.
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator+=(const unsigned_number_t &arg)
+/// \param arg
+/// \returns `*this`
+///
+/// Complexity \f$\mathcal O(\max(\mathrm{digits}(*this), \mathrm{digits}(arg)))\f$.
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator-=(const unsigned_number_t &arg)
+/// \param arg
+/// \throws std::runtime_error if *this < arg.
+/// \returns `*this`
+///
+/// Complexity \f$\mathcal O(\max(\mathrm{digits}(*this), \mathrm{digits}(arg)))\f$.
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator*=(const unsigned_number_t &arg)
+/// \param arg
+/// \sa Machine::operator*(const unsigned_number_t &, const unsigned_number_t &)
+/// \returns `*this`
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator/=(unsigned_number_t arg)
+/// \param arg
+/// \sa divide(unsigned_number_t, unsigned_number_t)
+/// \returns `*this`
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator%=(unsigned_number_t arg)
+/// \param arg
+/// \sa divide(unsigned_number_t, unsigned_number_t)
+/// \returns `*this`
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator/=(index_t arg)
+/// \param arg
+/// \sa divide(unsigned_number_t, index_t)
+/// \returns `*this`
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator%=(index_t arg)
+/// \param arg
+/// \sa divide(unsigned_number_t, index_t)
+/// \returns `*this`
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator<<=(integer_t arg)
+/// \param arg Bits to shift left
+/// \brief Shifts the digits of `*this` \p arg bits to the left
+/// \returns `*this`
+///
+/// Equivalent to multiply `*this` by \f$2^{arg}\f$. If \p arg is negative, `-arg` bits are shifted
+/// to the right.
+/// \sa unsigned_number_t::operator>>=(integer_t)
+///
+/// \fn unsigned_number_t &Machine::unsigned_number_t::operator>>=(integer_t arg)
+/// \param arg Bits to shift right
+/// \brief Shifts the digits of `*this` \p arg bits to the right
+/// \returns `*this`
+///
+/// Equivalent to divide `*this` by \f$2^{arg}\f$. If \p arg is negative, `-arg` bits are shifted
+/// to the left.
+/// \sa unsigned_number_t::operator<<=(integer_t)
+///
+/// \fn unsigned_number_t Machine::operator+(unsigned_number_t arg0, const unsigned_number_t &arg1)
+/// \param arg0
+/// \param arg1
+/// \sa unsigned_number_t::operator+=(const unsigned_number_t &)
+/// \returns The result of the operation.
+///
+/// \fn unsigned_number_t Machine::operator-(unsigned_number_t arg0, const unsigned_number_t &arg1)
+/// \param arg0
+/// \param arg1
+/// \sa unsigned_number_t::operator-=(const unsigned_number_t &)
+/// \returns The result of the operation.
+///
+/// \fn unsigned_number_t unsigned_number_t Machine::operator*\
+/// (const unsigned_number_t &a, const unsigned_number_t &b)
+/// \param a
+/// \param b
+/// \todo Implement a faster algorithm for large numbers
+/// \returns The result of the operation.
+///
+/// Complexity \f$\mathcal O(\mathrm{digits}(*this) \mathrm{digits}(arg))\f$.
+/// 
+/// \fn unsigned_number_t Machine::operator/(unsigned_number_t arg0, unsigned_number_t arg1)
+/// \param arg0
+/// \param arg1
+/// \sa Machine::divide(unsigned_number_t, unsigned_number_t)
+/// \returns The result of the operation.
+///
+/// \fn unsigned_number_t Machine::operator%(unsigned_number_t arg0, unsigned_number_t arg1)
+/// \param arg0
+/// \param arg1
+/// \sa Machine::divide(unsigned_number_t, unsigned_number_t)
+/// \returns The result of the operation.
+///
+/// \fn unsigned_number_t Machine::operator/(unsigned_number_t arg0, integer_t arg1)
+/// \param arg0
+/// \param arg1
+/// \sa Machine::divide(unsigned_number_t, integer_t)
+/// \returns The result of the operation.
+///
+/// \fn unsigned_number_t Machine::operator%(unsigned_number_t arg0, integer_t arg1)
+/// \param arg0
+/// \param arg1
+/// \sa Machine::divide(unsigned_number_t, integer_t)
+/// \returns The result of the operation.
+///
+/// \fn unsigned_number_t Machine::operator<<(unsigned_number_t arg0, integer_t arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa unsigned_number_t::operator<<=(integer_t)
+///
+/// \fn unsigned_number_t Machine::operator>>(unsigned_number_t arg0, integer_t arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa unsigned_number_t::operator>>=(integer_t)
+///
+/// \fn std::array<unsigned_number_t, 2> \
+/// Machine::divide(unsigned_number_t a, index_t b)
+/// \returns The result of the operation.
+/// \param a
+/// \param b
+/// \returns {\p a / \p b, \p a % \p b}
+/// \throws std::runtime_error if \p b == 0.
+///
+/// Complexity \f$\mathcal O(\mathrm{digits}(a))\f$.
+///
+/// \fn std::array<unsigned_number_t, 2> Machine::divide(unsigned_number_t a, unsigned_number_t b)
+/// \param a
+/// \param b
+/// \returns {\p a / \p b, \p a % \p b}
+/// \throws std::runtime_error if \p b == 0.
+///
+/// Complexity \f$\mathcal O(\mathrm{digits}(a) \mathrm{digits}(b))\f$. If \p has a single \ref
+/// index_t digit, calls \ref Machine::divide(unsigned_number_t, index_t).
+///
+/// \fn void Machine::swap(unsigned_number_t &arg0, unsigned_number_t &arg1) noexcept
+/// \param arg0
+/// \param arg1
+/// \sa unsigned_number_t::swap(unsigned_number_t &)
+///
+/// \class Machine::signed_number_t
+/// \brief Arbitrary precision integer
+///
+/// This class represents any arbitrarily large integer with a sign and magnitude representation.
+/// The sign is represented by a `bool` and the magnitude by a \ref unsigned_number_t.
+/// Positive and negative zero representations are possible but they compare as equal. It is not
+/// possible for the user to discern between positive and negative 0.
+///
+/// \sa unsigned_number_t
+///
+/// \var signed_number_t::pos_
+/// \brief Sign value for positive numbers
+///
+/// \var signed_number_t::neg_
+/// \brief Sign value for negative numbers
+///
+/// \var signed_number_t::sign_
+/// \brief `bool` representing the sign of the number
+/// \sa pos_ neg_
+///
+/// \var signed_number_t::magnitude_
+/// \brief \ref unsigned_number_t representing the magnitude
+/// \sa signed_number_t::abs() const &
+///
+/// \fn Machine::signed_number_t::signed_number_t()
+/// noexcept(noexcept(std::vector<index_t>()))
+/// \brief Initialises to 0
+///
+/// \fn Machine::signed_number_t::signed_number_t(const signed_number_t &)
+/// \brief Default copy constructor
+///
+/// \fn Machine::signed_number_t &Machine::signed_number_t::operator=(const signed_number_t &)
+/// \returns `*this`
+/// \brief Default copy assignment operator
+///
+/// \fn Machine::signed_number_t::signed_number_t(signed_number_t &&)
+/// \brief Default move constructor
+///
+/// \fn Machine::signed_number_t &Machine::signed_number_t::operator=(signed_number_t &&)
+/// \returns `*this`
+/// \brief Default move assignment operator
+///
+/// \fn Machine::signed_number_t::signed_number_t(integer_t arg)
+/// \param arg
+/// \brief Constructor from \ref integer_t
+///
+/// \fn Machine::signed_number_t &Machine::signed_number_t::operator=(integer_t arg)
+/// \returns `*this`
+/// \param arg
+/// \brief Assignment operator from \ref integer_t
+///
+/// \fn Machine::signed_number_t::signed_number_t(unsigned_number_t arg)
+/// \param arg
+/// \brief Constructor from \ref unsigned_number_t
+///
+/// \fn Machine::signed_number_t &Machine::signed_number_t::operator=(unsigned_number_t arg)
+/// \returns `*this`
+/// \param arg
+/// \brief Assignment operator from \ref unsigned_number_t
+///
+/// \fn Machine::signed_number_t::signed_number_t\
+/// (Apparatus::string_iterator_template_t<stride, is_const> begin, \
+/// Apparatus::string_iterator_template_t<stride, is_const> end, const encoder_t &encoder)
+/// \param begin
+/// \param end
+/// \param encoder
+/// \brief Initialisation from \ref string_t iterators
+/// \throws std::runtime_error if the derived type of encoder is not valid or if the string does not
+/// represent a valid integer.
+///
+/// The derived type of \p encoder must be of one of the following:
+/// \ref encoder_b_ary_t, \ref encoder_b_adic_t,
+/// \ref encoder_signed_b_ary_t, \ref encoder_signed_b_adic_t, \ref encoder_numeric_t .\n
+/// The first character can be a '+' or '-' sign character. The rest must be numeric and is handled
+/// as \link Machine::unsigned_number_t::unsigned_number_t(
+/// Apparatus::string_iterator_template_t<stride, is_const> begin, 
+/// Apparatus::string_iterator_template_t<stride, is_const> end, const encoder_t &encoder)\endlink.
+///
+/// \fn Machine::signed_number_t::signed_number_t(std::string_view string, const encoder_t &encoder)
+/// \param string
+/// \param encoder
+/// \brief Initialisation from `std::string_view`
+/// \throws std::runtime_error if the derived type of encoder is not valid or if the string does not
+/// represent a valid integer.
+///
+/// \sa signed_number_t(Apparatus::string_iterator_template_t<stride, is_const>,
+/// Apparatus::string_iterator_template_t<stride, is_const>, const encoder_t &)
+///
+/// \fn void Machine::signed_number_t::swap(signed_number_t &arg)
+/// \param arg
+/// \brief Swaps `*this` and \p arg
+///
+/// \fn const unsigned_number_t &Machine::signed_number_t::abs(this const signed_number_t &self)
+/// \param self
+/// \brief Access to \ref magnitude_
+/// \returns \ref magnitude_
+///
+/// \fn unsigned_number_t Machine::signed_number_t::abs(this signed_number_t &&self)
+/// \param self
+/// \brief Moves and returns \ref magnitude_
+/// \returns \ref magnitude_
+///
+/// \fn bool Machine::signed_number_t::zero() const
+/// \returns `true` if the number is 0 and `false` otherwise
+///
+/// \fn bool Machine::signed_number_t::pos() const
+/// \returns `true` if the number is positive and `false` otherwise
+///
+/// \fn bool Machine::signed_number_t::neg
+/// \returns `true` if the number is negative and `false` otherwise
+///
+/// \fn string_t Machine::signed_number_t::b_ary(character_t radix) const
+/// \param radix The base
+/// \returns \ref string_t with the number in b-ary form with base \p radix.
+///
+/// \fn string_t Machine::signed_number_t::b_adic(character_t radix) const
+/// \param radix The base
+/// \returns \ref string_t with the number in b-adic form with base \p radix.
+///
+/// \fn std::string Machine::signed_number_t::print_b_ary(character_t radix) const
+/// \param radix The base
+/// \throws if `radix < 2` or `radix > 36`
+/// \returns `std::string` with the number in b-ary form with base \p radix.
+///
+/// \fn std::string Machine::signed_number_t::print_b_adic(character_t radix) const
+/// \param radix The base
+/// \throws if `radix < 1` or `radix > 35`
+/// \returns `std::string` with the number in b-adic form with base \p radix.
+///
+/// \fn std::string Machine::signed_number_t::print(const encoder_t &encoder) const
+/// \param encoder
+/// \throws std::runtime_error if the derived type of encoder is not valid
+/// \returns `std::string` encoded according to \p encoder.
+///
+/// The derived type of \p encoder must be of one of the following:
+/// \ref encoder_signed_b_ary_t, \ref encoder_signed_b_adic_t, \ref encoder_numeric_t .\n
+///
+/// \fn bool Machine::signed_number_t::operator==(const signed_number_t &arg) const
+/// \param arg
+/// \brief Default comparison
+/// \returns `true` if both objects represent the same number and `false` otherwise.
+///
+/// \fn bool Machine::signed_number_t::operator!=(const signed_number_t &arg) const
+/// \param arg
+/// \brief Default comparison
+/// \returns `not` \ref operator==
+///
+/// \fn std::strong_ordering Machine::signed_number_t::operator<=>(const signed_number_t &arg) const
+/// \param arg
+/// \brief Canonical comparison
+/// \returns The order between both numbers.
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator++()
+/// \returns `*this`
+/// \brief Pre-increment
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator--()
+/// \returns `*this`
+/// \brief Pre-decrement
+///
+/// \fn signed_number_t Machine::signed_number_t::operator++(int)
+/// \returns The previous value of `*this`.
+/// \brief Post-increment
+///
+/// \fn signed_number_t Machine::signed_number_t::operator--(int)
+/// \returns The previous value of `*this`.
+/// \brief Post-decrement
+///
+/// \fn signed_number_t Machine::signed_number_t::operator+() const
+/// \returns A copy of `*this`.
+/// \brief Unary positive sign
+///
+/// \fn signed_number_t Machine::signed_number_t::operator-() const
+/// \returns The negative value of `*this`.
+/// \brief Unary negative sign
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator+=(const signed_number_t &arg)
+/// \returns `*this`
+/// \param arg
+///
+/// Complexity \f$\mathcal O(\max(\mathrm{digits}(*this), \mathrm{digits}(arg)))\f$.
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator-=(const signed_number_t &arg)
+/// \returns `*this`
+/// \param arg
+///
+/// Complexity \f$\mathcal O(\max(\mathrm{digits}(*this), \mathrm{digits}(arg)))\f$.
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator*=(const signed_number_t &arg)
+/// \returns `*this`
+/// \param arg
+/// \sa Machine::operator*(const unsigned_number_t &, const unsigned_number_t &)
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator/=(signed_number_t arg)
+/// \returns `*this`
+/// \param arg
+/// \sa divide(signed_number_t, signed_number_t)
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator%=(signed_number_t arg)
+/// \returns `*this`
+/// \param arg
+/// \sa divide(signed_number_t, signed_number_t)
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator<<=(integer_t arg)
+/// \returns `*this`
+/// \param arg Bits to shift left
+/// \brief Shifts the digits of \ref magnitude_ \p arg bits to the left
+///
+/// Equivalent to multiply `*this` by \f$2^{arg}\f$. If \p arg is negative, `-arg` bits are shifted
+/// to the right.
+/// \sa signed_number_t::operator>>=(integer_t)
+///
+/// \fn signed_number_t &Machine::signed_number_t::operator>>=(integer_t arg)
+/// \returns `*this`
+/// \param arg Bits to shift right
+/// \brief Shifts the digits of \ref magnitude_ \p arg bits to the right
+///
+/// Equivalent to divide `*this` by \f$2^{arg}\f$. If \p arg is negative, `-arg` bits are shifted
+/// to the left.
+/// \sa signed_number_t::operator<<=(integer_t)
+///
+/// \fn signed_number_t Machine::operator+(signed_number_t arg0, const signed_number_t &arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa signed_number_t::operator+=(const signed_number_t &)
+///
+/// \fn signed_number_t Machine::operator-(signed_number_t arg0, const signed_number_t &arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa signed_number_t::operator-=(const signed_number_t &)
+///
+/// \fn signed_number_t Machine::operator*(signed_number_t arg0, const signed_number_t &arg1)
+/// \returns The result of the operation.
+/// \param[in] arg0
+/// \param[in] arg1
+/// \sa signed_number_t::operator*(const signed_number_t &)
+/// 
+/// \fn signed_number_t Machine::operator/(signed_number_t arg0, signed_number_t arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa Machine::divide(signed_number_t, signed_number_t)
+///
+/// \fn signed_number_t Machine::operator%(signed_number_t arg0, signed_number_t arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa Machine::divide(signed_number_t, signed_number_t)
+///
+/// \fn signed_number_t Machine::operator<<(signed_number_t arg0, integer_t arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa signed_number_t::operator<<=(integer_t)
+///
+/// \fn signed_number_t Machine::operator>>(signed_number_t arg0, integer_t arg1)
+/// \returns The result of the operation.
+/// \param arg0
+/// \param arg1
+/// \sa signed_number_t::operator>>=(integer_t)
+///
+/// \fn std::array<signed_number_t, 2> Machine::divide(signed_number_t a, signed_number_t b)
+/// \param a
+/// \param b
+/// \returns {\p a / \p b, \p a % \p b}
+/// \throws std::runtime_error if \p b == 0.
+///
+/// The truncation is such that the modulus is always nonnegative and lower than the divisor. That
+/// is, denoting `c = a / b` and `d = a % b`,\n`a = b * c + d; 0 <= d < b`.
+///
+/// \fn void Machine::swap(signed_number_t &arg0, signed_number_t &arg1) noexcept
+/// \param arg0
+/// \param arg1
+/// \brief Swaps \p arg0 with \p arg1
+///
+/// \class std::hash<Machine::unsigned_number_t>
+/// \tparam Machine::unsigned_number_t
+/// \brief Hash function specialistation for \ref Machine::unsigned_number_t
+///
+/// \fn std::size_t std::hash<Machine::unsigned_number_t>::operator()\
+/// (const Machine::unsigned_number_t &arg) const
+/// \param arg
+/// \returns the function \ref std::hash<range_type> evaluated with
+/// \ref Machine::unsigned_number_t.digits_
+///
+/// \class std::hash<Machine::signed_number_t>
+/// \tparam Machine::signed_number_t
+/// \brief Hash function specialistation for \ref Machine::signed_number_t
+///
+/// \fn std::size_t std::hash<Machine::signed_number_t>::operator()\
+/// (const Machine::signed_number_t &arg) const
+/// \param arg
+/// \returns the hash value of \ref Machine::signed_number_t.magnitude_ the hash value of positive
+/// and negative numbers with the same absolute value clash to the same value. As the number of
+/// clashes due to this is uniformly bounded (by 2) this does not effect the complexity of any
+/// algorithm.
+///
+/// \fn static void Machine::double_word_addition(index_t &a0, index_t &a1, index_t b)
+/// \param[inout] a0 Summand lower half
+/// \param[inout] a1 Summand higher half
+/// \param[in] b Summand
+/// \brief Adds \p b to the double word formed by `a0:a1`
+///
+/// Invokes undefined behaviour if there is overflow.
+/// It is optimised for the `x86_64` architecture using assembler.
+///
+/// \fn static void Machine::double_word_subtraction(index_t &a0, index_t &a1, index_t b)
+/// \param[inout] a0 Minuend lower half
+/// \param[inout] a1 Minuend higher half
+/// \param[in] b Subtrahend
+/// \brief Subtracts \p b from the double word formed by `a0:a1`
+///
+/// Invokes undefined behaviour if there is overflow.
+/// It is optimised for the `x86_64` architecture using assembler.
+///
+/// \fn static std::array<index_t, 2> Machine::double_word_multiplication(index_t a, index_t b)
+/// \param[in] a Factor
+/// \param[in] b Factor
+/// \returns the result of `a * b` as a big endian double word
+///
+/// The algorithm is a particularisation of
+/// \ref Machine::operator*(const unsigned_number_t &, const unsigned_number_t &).
+/// It is optimised for the `x86_64` architecture using assembler.
+/// 
+/// \fn static std::array<index_t, 2> Machine::double_word_division\
+/// (index_t a0, index_t a1, index_t b)
+/// \param[in] a0
+/// \param[in] a1
+/// \param[in] b
+/// \returns `{[a1:a0] / b, [a1:a0] % b}`
+///
+/// Divides the double word formed by `[a1:a0]` by `b`.\n
+/// The behaviour is undefined if the quotient does not fit into a single word
+/// It is optimised for the `x86_64` architecture using assembler.
+///
+/// The algorithm is a particularisation of
+/// \ref Machine::divide(unsigned_number_t, unsigned_number_t).
+/// It is optimised for the `x86_64` architecture using assembler.
+/// 

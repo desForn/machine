@@ -389,8 +389,8 @@ namespace Machine
         extended_encoder_{std::unique_ptr<encoder_t>{arg.extended_encoder_->clone()}},
         separator_{arg.separator_} {}
 
-    encoder_separator_t &encoder_separator_t::operator=(const encoder_separator_t &)
-        { return *this = encoder_separator_t{*this}; }
+    encoder_separator_t &encoder_separator_t::operator=(const encoder_separator_t &arg)
+        { return *this = encoder_separator_t{arg}; }
 
     encoder_separator_t::encoder_separator_t(std::unique_ptr<encoder_t> encoder, char separator) :
         encoder_t{encoder ? static_cast<character_t>(encoder->alphabet().max_character() + 1) :

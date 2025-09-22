@@ -5,7 +5,7 @@
 
 namespace Machine
 {
-    void double_word_addition(index_t &a0, index_t &a1, index_t b)
+    static void double_word_addition(index_t &a0, index_t &a1, index_t b)
     {
         static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
         static_assert(n_digits % 2 == 0);
@@ -32,7 +32,7 @@ namespace Machine
         }
     }
 
-    void double_word_subtraction(index_t &a0, index_t &a1, index_t b)
+    static void double_word_subtraction(index_t &a0, index_t &a1, index_t b)
     {
         static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
         static_assert(n_digits % 2 == 0);
@@ -59,7 +59,7 @@ namespace Machine
         }
     }
 
-    std::array<index_t, 2> double_word_multiplication(index_t a, index_t b)
+    static std::array<index_t, 2> double_word_multiplication(index_t a, index_t b)
     {
         static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
         static_assert(n_digits % 2 == 0);
@@ -113,7 +113,7 @@ namespace Machine
         }
     }
 
-    std::array<index_t, 2> double_word_division(index_t a0, index_t a1, index_t b)
+    static std::array<index_t, 2> double_word_division(index_t a0, index_t a1, index_t b)
     {
         static constexpr index_t n_digits = std::numeric_limits<index_t>::digits;
         static_assert(n_digits % 2 == 0);
@@ -353,9 +353,9 @@ namespace Machine
 
     void unsigned_number_t::swap(unsigned_number_t &arg) noexcept { digits_.swap(arg.digits_); }
 
-    const std::vector<index_t> &unsigned_number_t::digits() const { return digits_; }
+    const std::vector<index_t> &unsigned_number_t::digits() const noexcept { return digits_; }
 
-    bool unsigned_number_t::zero() const { return std::empty(digits_); }
+    bool unsigned_number_t::zero() const noexcept { return std::empty(digits_); }
 
     string_t unsigned_number_t::b_ary(character_t radix) const
     {
@@ -724,37 +724,6 @@ namespace Machine
 
         return ret;
     }
-    /*{
-        static constexpr index_t n_digits_half = unsigned_number_t::n_digits_half;
-        static constexpr std::array<index_t, 2> mask = unsigned_number_t::mask;
-
-        unsigned_number_t ret{};
-        index_t sa = std::size(a.digits_) * 2;
-        index_t sb = std::size(b.digits_) * 2;
-        ret.digits_.resize((sa + sb) / 2, 0);
-
-        for (index_t i = 0; i != sa; ++i)
-        {
-            index_t na = a.load_half_word(i);
-
-            index_t carry = 0;
-            for (index_t j = 0; j != sb; ++j)
-            {
-                index_t nb = b.load_half_word(j);
-                index_t nr = ret.load_half_word(i + j);
-
-                index_t t = na * nb + nr + carry;
-                carry = t >> n_digits_half;
-                ret.store_half_word(i + j, t & mask.front());
-            }
-
-            ret.store_half_word(i + sb, carry);
-        }
-
-        ret.normalise();
-
-        return ret;
-    }*/
 
     unsigned_number_t operator/(unsigned_number_t arg0, unsigned_number_t arg1)
         { return arg0 /= std::move(arg1); }
@@ -922,147 +891,12 @@ namespace Machine
         ret.back() = std::move(a) >> d;
         return ret;
     }
-    /*{
-        static constexpr index_t max_half = unsigned_number_t::max_half;
-        static constexpr index_t n_digits = unsigned_number_t::n_digits;
-        static constexpr index_t n_digits_half = unsigned_number_t::n_digits_half;
-        static constexpr std::array<index_t, 2> mask = unsigned_number_t::mask;
-
-        if (b.zero())
-            throw std::runtime_error{"In Machine::divide(unsigned_number_t, unsigned_number_t):\n"
-                "Division by 0.\n"};
-
-        if (a.zero())
-            return {};
-
-        if (std::size(b.digits()) == 1 and b.digits().front() <= max_half)
-            return divide(std::move(a), b.digits().front());
-
-        if (a < b)
-            return {0, std::move(a)};
-
-        std::array<unsigned_number_t, 2> ret{};
-        index_t d, sa, sb;
-        {
-            d = n_digits - std::bit_width(b.digits().back());
-            bool half_word_shift_b = d >= n_digits_half;
-            if (half_word_shift_b)
-                d -= n_digits_half;
-
-            a <<= d;
-            b <<= d;
-
-            sb = std::size(b.digits_) * 2 - half_word_shift_b;
-            b.digits_.push_back(0);
-
-            bool half_word_shift_a = a.digits_.back() <= max_half;
-            sa = std::size(a.digits_) * 2 - half_word_shift_a;
-            if (sa <= sb or a.digits_.back() >= b.digits_.back())
-            {
-                if (not half_word_shift_a)
-                    a.digits_.push_back(0);
-                ++sa;
-            }
-
-            ret.front().digits_.resize((sa - sb + 1) / 2);
-        }
-
-        const index_t v1 = b.load_half_word(sb - 1);
-        const index_t v2 = b.load_half_word(sb - 2);
-
-        for (index_t i = sa - sb - 1; i != negative_1; --i)
-        {
-            index_t q;
-            {
-                index_t n0 = a.load_half_word(i + sb);
-                index_t n1 = a.load_half_word(i - 1 + sb);
-                index_t n2 = a.load_half_word(i - 2 + sb);
-
-                index_t r;
-                if (n0 == v1)
-                {
-                    q = max_half;
-                    r = n1 + v1;
-                }
-                else
-                {
-                    index_t c = (n0 << n_digits_half) + n1;
-                    q = c / v1;
-                    r = c % v1;
-                }
-
-                index_t mul = v2 * q;
-                while (r <= max_half and mul > (r << n_digits_half) + n2)
-                {
-                    --q;
-                    mul -= v2;
-                    r += v1;
-                }
-            }
-
-            if (q != 0)
-            {
-                index_t mul_carry = 0;
-                bool sub_carry = false;
-                for (index_t j = 0; j != sb + 1; ++j)
-                {
-                    index_t u = a.load_half_word(i + j);
-                    index_t v = b.load_half_word(j);
-
-                    index_t t = q * v + mul_carry;
-                    mul_carry = t >> n_digits_half;
-                    t &= mask.front();
-
-                    bool next_sub_carry = u < t;
-                    u = (u - t) & mask.front();
-
-                    if (sub_carry)
-                    {
-                        if (u == 0)
-                        {
-                            u = max_half;
-                            next_sub_carry = true;
-                        }
-                        else
-                            --u;
-                    }
-                    sub_carry = next_sub_carry;
-
-                    a.store_half_word(i + j, u);
-                }
-
-                if (sub_carry)
-                {
-                    --q;
-
-                    index_t carry = 0;
-                    for (index_t j = 0; j != sb + 1; ++j)
-                    {
-                        index_t u = a.load_half_word(i + j);
-                        index_t v = b.load_half_word(j);
-
-                        u += v + carry;
-                        carry = u >> n_digits_half;
-
-                        a.store_half_word(i + j, u & mask.front());
-                    }
-                }
-            }
-
-            ret.front().store_half_word(i, q);
-        }
-
-        ret.front().normalise();
-        a.normalise();
-
-        ret.back() = std::move(a) >> d;
-        return ret;
-    }*/
 
     void swap(unsigned_number_t &arg0, unsigned_number_t &arg1) noexcept { arg0.swap(arg1); }
 
     signed_number_t::signed_number_t(integer_t arg) :
         sign_{arg < 0}, magnitude_{static_cast<index_t>(std::abs(arg))} {}
+
     signed_number_t &signed_number_t::operator=(integer_t arg)
         { return *this = signed_number_t{arg}; }
 
@@ -1079,7 +913,14 @@ namespace Machine
         if ((typeid(encoder) == typeid(encoder_signed_b_ary_t) or
                 typeid(encoder) == typeid(encoder_signed_b_adic_t)) and
                 *begin >= encoder.alphabet().max_character() - 1)
+        {
             sign_ = *begin++ == encoder.alphabet().max_character();
+            if (*begin >= encoder.alphabet().max_character() - 1)
+                throw std::runtime_error{"In Machine::signed_number_t::signed_number_t"
+                "(Apparatus::string_iterator_template_t<stride, is_const>, "
+                "Apparatus::string_iterator_template_t<stride, is_const>, const encoder_t &):\n"
+                "Unexpected sign character.\n"};
+        }
 
         magnitude_ = unsigned_number_t{begin, end, encoder};
 
@@ -1111,8 +952,10 @@ namespace Machine
         return;
     }
 
-    const unsigned_number_t &signed_number_t::abs() const & { return magnitude_; }
-    unsigned_number_t signed_number_t::abs() && { return std::move(magnitude_); }
+    const unsigned_number_t &signed_number_t::abs(this const signed_number_t &self)
+        { return self.magnitude_; }
+    unsigned_number_t signed_number_t::abs(this signed_number_t &&self)
+        { return std::move(self.magnitude_); }
 
     bool signed_number_t::zero() const { return abs().zero(); }
     bool signed_number_t::pos() const { return not zero() and sign_ == pos_; }
@@ -1182,14 +1025,8 @@ namespace Machine
 
     std::string signed_number_t::print(const encoder_t &encoder) const
     {
-        if (typeid(encoder) == typeid(encoder_b_ary_t))
-            return print_b_ary(encoder.alphabet().max_character() + 1);
-        
         if (typeid(encoder) == typeid(encoder_signed_b_ary_t))
             return print_b_ary(encoder.alphabet().max_character() - 1);
-
-        if (typeid(encoder) == typeid(encoder_b_adic_t))
-            return print_b_adic(encoder.alphabet().max_character() + 1);
 
         if (typeid(encoder) == typeid(encoder_signed_b_adic_t))
             return print_b_adic(encoder.alphabet().max_character() - 1);
@@ -1268,10 +1105,12 @@ namespace Machine
         return ret;
     }
 
-    signed_number_t signed_number_t::operator-()
+    signed_number_t signed_number_t::operator+() const { return *this; }
+
+    signed_number_t signed_number_t::operator-() const
     {
         signed_number_t ret {*this};
-        sign_ = not sign_;
+        ret.sign_ = not sign_;
         return ret;
     }
 

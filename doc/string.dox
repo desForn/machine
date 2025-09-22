@@ -3,7 +3,7 @@
 ///
 /// \class Machine::Apparatus::string_iterator_template_t
 /// \tparam stride 1 for forward iterators and -1 for reverse iterators
-/// \tparam is_const true for const iterators; false otherwise
+/// \tparam is_const `true` for const iterators; `false` otherwise
 /// \brief Auxiliary class
 ///
 /// Auxiliary class for the implementation of string_t iterators. Do not use directly; use instead
@@ -44,23 +44,23 @@
 /// The maximum valid value of a character for this alphabet.
 ///
 /// \fn Machine::alphabet_t::alphabet_t() noexcept
-/// \brief Initialises n = 0
+/// \brief Initialises \ref alphabet_t.max_character_ = 0
 ///
 /// \fn Machine::alphabet_t::alphabet_t(character_t max_character) noexcept
 /// \param max_character
-/// \brief Initialises n = \p max_character
+/// \brief Initialises \ref alphabet_t.max_character_ = \p max_character
 ///
 /// \fn character_t Machine::alphabet_t::max_character() const noexcept
-/// \brief Returns \f$n\f$
+/// \returns \ref alphabet_t.max_character_.
 ///
 /// \fn bool Machine::alphabet_t::operator==(const alphabet_t &) const noexcept
-/// \brief Compares the value of `n` of two \ref alphabet_t objects
+/// \returns `true` if \ref alphabet_t.max_character_ of both members coincide.
 ///
 /// \fn bool Machine::alphabet_t::operator!=(const alphabet_t &) const noexcept
-/// \sa alphabet_t::operator==
+/// \returns `not` \ref alphabet_t::operator==.
 ///
 /// \fn void Machine::alphabet_t::swap(alphabet_t &arg) noexcept
-/// \p arg
+/// \param arg
 ///
 /// Swaps `*this` with \p arg.
 /// \sa swap(alphabet_t &, alphabet_t &)
@@ -96,6 +96,7 @@
 /// \fn Machine::string_t::string_character_proxy_t &Machine::string_t::string_character_proxy_t::\
 /// operator=(const string_character_proxy_t &) noexcept
 /// \brief Default copy assignment operator
+/// \returns `*this`.
 ///
 /// \fn Machine::string_t::string_character_proxy_t::string_character_proxy_t(
 /// string_character_proxy_t &&) noexcept
@@ -104,6 +105,7 @@
 /// \fn Machine::string_t::string_character_proxy_t &Machine::string_t::string_character_proxy_t::\
 /// operator=(string_character_proxy_t &&) noexcept
 /// \brief Default move assignment operator
+/// \returns `*this`.
 ///
 /// \fn Machine::string_t::string_character_proxy_t::string_character_proxy_t(string_t *ptr,
 /// index_t pos)
@@ -123,11 +125,13 @@
 /// \brief Assigns a new value to the pointed character
 /// \throws std::runtime_error if out of bounds or if \p c is larger than the maximum allowed by the
 /// \ref alphabet_t object.
+/// \returns `*this`.
 ///
 /// \fn Machine::string_t::string_character_proxy_t &Machine::string_t::string_character_proxy_t::\
 /// increment(integer_t arg)
 /// \param arg Number of steps to increment
 /// \arg Increment the iterator by \p arg steps
+/// \returns `*this`.
 ///
 /// It does not perform bounds checking (it is deferred to dereference). \p arg can be negative
 /// \sa \ref "operator character_t() const"
@@ -156,6 +160,7 @@
 /// \fn Machine::string_t::string_character_const_proxy_t &Machine::string_t::\
 /// string_character_const_proxy_t::operator=(const string_character_const_proxy_t &) noexcept
 /// \brief Default copy assignment operator
+/// \returns `*this`.
 ///
 /// \fn Machine::string_t::string_character_const_proxy_t::string_character_const_proxy_t(
 /// string_character_const_proxy_t &&) noexcept
@@ -164,6 +169,7 @@
 /// \fn Machine::string_t::string_character_const_proxy_t &Machine::string_t::\
 /// string_character_const_proxy_t::operator=(string_character_const_proxy_t &&) noexcept
 /// \brief Default move assignment operator
+/// \returns `*this`.
 ///
 /// \fn Machine::string_t::string_character_const_proxy_t::string_character_const_proxy_t\
 /// (const string_t *ptr,index_t pos)
@@ -181,6 +187,7 @@
 /// string_character_const_proxy_t::increment(integer_t arg)
 /// \param arg Number of steps to increment
 /// \arg Increment the iterator by \p arg steps
+/// \returns `*this`.
 ///
 /// It does not perform bounds checking (it is deferred to dereference). \p arg can be negative
 /// \sa \ref "operator character_t() const"
@@ -204,6 +211,7 @@
 /// \fn Machine::string_t::string_pos_proxy_t &Machine::string_t::string_pos_proxy_t::operator=\
 /// (const string_pos_proxy_t &) noexcept
 /// \brief Default copy assignment operator
+/// \returns `*this`.
 ///
 /// \fn Machine::string_t::string_pos_proxy_t::string_pos_proxy_t(string_pos_proxy_t &&) noexcept
 /// \brief Default move constructor
@@ -211,6 +219,7 @@
 /// \fn Machine::string_t::string_pos_proxy_t & Machine::string_t::string_pos_proxy_t::operator=\
 /// (string_pos_proxy_t &&) noexcept
 /// \brief Default move assignment operator
+/// \returns `*this`.
 ///
 /// \fn Machine::string_t::string_pos_proxy_t::string_pos_proxy_t(string_t *ptr)
 /// \brief Constructor
@@ -219,11 +228,12 @@
 /// \param ptr Pointer to \ref string_t
 ///
 /// \fn Machine::string_t::string_pos_proxy_t::operator index_t() const
-/// \brief Returns \ref string_t.pos_ as an \ref index_t
+/// \returns \ref string_t.pos_.
 ///
 /// \fn Machine::string_t::string_pos_proxy_t &Machine::string_t::string_pos_proxy_t::operator=\
 /// (index_t pos)
 /// \brief Assigns \ref string_t.pos_
+/// \returns `*this`.
 ///
 /// Assigns \p pos as the new value of \ref string_t.pos_. Performs bounds checking. If the \ref
 /// string_t is empty, \p pos must be \ref Machine::negative_1
@@ -275,8 +285,8 @@
 /// Mainly used as representation of the head of a \ref tape_t. If the string is empty, the value is
 /// \ref Machine::negative_1; otherwise, it satisfies pos_ < std::size(string_).
 ///
-/// \sa string_t::pos_proxy_t string_t::pos() string_t::pos() const string_t::athome()
-/// string_t::movel() string_t::mover() string_t::see() string_t::see(character_t)
+/// \sa string_t::string_pos_proxy_t string_t::pos() string_t::pos() const string_t::athome()
+/// string_t::move_l() string_t::move_r() string_t::see() \ref "string_t::see(character_t) const"
 /// string_t::print(character_t)
 ///
 /// \fn string_t::string_t() noexcept(noexcept(std::vector<character_t>()))
@@ -290,40 +300,40 @@
 ///
 /// Constructs an empty string over \p alphabet.
 ///
-/// \fn string_t::empty() const noexcept
+/// \fn bool string_t::empty() const noexcept
 ///
-/// Returns true if the object represents the empty string and false otherwise.
+/// \returns `true` if the object represents the empty string and `false` otherwise.
 ///
-/// \fn string_t::size() const noexcept
+/// \fn std::size_t string_t::size() const noexcept
 ///
-/// Returns the size of the string
+/// \returns The size of the string.
 ///
-/// \fn string_t::resize(index_t new_size, character_t c = 0)
+/// \fn void string_t::resize(index_t new_size, character_t c = 0)
 /// \param new_size Size of the string after return
 /// \param c Character inserted at the trail if \p new_size is larger than the previous size
 ///
 /// Resizes the string. If \ref string_t.pos_ becomes invalid, it sets it to the last character.
 ///
-/// \fn string_t::see() const
+/// \fn character_t string_t::see() const
 /// \throws std::runtime_error if the string is empty.
 ///
-/// Returns the string pointed by \ref string_t.pos_.
+/// \returns The string pointed by \ref string_t.pos_.
 ///
-/// \fn string_t::see(character_t c) const
+/// \fn bool string_t::see(character_t c) const
 /// \param c Character to compare
 ///
-/// Returns true if the character pointed by \ref string_t.pos_ is equal to \p c. Returns false if
+/// \returns `true` if the character pointed by \ref string_t.pos_ is equal to \p c. `false` if.
 /// such character differs or if the string is empty.
 ///
-/// \fn string_t::pop()
+/// \fn character_t string_t::pop()
 /// \throws std::runtime_error if the string is empty or if \ref string_t.pos_ does not point to the
 /// last character.
 ///
-/// Returns the last character and removes it from the string.
+/// \returns The last character and removes it from the string.
 ///
 /// \sa stack_t string_t::push(character_t)
 ///
-/// \fn string_t::push(character_t c)
+/// \fn void string_t::push(character_t c)
 /// \param c Character to be pushed
 /// \throws std::runtime_error if \p c is not part of \ref string_t.alphabet_ or if
 /// \ref string_t.pos_ does not point to the last character.
@@ -332,27 +342,27 @@
 ///
 /// \sa stack_t string_t::pop()
 ///
-/// \fn string_t::pos() noexcept
+/// \fn string_pos_proxy_t string_t::pos() noexcept
 /// 
-/// Returns a \ref string_t::string_pos_proxy_t representing the \ref string_t.pos_ field.
+/// \returns A \ref string_t::string_pos_proxy_t representing the \ref string_t.pos_ field.
 ///
-/// \fn string_t::pos() const noexcept
+/// \fn index:t string_t::pos() const noexcept
 ///
-/// Returns a \ref index_t representing the \ref string_t.pos_ field.
+/// \returns A \ref index_t representing the \ref string_t.pos_ field.
 ///
-/// \fn string_t::athome() const
+/// \fn bool string_t::athome() const
 ///
-/// Returns true if \ref string_t.pos_ is 0 and false otherwise (including the case where the string
-/// is empty).
+/// \returns `true` if \ref string_t.pos_ is 0 and `false` otherwise.
+/// (including the case where the string is empty).
 ///
 /// \sa tape_t
 ///
-/// \fn string_t::top() const
+/// \fn bool string_t::top() const
 ///
-/// Returns true if \ref string_t.pos_ points to the last character of the string or the string is
-/// empty and false otherwise
+/// \returns `true` if \ref string_t.pos_ points to the last character of the string or the string is.
+/// empty and `false` otherwise
 ///
-/// \fn string_t::move_l()
+/// \fn void string_t::move_l()
 /// \throws std::runtime_error if the string is empty or if \ref string_t.pos_ points to the first
 /// character.
 ///
@@ -360,7 +370,7 @@
 ///
 /// \sa tape_t
 ///
-/// \fn string_t::move_r(character_t c)
+/// \fn void string_t::move_r(character_t c)
 /// \param c Character to be appended if the string is enlarge
 /// \throws std::runtime_error if \p c is not part of \ref string_t.alphabet_.
 ///
@@ -369,7 +379,7 @@
 ///
 /// \sa tape_t
 ///
-/// \fn string_t::print(character_t c)
+/// \fn void string_t::print(character_t c)
 /// \param c The character to be printed
 /// \throws std::runtime_error if \p c is not part of \ref string_t.alphabet_ or if the string is
 /// empty.
@@ -378,142 +388,146 @@
 ///
 /// \sa tape_t
 ///
-/// \fn string_t::clear() noexcept
+/// \fn string_t &string_t::clear() noexcept
+/// \returns `*this`.
 ///
 /// Clears \ref string_t.string_ and sets \ref string_t.pos_ to \ref Machine::negative_1.
 ///
-/// \fn string_t::alphabet() const
+/// \fn const alphabet_t &string_t::alphabet() const
 ///
-/// Access to \ref string_t.alphabet_.
+/// \returns \ref string_t.alphabet_.
 ///
-/// \fn string_t::print_state(const encoder_t &encoder) const
+/// \fn std::string string_t::print_state(const encoder_t &encoder) const
 /// \param encoder Encoder used to trasnform \ref character_t to `char`
 ///
-/// Returns a `std::string` constructed by transforming each \ref character_t to `char` acording to
+/// \returns A `std::string` constructed by transforming each \ref character_t to `char` acording to.
 /// \p encoder. It preserves the order.
 ///
 /// \sa encoder_t string_t::print_state_reverse(const encoder_t &)
 ///
-/// \fn string_t::print_state_reverse(const encoder_t &encoder) const
+/// \fn std::string string_t::print_state_reverse(const encoder_t &encoder) const
 /// \param encoder Encoder used to trasnform \ref character_t to `char`
 ///
-/// Returns a `std::string` constructed by transforming each \ref character_t to `char` acording to
+/// \returns A `std::string` constructed by transforming each \ref character_t to `char` acording to.
 /// \p encoder. It reverses the order.
 ///
 /// \sa encoder_t string_t::print_state(const encoder_t &)
 ///
-/// \fn string_t::reverse() const
+/// \fn string_t string_t::reverse() const
 /// 
-/// Returns a string with over the same alphabet with reversed order. \ref string_t.pos_ of the
+/// \returns \ref string_t over the same alphabet with reversed order. \ref string_t.pos_ of the.
 /// returned string points to the same character.
 ///
-/// \fn string_t::operator<=>(const string_t &arg) const
+/// \fn std::strong_ordering string_t::operator<=>(const string_t &arg) const
 /// \param arg string to compare
 /// \throws std::runtime_error if the string alphabets differ.
+/// \returns The result of lexicographic comparison.
 /// 
 /// Compares lexicographically strings over the same alphabet. The \ref string_t.pos_ field is
 /// ignored.
 ///
-/// \fn string_t::operator==(const string_t &arg) const
+/// \fn bool string_t::operator==(const string_t &arg) const
 /// \param arg string to compare
+/// \throws std::runtime_error if the string alphabets differ.
+/// \returns `true` if the strings are equal and `false` otherwise.
+///
+/// Given two strings over the same alphabet, compares if their characters are all equal. The \ref
+/// string_t.pos_ field is ignored.
+///
+/// \fn bool string_t::operator!=(const string_t &arg) const
+/// \param arg string to compare
+/// \returns `not` \ref string_t::operator==(const string_t &) const.
 /// \throws std::runtime_error if the string alphabets differ.
 ///
 /// Given two strings over the same alphabet, compares if their characters are all equal. The \ref
 /// string_t.pos_ field is ignored.
 ///
-/// \fn string_t::operator!=(const string_t &arg) const
-/// \param arg string to compare
-/// \throws std::runtime_error if the string alphabets differ.
-///
-/// Given two strings over the same alphabet, compares if their characters are all equal. The \ref
-/// string_t.pos_ field is ignored.
-///
-/// \fn string_t::swap(string_t &arg) noexcept
+/// \fn void string_t::swap(string_t &arg) noexcept
 /// \param arg string to swap
 ///
 /// Swaps the contents of the strings. They are not required to be over the same alphabet.
 ///
-/// \fn string_t::operator[](index_t arg)
+/// \fn string_character_proxy_t string_t::operator[](index_t arg)
 /// \param arg
 ///
-/// Returns a proxy referring to the \p arg character. 
+/// \returns A proxy referring to the \p arg character. .
 ///
 /// \sa string_t::string_character_proxy_t
 ///
-/// \fn string_t::operator[](index_t arg) const
+/// \fn character_t string_t::operator[](index_t arg) const
 /// \param arg
 ///
-/// Returns the \p arg character. 
+/// \returns The character at position\p arg . .
 /// \throws std::runtime_error if \p arg is out of bounds.
 ///
-/// \fn string_t::begin() noexcept
+/// \fn string_iterator_t string_t::begin() noexcept
 ///
-/// Returns a \ref string_t::iterator to the first element if the string is not empty or to the
+/// \returns A \ref string_t::iterator to the first element if the string is not empty or to the.
 /// first past the last element if the string is empty.
 ///
-/// \fn string_t::end() noexcept
+/// \fn string_iterator_t string_t::end() noexcept
 ///
-/// Returns a \ref string_t::iterator to the first past the last element.
+/// \returns A \ref string_t::iterator to the first past the last element.
 ///
-/// \fn string_t::begin() const noexcept
+/// \fn string_const_iterator_t string_t::begin() const noexcept
 ///
-/// Returns a \ref string_t::const_iterator to the first element if the string is not empty or to
+/// \returns A \ref string_t::const_iterator to the first element if the string is not empty or to.
 /// the first past the last element if the string is empty.
 ///
-/// \fn string_t::end() const noexcept
+/// \fn string_const_iterator_t string_t::end() const noexcept
 ///
-/// Returns a \ref string_t::const_iterator to the first past the last element.
+/// \returns A \ref string_t::const_iterator to the first past the last element.
 ///
-/// \fn string_t::cbegin() const noexcept
+/// \fn string_const_iterator_t string_t::cbegin() const noexcept
 ///
-/// Returns a \ref string_t::const_iterator to the first element if the string is not empty or to
+/// \returns A \ref string_t::const_iterator to the first element if the string is not empty or to.
 /// the first past the last element if the string is empty.
 ///
-/// \fn string_t::cend() const noexcept
+/// \fn string_const_iterator_t string_t::cend() const noexcept
 ///
-/// Returns a \ref string_t::const_iterator to the first past the last element.
+/// \returns A \ref string_t::const_iterator to the first past the last element.
 ///
-/// \fn string_t::rbegin() noexcept
+/// \fn string_reverse_iterator_t string_t::rbegin() noexcept
 ///
-/// Returns a \ref string_t::reverse_iterator to the first element (in reverse order)
+/// \returns A \ref string_t::reverse_iterator to the first element (in reverse order).
 /// if the string is not empty or to
 /// the first past the last element if the string is empty.
 ///
-/// \fn string_t::rend() noexcept
+/// \fn string_reverse_iterator_t string_t::rend() noexcept
 ///
-/// Returns a \ref string_t::reverse_iterator to the first past the last element
+/// \returns A \ref string_t::reverse_iterator to the first past the last element.
 /// (in reverse order).
 ///
-/// \fn string_t::rbegin() const noexcept
+/// \fn string_const_reverse_iterator_t string_t::rbegin() const noexcept
 ///
-/// Returns a \ref string_t::const_reverse_iterator to the first element (in reverse order)
+/// \returns A \ref string_t::const_reverse_iterator to the first element (in reverse order).
 /// if the string is not empty or to
 /// the first past the last element if the string is empty.
 ///
-/// \fn string_t::rend() const noexcept
+/// \fn string_const_reverse_iterator_t string_t::rend() const noexcept
 ///
-/// Returns a \ref string_t::const_reverse_iterator to the first past the last element
+/// \returns A \ref string_t::const_reverse_iterator to the first past the last element.
 /// (in reverse order).
 ///
-/// \fn string_t::crbegin() const noexcept
+/// \fn string_const_reverse_iterator_t string_t::crbegin() const noexcept
 ///
-/// Returns a \ref string_t::const_reverse_iterator to the first element (in reverse order)
+/// \returns A \ref string_t::const_reverse_iterator to the first element (in reverse order).
 /// if the string is not empty or to
 /// the first past the last element if the string is empty.
 ///
-/// \fn string_t::crend() noexcept
+/// \fn string_const_reverse_iterator_t string_t::crend() noexcept
 ///
-/// Returns a \ref string_t::const_reverse_iterator to the first past the last element
+/// \returns A \ref string_t::const_reverse_iterator to the first past the last element.
 /// (in reverse order).
 ///
-/// \fn Machine::swap(alphabet_t &arg0, alphabet_t &arg1) noexcept
+/// \fn void Machine::swap(alphabet_t &arg0, alphabet_t &arg1) noexcept
 /// \param arg0
 /// \param arg1
 ///
 /// Swaps \p arg0 and \p arg1
 /// \sa Machine::alphabet_t::swap
 ///
-/// \fn Machine::swap(string_t &arg0, string_t &arg1) noexcept
+/// \fn void Machine::swap(string_t &arg0, string_t &arg1) noexcept
 /// \param arg0
 /// \param arg1
 ///
@@ -556,6 +570,7 @@
 /// Machine::Apparatus::string_iterator_template_t::operator=\
 /// (const string_iterator_template_t &) noexcept
 /// \brief Default copy assignment
+/// \returns `*this`.
 ///
 /// \fn Machine::Apparatus::string_iterator_template_t::string_iterator_template_t\
 /// (string_iterator_template_t &&) noexcept
@@ -565,9 +580,11 @@
 /// Machine::Apparatus::string_iterator_template_t::operator=\
 /// (string_iterator_template_t &&) noexcept
 /// \brief Default move assignment
+/// \returns `*this`.
 ///
 /// \fn Machine::Apparatus::string_iterator_template_t::\
-/// string_iterator_template_t(const string_iterator_template_t<stride, false> &)
+/// string_iterator_template_t(const string_iterator_template_t<stride, false> &arg)
+/// \param arg
 /// \brief Constructor from mutable iterator
 ///
 /// Constructs a const iterator from a mutable iterator preseving the direction.
@@ -580,69 +597,86 @@
 ///
 /// Constructs an iterator to \ref string_t pointed by \p ptr at position \p pos.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator*() noexcept
+/// \fn proxy_t Machine::Apparatus::string_iterator_template_t::operator*() noexcept
 ///
-/// Returns a proxy reference pointing to the corresponding character.
+/// \returns A proxy reference pointing to the corresponding character.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator*() const noexcept
+/// \fn const_proxy_t Machine::Apparatus::string_iterator_template_t::operator*() const noexcept
 ///
-/// Returns a proxy const reference pointing to the corresponding character.
+/// \returns A proxy const reference pointing to the corresponding character.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator+(integer_t arg) noexcept
+/// \fn string_iterator_template \
+/// Machine::Apparatus::string_iterator_template_t::operator+(integer_t arg) noexcept
 /// \param arg
 /// \brief Iterator arithmetic
+/// \returns A copy of `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator-(integer_t arg) noexcept
+/// \fn string_iterator_template \
+/// Machine::Apparatus::string_iterator_template_t::operator-(integer_t arg) noexcept
 /// \param arg
 /// \brief Iterator arithmetic
+/// \returns The negative of `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator+=(integer_t arg) noexcept
+/// \fn string_iterator_template &\
+/// Machine::Apparatus::string_iterator_template_t::operator+=(integer_t arg) noexcept
 /// \param arg
 /// \brief Iterator arithmetic
+/// \returns `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator-=(integer_t arg) noexcept
+/// \fn string_iterator_template &\
+/// Machine::Apparatus::string_iterator_template_t::operator-=(integer_t arg) noexcept
 /// \param arg
 /// \brief Iterator arithmetic
+/// \returns `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator++() noexcept
+/// \fn string_iterator_template &\
+/// Machine::Apparatus::string_iterator_template_t::operator++() noexcept
 /// \brief Pre-increment
+/// \returns `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator--() noexcept
+/// \fn string_iterator_template &\
+/// Machine::Apparatus::string_iterator_template_t::operator--() noexcept
 /// \brief Pre-decrement
+/// \returns `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator++(int) noexcept
+/// \fn string_iterator_template Machine::Apparatus::string_iterator_template_t::operator++(int) \
+/// noexcept
 /// \brief Post-increment
+/// \returns The previous value of `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator--(int) noexcept
+/// \fn string_iterator_template Machine::Apparatus::string_iterator_template_t::operator--(int) \
+/// noexcept
 /// \brief Post-decrement
+/// \returns The previous value of `*this`.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator<=>\
+/// \fn std::strong_ordering Machine::Apparatus::string_iterator_template_t::operator<=>\
 /// (const string_iterator_template_t &arg)
 /// \param arg
 /// \throws std::runtime_error if the strings pointed by the iterators differ.
+/// \returns `std::strong_ordering` with the value of the comparison.
 ///
 /// Compares the iterators by precedence.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator==\
+/// \fn bool Machine::Apparatus::string_iterator_template_t::operator==\
 /// (const string_iterator_template_t &arg)
 /// \param arg
 /// \throws std::runtime_error if the strings pointed by the iterators differ.
+/// \returns `true` if the iterators point to the same object and `false` otherwise.
 ///
-/// Compares the iterators.
-///
-/// \fn Machine::Apparatus::string_iterator_template_t::operator!=\
+/// \fn bool Machine::Apparatus::string_iterator_template_t::operator!=\
 /// (const string_iterator_template_t &arg)
 /// \param arg
 /// \throws std::runtime_error if the strings pointed by the iterators differ.
+/// \returns `not` \ref operator==.
 ///
 /// Compares the iterators.
 ///
-/// \fn Machine::Apparatus::string_iterator_template_t::swap(string_iterator_template &arg)
+/// \fn void Machine::Apparatus::string_iterator_template_t::swap(string_iterator_template &arg)
 /// \param arg
 ///
 /// Swaps `*this` with \p arg.
 ///
-/// \fn Machine::swap(Apparatus::string_iterator_template_t<stride, is_const> &arg0,\
+/// \fn void Machine::swap(Apparatus::string_iterator_template_t<stride, is_const> &arg0,\
 /// Apparatus::string_iterator_template_t<stride, is_const> &arg1) noexcept
 /// \param arg0
 /// \param arg1

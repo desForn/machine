@@ -2,10 +2,7 @@
 #include "encoder.hpp"
 #include "hash.hpp"
 
-#include <vector>
-#include <stdexcept>
 #include <array>
-#include <limits>
 
 namespace Machine
 {
@@ -18,7 +15,7 @@ namespace Machine
     {
         friend unsigned_number_t operator*(const unsigned_number_t &, const unsigned_number_t &);
         friend std::array<unsigned_number_t, 2> divide(unsigned_number_t, index_t);
-        friend std::array<unsigned_number_t, 2> divide(unsigned_number_t, unsigned_number_t);
+        friend std::array<unsigned_number_t, 2> divide(unsigned_number_t a, unsigned_number_t b);
         friend class signed_number_t;
 
     private:
@@ -32,7 +29,7 @@ namespace Machine
         std::vector<index_t> digits_{};
 
     public:
-        unsigned_number_t() = default;
+        unsigned_number_t() noexcept(noexcept(std::vector<index_t>())) = default;
         ~unsigned_number_t() = default;
 
         unsigned_number_t(const unsigned_number_t &) = default;
@@ -53,8 +50,8 @@ namespace Machine
         void swap(unsigned_number_t &) noexcept;
 
     public:
-        const std::vector<index_t> &digits() const;
-        bool zero() const;
+        const std::vector<index_t> &digits() const noexcept;
+        bool zero() const noexcept;
 
         string_t b_ary(character_t) const;
         string_t b_adic(character_t) const;
@@ -115,7 +112,7 @@ namespace Machine
         unsigned_number_t magnitude_{};
 
     public:
-        signed_number_t() = default;
+        signed_number_t() noexcept(noexcept(std::vector<index_t>())) = default;
         ~signed_number_t() = default;
 
         signed_number_t(const signed_number_t &) = default;
@@ -139,8 +136,8 @@ namespace Machine
         void swap(signed_number_t &) noexcept;
 
     public:
-        const unsigned_number_t &abs() const &;
-        unsigned_number_t abs() &&;
+        const unsigned_number_t &abs(this const signed_number_t &);
+        unsigned_number_t abs(this signed_number_t &&);
         bool zero() const;
         bool pos() const;
         bool neg() const;
@@ -161,7 +158,8 @@ namespace Machine
         signed_number_t &operator--();
         signed_number_t operator++(int);
         signed_number_t operator--(int);
-        signed_number_t operator-();
+        signed_number_t operator+() const;
+        signed_number_t operator-() const;
 
         signed_number_t &operator+=(const signed_number_t &);
         signed_number_t &operator-=(const signed_number_t &);
@@ -174,7 +172,7 @@ namespace Machine
 
     signed_number_t operator+(signed_number_t, const signed_number_t &);
     signed_number_t operator-(signed_number_t, const signed_number_t &);
-    signed_number_t operator*(const signed_number_t &, const signed_number_t &);
+    signed_number_t operator*(signed_number_t, const signed_number_t &);
     signed_number_t operator/(signed_number_t, signed_number_t);
     signed_number_t operator%(signed_number_t, signed_number_t);
     signed_number_t operator<<(signed_number_t, integer_t);

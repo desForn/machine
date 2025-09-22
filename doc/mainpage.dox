@@ -1,0 +1,53 @@
+/// \mainpage %Machine project
+/// \section sc_introduction Introduction
+/// This project is to play with some ideas of theory of computation and compiler theory.
+/// Machines are implemented using the formulation given in \cite TLOM. The project implements
+/// these machine formalism allowing to see them work in an interactive way.\n
+/// It is planned to use these machines to implement some parts of a compiler for some programming
+/// language (yet to be chosen) using the ideas from \cite Compilers.\n
+/// Algorithms from \cite TAOCP2 are also used.
+///
+/// \section sc_machines Formulation
+/// Following \cite TLOM, programs run on their corresponding machines, which consist of devices.
+/// In what follows we give a summary of the definitions of each of them.
+///
+/// \subsection sc_machines_alphabet Alphabets, strings, characters and encoders
+/// Information is encoded using strings.
+/// Strings (cf. \ref Machine::string_t) are finite sequences over a set denoted the alphabet.
+/// An alphabet (cf. \ref Machine::alphabet_t) is any non-empty finite set.
+/// The elements of an alphabet are denoted characters (cf. \ref Machine::character_t).
+/// As any finite set is in bijective
+/// correspondence with a unique set of the form \f$\{0, \dots, n\}\f$, every alphabet is
+/// identified by the number \f$n\f$.
+///
+/// It seems more natural to use \f$n + 1\f$ to identify the set (as done with the von Neumann
+/// definition of ordinals). However, this has the inconvinient that the identifier may not fit in a
+/// numerical type that can hold all possible characters. For example, if \f$n = 255\f$, then one
+/// can use a `char` to hold the characters but \f$n + 1 = 256\f$ does not fit in a `char`.
+///
+/// The bijection of an alphabet to its numeric set is represented by an encoder (cf. \ref
+/// Machine::encoder_t).
+///
+/// \subsection sc_machines_devices Devices
+/// Devices (cf. \ref Machine::device_t) are defined as a tuple of:
+///     - The \b realm: some arbitrary set,
+///     - The \b repertory: a set of partial functions from the realm to itself,
+///     - The <b>device alphabet</b>: a set of the form \f$\{0, \dots, n\}\f$,
+///     - The \b encoder: a bijection from some arbitrary alphabet to the device alphabet
+///     - The \b initialiser: a function from the set of strings over the device alphabet to the realm,
+///     and
+///     - The \b terminator: a partial function from the realm to the set of strings over the device
+///     alphabet.
+///
+/// The typical devices are:
+///     - Control: \ref Machine::control_t,
+///     - Input: \ref Machine::input_t,
+///     - Output: \ref Machine::output_t,
+///     - Stack: \ref Machine::stack_t,
+///     - Unsigned counter: \ref Machine::unsigned_counter_t,
+///     - Signed counter: \ref Machine::counter_t,
+///     - Tape: \ref Machine::tape_t, and
+///     - Random access machine: \ref Machine::ram_t.
+///
+/// See the documentation of each device for their particular definition.
+///

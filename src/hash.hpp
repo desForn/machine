@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstddef>
-#include <type_traits>
+#include "fwd.hpp"
+
 #include <ranges>
 #include <limits>
 
