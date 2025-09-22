@@ -34,8 +34,8 @@
 ///     - The \b repertory: a set of partial functions from the realm to itself,
 ///     - The <b>device alphabet</b>: a set of the form \f$\{0, \dots, n\}\f$,
 ///     - The \b encoder: a bijection from some arbitrary alphabet to the device alphabet
-///     - The \b initialiser: a function from the set of strings over the device alphabet to the realm,
-///     and
+///     - The \b initialiser: a function from the set of strings over the device alphabet to the
+///     realm, and
 ///     - The \b terminator: a partial function from the realm to the set of strings over the device
 ///     alphabet.
 ///
@@ -49,5 +49,43 @@
 ///     - Tape: \ref Machine::tape_t, and
 ///     - Random access machine: \ref Machine::ram_t.
 ///
-/// See the documentation of each device for their particular definition.
+/// Each object of a derived type from \ref Machine::device_t stores the \b encoder
+/// (cf. \ref Machine::device_t::encoder()),
+/// \b initialser (cf. \ref Machine::device_t::initialiser() const)
+/// and \b terminator (cf. \ref Machine::device_t::terminator()) of
+/// the device as well as an object representing the \b state, i.e. a member of the \b realm.
+/// The <b>device alphabet</b> is stored in the encoder
+/// (cf. \ref Machine::encoder_t::alphabet() const). The \b repertory is not stored explicitly but
+/// instead for each device there are associated classes representing the device \b operations, i.e.
+/// the members of the \b repertory.
+///
+/// See the documentation of each device for further information.
+///
+/// \subsection sc_machines_machines Machines
+/// Machines (cf. \ref Machine::machine_t) are defined as a tuple of devices (cf. \ref
+/// sc_machines_devices).
+///
+/// The <b>configuration space</b> of a machine is the Cartesian product of the realms of its
+/// devices.
+///
+/// Each object of \ref Machine::machine_t stores the tuple of corresponding \ref Machine::device_t
+/// objects and the machine program
+/// (cf. \ref sc_machines_programs Machine::machine_t::program_t). It also stores additional
+/// information regarding its state.
+///
+/// \subsection sc_machines_programs Instruction sets and programs
+/// The instruction set of a machine is defined as the Cartesian product of the repertories of the
+/// devices. An instruction is a member of the instruction set.
+///
+/// An initialiser of a machine is a tuple of initialisers for each device.
+/// A teminator of a machine is defined similarly.
+///
+/// A program for a machine is defined as a triple of an initialiser of the machine, a terminator of
+/// the machine and a finite set of instructions, i.e. a finite subset of the instruction set.
+///
+/// A program is deterministic if and only if the domains of the instructions and the terminator are
+/// pair-wise disjoint.
+///
+/// A program is nonblocking if and only if the union of the domains of the instructions and
+/// terminator are the whole configuration space.
 ///
